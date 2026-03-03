@@ -113,6 +113,8 @@ const en: Partial<LangMap> = {
   "setting.support.console_win": "CTRL + SHIFT + I",
   "setting.support.debug_url": "Remote Debug Address",
   "setting.support.debug_url_desc": "One address per line. Automatically attempts to use these addresses after 2 connection failures.\nTemporary API used during runtime after successful connection.\nNote: If the debug address points to a server other than the token issuer, verification will fail.",
+  "setting.debug.network_library": "API Request Library",
+  "setting.debug.network_library_desc": "Select the underlying library for API requests. 'fetch' is the native implementation, 'requestUrl' is Obsidian's adapter (can bypass some CORS restrictions and handles redirects automatically).",
 
   // --- ui.history ---
   "ui.history.title": "Note History",
@@ -168,6 +170,7 @@ const en: Partial<LangMap> = {
   "ui.status.conflict": "Sync conflict detected and forcefully merged, manual handling needed for ${path}.",
   "ui.status.no_connection": "Unable to connect to server, please check your network connection",
   "ui.status.config_imported": "Authorization config imported",
+  "ui.status.api_redirected": "Service redirect detected, automatically updated to: ${url}",
   "ui.status.last_sync_not_completed": "The previous full sync has not completed yet, please wait or check server status",
 
   // --- ui.log ---

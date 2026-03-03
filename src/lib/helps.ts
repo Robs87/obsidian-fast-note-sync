@@ -297,7 +297,8 @@ export function isWsUrl(url: string): boolean {
  */
 export function addRandomParam(url: string): string {
   const separator = url.includes("?") ? "&" : "?"
-  return `${url}${separator}_t=${Date.now()}`
+  const randomStr = Math.random().toString(36).substring(2, 8)
+  return `${url}${separator}_t=${Date.now()}&_r=${randomStr}`
 }
 
 /**

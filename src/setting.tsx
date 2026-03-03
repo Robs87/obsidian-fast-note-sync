@@ -17,8 +17,6 @@ export interface PluginSettings {
   logEnabled: boolean
   /** API 基础地址 */
   api: string
-  /** WebSocket API 地址（根据 api 自动生成） */
-  wsApi: string
   /** API 访问令牌 */
   apiToken: string
   /** 库（Vault）标识名称 */
@@ -64,6 +62,8 @@ export interface PluginSettings {
   showVersionInfo: boolean
   /** 配置同步 - 增加目录同步（多行） */
   configSyncOtherDirs: string
+  /** 网络请求库类型 */
+  networkLibrary: 'fetch' | 'requestUrl'
 }
 
 /**
@@ -81,7 +81,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   logEnabled: false,
   // API 网关地址
   api: "",
-  wsApi: "",
   // API 令牌
   apiToken: "",
   vault: "",
@@ -106,6 +105,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   debugRemoteUrls: "",
   showVersionInfo: false,
   configSyncOtherDirs: "",
+  networkLibrary: "fetch",
 }
 
 
@@ -350,7 +350,6 @@ export class SettingTab extends PluginSettingTab {
         settings: {
           ...this.plugin.settings,
           api: maskValue(this.plugin.settings.api),
-          wsApi: maskValue(this.plugin.settings.wsApi),
           apiToken: this.plugin.settings.apiToken ? "***HIDDEN***" : "",
         },
         runtimeInfo: {
@@ -508,6 +507,18 @@ export class SettingTab extends PluginSettingTab {
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.support.log_desc"))
+
+    new Setting(set).setName($("setting.debug.network_library")).addDropdown((dropdown) =>
+      dropdown
+        .addOption("fetch", "fetch")
+        .addOption("requestUrl", "requestUrl")
+        .setValue(this.plugin.settings.networkLibrary)
+        .onChange(async (value: 'fetch' | 'requestUrl') => {
+          this.plugin.settings.networkLibrary = value
+          await this.plugin.saveSettings()
+        }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.network_library_desc"))
 
     new Setting(set).setName($("setting.support.debug_url")).addTextArea((text) =>
       text

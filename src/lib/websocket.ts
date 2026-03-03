@@ -21,7 +21,6 @@ const WS_COUNT_STORAGE_KEY = "fast-note-sync-ws-count"
 
 export class WebSocketClient {
   public ws: WebSocket
-  private wsApi: string
   private plugin: FastSync
   public isOpen: boolean = false
   public isAuth: boolean = false
@@ -41,7 +40,6 @@ export class WebSocketClient {
 
   constructor(plugin: FastSync) {
     this.plugin = plugin
-    this.wsApi = plugin.runWsApi.replace(/\/+$/, "") // 去除尾部斜杠
 
     // Load count from local storage
     const storedCount = localStorage.getItem(WS_COUNT_STORAGE_KEY)
@@ -80,8 +78,6 @@ export class WebSocketClient {
   }
 
   public register(onStatusChange?: (status: boolean) => void) {
-    this.wsApi = this.plugin.runWsApi.replace(/\/+$/, "") // 去除尾部斜杠
-
     if (onStatusChange) this.statusListeners.add(onStatusChange)
 
     // Prevent duplicate connection if already connecting or open
@@ -95,32 +91,36 @@ export class WebSocketClient {
       this.cleanupWebSocket(this.ws);
     }
 
-    if (isWsUrl(this.wsApi)) {
+    if (isWsUrl(this.plugin.runWsApi)) {
       this.isRegister = true
-      const url = addRandomParam(this.wsApi + "/api/user/sync?lang=" + moment.locale() + "&count=" + this.count)
-      this.ws = new WebSocket(url)
+      const wsUrl = addRandomParam(this.plugin.runWsApi + "/api/user/sync?lang=" + moment.locale() + "&count=" + this.count);
+      this.ws = new WebSocket(wsUrl)
       this.count++
       localStorage.setItem(WS_COUNT_STORAGE_KEY, this.count.toString())
+
       this.ws.onerror = (error) => {
         dump("WebSocket error:", {
           timestamp: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
-          url: url,
+          url: wsUrl,
           readyState: this.ws.readyState,
           error: error
         })
         this.notifyStatusChange(false)
       }
+
       this.ws.onopen = (e: Event): void => {
         this.timeConnect = 0
         this.isAuth = false
         this.isOpen = true
         dump("Service connected", {
           timestamp: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
-          url: url
+          url: wsUrl
         })
         this.notifyStatusChange(true)
         if (this.plugin.runApi !== this.plugin.settings.api) {
-          new Notice(`[FastSync] 已临时连接到调试服务地址: ${this.plugin.runApi}`)
+          if (this.plugin.settings.showSyncNotice) {
+            new Notice($("ui.status.api_connected", { url: this.plugin.runApi }), 5000)
+          }
         }
         this.Send("Authorization", this.plugin.settings.apiToken)
         dump("Service authorization")
@@ -194,7 +194,7 @@ export class WebSocketClient {
         }
 
         // 处理文本消息
-        // 使用字符串的 indexOf 找到第一个分隔符的位置
+        // 使用字符串 of indexOf 找到第一个分隔符的位置
         let msgData: string = event.data
         let msgAction: string = ""
         const index = event.data.indexOf("|")
@@ -333,10 +333,7 @@ export class WebSocketClient {
             delay = 1000
             new Notice(`[FastSync] 尝试连接调试地址: ${url}`)
           }
-        } else if (this.timeConnect === 2 + debugUrls.length) {
-          // 所有调试地址都失败，回退到主配置
-          this.plugin.runApi = this.plugin.settings.api
-          this.plugin.runWsApi = this.plugin.settings.wsApi
+          this.plugin.updateRuntimeApi(this.plugin.settings.api);
           dump(`Debug URLs failed, reverting to settings API`)
         }
       }

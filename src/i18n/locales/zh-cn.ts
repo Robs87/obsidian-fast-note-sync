@@ -113,6 +113,8 @@ const zh_cn: Partial<LangMap> = {
   "setting.support.console_win": "CTRL + SHIFT + I",
   "setting.support.debug_url": "远程服务调试地址",
   "setting.support.debug_url_desc": "一行一个地址。当连接失败 2 次时自动尝试使用这些地址。\n连接成功后将临时使用该地址作为运行时 API。\n注意: 调试地址指向的远端服务非服务令牌发放服务器, 则无法通过验证",
+  "setting.debug.network_library": "API 请求库选择",
+  "setting.debug.network_library_desc": "选择 API 请求使用的底层库。'fetch' 为原生实现，'requestUrl' 为 Obsidian 提供的适配实现（可绕过某些跨域限制并自动处理跳转）。",
 
   // --- ui.history ---
   "ui.history.title": "笔记历史",
@@ -168,6 +170,8 @@ const zh_cn: Partial<LangMap> = {
   "ui.status.conflict": "检测到同步冲突，已强制合并，需要手动处理 ${path}。",
   "ui.status.no_connection": "无法连接到服务器，请检查网络连接",
   "ui.status.config_imported": "已导入授权配置",
+  "ui.status.api_connected": "已连接到识别后的服务地址: ${url}",
+  "ui.status.api_redirected": "检测到远端服务地址重定向，已自动更新为: ${url}",
   "ui.status.last_sync_not_completed": "上一次的全部同步尚未完成，请耐心等待或检查服务端状态",
 
   // --- ui.log ---

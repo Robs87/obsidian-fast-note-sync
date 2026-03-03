@@ -17,6 +17,7 @@ import { WebSocketClient } from "./lib/websocket";
 import { MenuManager } from "./lib/menu_manager";
 import { LockManager } from "./lib/lock_manager";
 import { handleSync } from "./lib/operator";
+import { HttpApiService } from "./lib/api";
 import { $ } from "./i18n/lang";
 
 
@@ -26,6 +27,7 @@ export default class FastSync extends Plugin {
   settings: PluginSettings // 插件设置
   runApi: string // 运行时 API 地址
   runWsApi: string // 运行时 WebSocket API 地址
+  api: HttpApiService // HTTP API 服务
   websocket: WebSocketClient // WebSocket 客户端
   configManager: ConfigManager // 配置管理器
   lockManager: LockManager // 锁管理器
@@ -188,6 +190,7 @@ export default class FastSync extends Plugin {
     this.settingTab = new SettingTab(this.app, this)
     // 注册设置选项
     this.addSettingTab(this.settingTab)
+    this.api = new HttpApiService(this)
     this.websocket = new WebSocketClient(this)
 
     this.addCommand({
@@ -259,9 +262,8 @@ export default class FastSync extends Plugin {
     })
 
     this.configManager = new ConfigManager(this)
-    this.configManager = new ConfigManager(this)
 
-    this.refreshRuntime()
+    await this.refreshRuntime()
   }
 
   onunload() {
@@ -282,8 +284,6 @@ export default class FastSync extends Plugin {
     if (!data || data.configExclude === undefined) {
       this.settings.configExclude = `${this.app.vault.configDir}/plugins/${this.manifest.id}`
     }
-    this.runApi = this.settings.api
-    this.runWsApi = this.settings.wsApi
   }
 
   async onExternalSettingsChange() {
@@ -295,19 +295,19 @@ export default class FastSync extends Plugin {
   async saveSettings(setItem: string = "") {
     if (this.settings.api && this.settings.apiToken) {
       this.settings.api = this.settings.api.replace(/\/+$/, "") // 去除尾部斜杠
-      this.settings.wsApi = this.settings.api.replace(/^http/, "ws").replace(/\/+$/, "") // 去除尾部斜杠
-      this.runApi = this.settings.api
-      this.runWsApi = this.settings.wsApi
     }
-    this.refreshRuntime(true, setItem)
+    await this.refreshRuntime(true, setItem)
     this.fileHashManager.cleanupExcludedHashes()
     this.configHashManager.cleanupExcludedHashes()
     // 文件夹暂未实现 cleanupExcludedHashes，但 FolderHashManager 初始化时会自动过滤
     await this.saveData(this.settings)
   }
 
-  refreshRuntime(forceRegister: boolean = true, setItem: string = "") {
+  async refreshRuntime(forceRegister: boolean = true, setItem: string = "") {
     if (forceRegister && this.settings.api && this.settings.apiToken) {
+      // 1. 前置探测跳转，更新 runApi
+      await this.api.probeApiRedirect()
+
       if (this.wsSettingChange) {
         this.websocket.unRegister()
         this.wsSettingChange = false
@@ -348,6 +348,25 @@ export default class FastSync extends Plugin {
     }
 
     setLogEnabled(this.settings.logEnabled)
+  }
+
+  /**
+   * 更新运行时 API 地址
+   * 当检测到 301/302 重定向时调用
+   * @param newBaseUrl 新的基准地址（http/https）
+   */
+  updateRuntimeApi(newBaseUrl: string) {
+    const cleanUrl = newBaseUrl.replace(/\/+$/, "");
+    if (this.runApi === cleanUrl) return;
+
+    dump(`Updating runtime API due to redirect: ${this.runApi} -> ${cleanUrl}`);
+    this.runApi = cleanUrl;
+    // 同步更新 WS 地址
+    this.runWsApi = cleanUrl.replace(/^http/, "ws");
+
+    if (this.settings.showSyncNotice) {
+      new Notice($("ui.status.api_redirected", { url: cleanUrl }), 5000);
+    }
   }
 
   async activateLogView() {
