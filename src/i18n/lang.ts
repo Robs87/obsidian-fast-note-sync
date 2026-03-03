@@ -1,5 +1,6 @@
 import zhTW from "src/i18n/locales/zh-tw";
 import zhCN from "src/i18n/locales/zh-cn";
+/*
 import ptBR from "src/i18n/locales/pt-br";
 import vi from "src/i18n/locales/vi";
 import uk from "src/i18n/locales/uk";
@@ -8,16 +9,21 @@ import th from "src/i18n/locales/th";
 import ru from "src/i18n/locales/ru";
 import pt from "src/i18n/locales/pt";
 import pl from "src/i18n/locales/pl";
+*/
 import ko from "src/i18n/locales/ko";
 import ja from "src/i18n/locales/ja";
+/*
 import it from "src/i18n/locales/it";
 import id from "src/i18n/locales/id";
 //import fa from "src/lang/locale/fa";
 import fr from "src/i18n/locales/fr";
 import es from "src/i18n/locales/es";
+*/
 import en from "src/i18n/locales/en";
+/*
 import de from "src/i18n/locales/de";
 import ar from "src/i18n/locales/ar";
+*/
 import { moment } from "obsidian";
 
 
@@ -28,26 +34,26 @@ import { moment } from "obsidian";
 export type LangMap = Record<string, string>;
 
 export const localeMap: { [k: string]: Partial<typeof en> } = {
-    ar,
-    de,
+    // ar,
+    // de,
     en,
-    es,
+    // es,
     // fa,
-    fr,
+    // fr,
     // hu,
-    id,
-    it,
+    // id,
+    // it,
     ja,
     ko,
     //  ne,
-    pl,
-    pt,
-    "pt-br": ptBR,
-    ru,
-    th,
-    tr,
-    uk,
-    vi,
+    // pl,
+    // pt,
+    // "pt-br": ptBR,
+    // ru,
+    // th,
+    // tr,
+    // uk,
+    // vi,
     "zh-cn": zhCN,
     "zh-tw": zhTW,
 };
