@@ -193,39 +193,10 @@ export default class FastSync extends Plugin {
     this.api = new HttpApiService(this)
     this.websocket = new WebSocketClient(this)
 
-    this.addCommand({
-      id: "open-recycle-bin",
-      name: $("ui.recycle_bin.title"),
-      callback: () => {
-        new RecycleBinModal(this.app, this).open();
-      },
-    });
-
-    // 注册同步日志视图
-    SyncLogManager.getInstance().init(this)
-    this.registerView(SYNC_LOG_VIEW_TYPE, (leaf) => new SyncLogView(leaf, this))
-
-
-
     // 初始化锁管理器 (必须在事件管理器和操作模块之前)
     this.lockManager = new LockManager()
 
-    // 初始化 菜单/状态栏/命令 等 UI 入口
-    this.menuManager = new MenuManager(this)
-    this.menuManager.init()
-
-    // 初始化云端文件预览功能
-    this.fileCloudPreview = new FileCloudPreview(this)
-
-    // 初始化文件哈希管理器(必须在事件管理器之前)
-    this.fileHashManager = new FileHashManager(this)
-
-    // 初始化配置哈希管理器
-    this.configHashManager = new ConfigHashManager(this)
-
-    // 初始化文件夹快照管理器
-    this.folderSnapshotManager = new FolderSnapshotManager(this)
-
+    // 注册协议处理器 (核心功能)
     this.registerObsidianProtocolHandler("fast-note-sync/sso", async (data) => {
       if (data?.pushApi) {
         this.settings.api = data.pushApi
@@ -236,34 +207,55 @@ export default class FastSync extends Plugin {
         this.wsSettingChange = true
         this.localStorageManager.setMetadata("isInitSync", false)
         await this.saveSettings()
-        //this.settingTab.display()
         new Notice($("ui.status.config_imported"), 5000)
       }
     })
 
-    // 等待 workspace 布局准备就绪后再初始化文件哈希映射
-    // 这样可以确保 vault 文件索引已经完全加载
+    // 大部分初始化逻辑移动到 onLayoutReady 之后，避免阻塞 Obsidian 启动
     this.app.workspace.onLayoutReady(async () => {
-      await this.fileHashManager.initialize()
+      // 1. 初始化统计和日志 (UI)
+      SyncLogManager.getInstance().init(this)
+      this.registerView(SYNC_LOG_VIEW_TYPE, (leaf) => new SyncLogView(leaf, this))
 
-      // 如果启用了配置同步,初始化配置哈希管理器
+      // 2. 注册命令
+      this.addCommand({
+        id: "open-recycle-bin",
+        name: $("ui.recycle_bin.title"),
+        callback: () => {
+          new RecycleBinModal(this.app, this).open();
+        },
+      });
+
+      // 3. 初始化 UI 管理器
+      this.menuManager = new MenuManager(this)
+      this.menuManager.init()
+
+      // 4. 初始化功能管理器 (实例化)
+      this.fileCloudPreview = new FileCloudPreview(this)
+      this.fileHashManager = new FileHashManager(this)
+      this.configHashManager = new ConfigHashManager(this)
+      this.folderSnapshotManager = new FolderSnapshotManager(this)
+      this.configManager = new ConfigManager(this)
+
+      // 5. 并行初始化哈希和快照 (耗时任务)
+      const initPromises: Promise<void>[] = [
+        this.fileHashManager.initialize(),
+        this.folderSnapshotManager.initialize()
+      ]
       if (this.settings.configSyncEnabled) {
-        await this.configHashManager.initialize()
+        initPromises.push(this.configHashManager.initialize())
       }
+      await Promise.all(initPromises)
 
-      // 初始化文件夹快照管理器
-      await this.folderSnapshotManager.initialize()
-
-      // 只有在哈希表初始化完成后才注册事件
+      // 6. 注册事件监听 (依赖哈希管理器)
       if (this.fileHashManager.isReady()) {
         this.eventManager = new EventManager(this)
         this.eventManager.registerEvents()
       }
+
+      // 7. 刷新运行时设置 (包含网络探测，不阻塞主流程)
+      this.refreshRuntime()
     })
-
-    this.configManager = new ConfigManager(this)
-
-    await this.refreshRuntime()
   }
 
   onunload() {
