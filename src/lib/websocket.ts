@@ -448,6 +448,13 @@ export class WebSocketClient {
       name: clientName,
       version: this.plugin.manifest.version,
       type: "obsidianPlugin",
+      isDesktop: Platform.isDesktop,
+      isMobile: Platform.isMobile,
+      isPhone: Platform.isPhone,
+      isTablet: Platform.isTablet,
+      isMacOS: Platform.isMacOS,
+      isWin: Platform.isWin,
+      isLinux: Platform.isLinux,
       offlineSyncStrategy: this.plugin.settings.offlineSyncStrategy
     }))
   }
