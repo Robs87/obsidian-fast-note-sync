@@ -593,14 +593,15 @@ export const receiveFileSyncChunkDownload = async function (data: FileSyncChunkD
     plugin.totalChunksToDownload += data.totalChunks
   }
 
-  // 创建初始日志记录,状态为 pending,进度为 0
+  // 创建初始日志记录
+  const isTotalChunksZero = data.totalChunks === 0
   SyncLogManager.getInstance().addOrUpdateLog({
     id: data.sessionId,
     type: 'receive',
     action: 'FileDownload',
     path: data.path,
-    status: 'pending',
-    progress: 0
+    status: isTotalChunksZero ? 'success' : 'pending',
+    progress: isTotalChunksZero ? 100 : 0
   });
 
   // 如果分片数为 0（空文件），立即触发完成逻辑1
@@ -700,7 +701,7 @@ export const handleFileChunkDownload = async function (buf: ArrayBuffer | Blob, 
     action: 'FileDownload',
     path: session.path,
     status: session.chunks.size === session.totalChunks ? 'success' : 'pending',
-    progress: Math.floor((session.chunks.size / session.totalChunks) * 100)
+    progress: session.totalChunks === 0 ? 100 : Math.floor((session.chunks.size / session.totalChunks) * 100)
   });
 
 

@@ -1,4 +1,4 @@
-﻿import { TFolder, TFile, Notice, normalizePath } from "obsidian";
+import { TFolder, TFile, Notice, normalizePath } from "obsidian";
 
 import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename } from "./file_operator";
 import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, receiveConfigSyncDelete, receiveConfigSyncEnd, configAllPaths, receiveConfigSyncClear } from "./config_operator";
@@ -6,6 +6,7 @@ import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receive
 import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "./types";
 import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
 import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs } from "./helps";
+import { FileCloudPreview } from "./file_cloud_preview";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
 
@@ -291,7 +292,7 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   if (plugin.settings.syncEnabled && shouldSyncNotes) {
     expectedCount += 1; // NoteSync
     expectedCount += 1; // FolderSync
-    if (!plugin.settings.cloudPreviewEnabled) {
+    if (!plugin.settings.cloudPreviewEnabled || plugin.settings.cloudPreviewTypeRestricted) {
       expectedCount += 1; // FileSync
     }
   }
@@ -340,6 +341,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
 
           notes.push(item);
         } else {
+          const skipSync = plugin.settings.cloudPreviewEnabled && (!plugin.settings.cloudPreviewTypeRestricted || FileCloudPreview.isRestrictedType("." + file.extension));
+          if (skipSync) continue;
+
           if (isLoadLastTime && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) continue;
           const contentHash = hashArrayBuffer(await plugin.app.vault.readBinary(file));
           const baseHash = plugin.fileHashManager.getPathHash(file.path);
@@ -538,8 +542,9 @@ export const handleRequestSend = function (plugin: FastSync, syncMode: SyncMode,
       ...(plugin.settings.offlineDeleteSyncEnabled ? { delFiles: fileData.delFiles } : {}),
       ...(fileData.missingFiles.length > 0 ? { missingFiles: fileData.missingFiles } : {}),
     };
-    // 如果启用了云预览,则不发送 FileSync 请求,从而关闭启动时的 file 同步
-    if (!plugin.settings.cloudPreviewEnabled) {
+    // 如果启用了云预览且未开启类型限制，则不发送 FileSync 请求，从而关闭启动时的 file 同步
+    // 若开启了类型限制，则需要发送以同步不受限类型的附件1
+    if (!plugin.settings.cloudPreviewEnabled || plugin.settings.cloudPreviewTypeRestricted) {
       plugin.websocket.SendMessage("FileSync", fileSyncData);
     }
 
