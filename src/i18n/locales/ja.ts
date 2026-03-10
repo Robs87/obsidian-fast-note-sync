@@ -161,6 +161,9 @@ const ja: Partial<LangMap> = {
   "setting.debug.clear_time_desc": "ローカルのすべての同期タイムスタンプをクリアします。リモートデータには影響しません。次回の同期でフル比較が行われます。",
   "setting.debug.clear_hash_desc": "ローカルファイルハッシュマップをクリアします。物理ファイルには影響しません。クリック後すぐに再構築が開始され、一時的な遅延が発生する場合があります。",
   "setting.debug.clear_time_success": "ローカル同期時間がクリアされました",
+  "setting.debug.reset_all": "設定をリセット",
+  "setting.debug.reset_all_desc": "遠隔設定情報を除き、他の設定をデフォルト値に戻し、遠隔に保存されている保管庫設定ファイルをクリアします。この操作は取り消せません。慎重に操作してください。",
+  "setting.debug.reset_all_success": "すべての設定がデフォルト値にリセットされました",
 
   // --- ui.status ---
   "ui.status.syncing": "同期中",

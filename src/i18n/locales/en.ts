@@ -156,13 +156,15 @@ const en: Partial<LangMap> = {
   "ui.menu.clear_time": "Clear Local Sync Time",
   "ui.menu.rebuild_hash": "Rebuild File Hash Map",
   "ui.menu.plugin": "Plugin Version",
-  "ui.menu.plugin_desc": "Fast Note Sync plugin version number",
   "ui.menu.server": "Server Version",
   "ui.menu.server_desc": "Fast Note Sync server version number",
   "ui.menu.settings": "Plugin Settings",
   "setting.debug.clear_time_desc": "Clear all local sync timestamps. Remote data is not affected. The next sync will perform a full comparison.",
   "setting.debug.clear_hash_desc": "Clear the local file hash map. Physical files are not affected. Rebuilding starts immediately and may cause a brief lag.",
   "setting.debug.clear_time_success": "Local sync time cleared",
+  "setting.debug.reset_all": "Reset Settings",
+  "setting.debug.reset_all_desc": "Restore all settings to default values except for remote configuration information, and clear the vault configuration files stored on the remote server. This action is irreversible, please proceed with caution.",
+  "setting.debug.reset_all_success": "All settings have been reset to default values",
 
   // --- ui.status ---
   "ui.status.syncing": "Syncing",

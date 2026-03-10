@@ -163,6 +163,9 @@ const zh_tw: Partial<LangMap> = {
   "setting.debug.clear_time_desc": "清理本地所有類型的同步記錄時間戳，不影響遠端數據。下次同步將進行全量比對。",
   "setting.debug.clear_hash_desc": "清理本地文件哈希映射表，不影響物理文件。點擊後將立即觸發重建，可能產生短暫卡頓。",
   "setting.debug.clear_time_success": "本地同步時間清理完畢",
+  "setting.debug.reset_all": "重置設置",
+  "setting.debug.reset_all_desc": "除遠端配置信息之外，將其他設置恢復為默認值，並清理遠端保存的笔记库配置文件。此操作不可逆，請謹慎操作。",
+  "setting.debug.reset_all_success": "所有設置已重置為默認值",
 
   // --- ui.status ---
   "ui.status.syncing": "同步中",

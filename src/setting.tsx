@@ -491,6 +491,71 @@ export class SettingTab extends PluginSettingTab {
           false
         ).open()
       }
+
+      const resetAllButton = debugDiv.createEl("button")
+      resetAllButton.addClass("mod-cta")
+      resetAllButton.style.color = "white"
+      resetAllButton.setText($("setting.debug.reset_all"))
+      resetAllButton.onclick = () => {
+        new ConfirmModal(
+          this.app,
+          $("setting.debug.reset_all"),
+          $("setting.debug.reset_all_desc"),
+          async () => {
+            // 先运行远端配置清理逻辑
+            if (this.plugin.settings.configSyncEnabled) {
+              this.plugin.isWaitClearSync = true
+            }
+            this.plugin.websocket.SendMessage("SettingClear", {
+              vault: this.plugin.settings.vault
+            })
+
+            // 备份需要保留的远端核心配置
+            const backup = {
+              api: this.plugin.settings.api,
+              apiToken: this.plugin.settings.apiToken,
+              vault: this.plugin.settings.vault,
+              debugRemoteUrls: this.plugin.settings.debugRemoteUrls,
+              networkLibrary: this.plugin.settings.networkLibrary,
+            }
+            // 备份客户端名称（元数据）
+            const clientNameBackup = this.plugin.localStorageManager.getMetadata("clientName")
+
+            // 重置 settings 为默认值
+            this.plugin.settings = Object.assign({}, DEFAULT_SETTINGS)
+
+            // 恢复备份的远端设置
+            this.plugin.settings.api = backup.api
+            this.plugin.settings.apiToken = backup.apiToken
+            this.plugin.settings.vault = backup.vault
+            this.plugin.settings.debugRemoteUrls = backup.debugRemoteUrls
+            this.plugin.settings.networkLibrary = backup.networkLibrary
+
+            // 重新初始化某些依赖库路径的动态默认值
+            this.plugin.settings.configExclude = `${this.app.vault.configDir}/plugins/${this.plugin.manifest.id}`
+
+            // 确保客户端名称不被重置
+            if (clientNameBackup) {
+              this.plugin.localStorageManager.setMetadata("clientName", clientNameBackup)
+            }
+
+            // 深度清理：同步时间记录 + 哈希表
+            await resetSettingSyncTime(this.plugin)
+            await rebuildAllHashes(this.plugin)
+
+            // 保存设置
+            await this.plugin.saveSettings()
+
+            new Notice($("setting.debug.reset_all_success"))
+
+            // 重新渲染设置页面以展示变化
+            this.display()
+          },
+          $("ui.button.confirm"),
+          $("ui.button.cancel"),
+          false
+        ).open()
+      }
     }
 
     if (Platform.isDesktopApp) {
