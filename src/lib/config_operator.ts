@@ -127,6 +127,11 @@ export const configDelete = function (path: string, plugin: FastSync, eventEnter
 export const receiveConfigSyncModify = async function (data: ReceiveMessage, plugin: FastSync) {
     if (plugin.settings.configSyncEnabled == false) return
 
+    if (!isPathInConfigSyncDirs(data.path, plugin)) {
+        plugin.configSyncTasks.completed++
+        return
+    }
+
     const isVirtual = data.path.startsWith(plugin.localStorageManager.syncPathPrefix)
 
     if (configIsPathExcluded(data.path, plugin)) {
