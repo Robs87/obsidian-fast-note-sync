@@ -12,6 +12,8 @@ import { ShareModal } from "../views/share-modal"
 export class EventManager {
   private plugin: FastSync
   private rawEventTimers: Map<string, any> = new Map()
+  // 【修复】记录待处理的重命名路径，用于跳过同时触发的 modify 事件
+  private pendingRenamePaths: Set<string> = new Set()
 
   constructor(plugin: FastSync) {
     this.plugin = plugin
@@ -107,6 +109,13 @@ export class EventManager {
     }
     if (this.plugin.settings.manualSyncEnabled || this.plugin.settings.readonlySyncEnabled) return
 
+    // 【修复】如果该路径有待处理的重命名，跳过 modify 事件
+    // 重命名会同时触发 rename 和 modify 事件，但我们只需要发送 rename 消息
+    if (this.pendingRenamePaths.has(file.path)) {
+      dump(`Modify skipped due to pending rename: ${file.path}`)
+      return
+    }
+
     this.runWithDelay(file.path, () => {
       if (file instanceof TFile) {
         if (file.path.endsWith(".md")) {
@@ -147,18 +156,43 @@ export class EventManager {
     }
     if (this.plugin.settings.manualSyncEnabled || this.plugin.settings.readonlySyncEnabled) return
 
-    // 重命名操作可能涉及两个路径，我们为新路径设置延迟
-    this.runWithDelay(file.path, () => {
-      if (file instanceof TFile) {
-        if (file.path.endsWith(".md")) {
-          noteRename(file, oldFile, this.plugin, true)
-        } else {
-          fileRename(file, oldFile, this.plugin, true)
+    // 【修复】清除旧路径上可能存在的 modify/delete 定时器
+    // 因为旧路径已经被重命名，这些操作已无意义
+    this.clearTimer(oldFile)
+
+    // 【修复】标记新路径有待处理的重命名，用于跳过同时触发的 modify 事件
+    this.pendingRenamePaths.add(file.path)
+
+    // 【修复】直接使用延迟执行，不走 runWithDelay 的加锁逻辑
+    // 因为 noteRename/fileRename 内部已经有锁机制，避免嵌套锁导致死锁
+    let delay = this.plugin.settings.syncUpdateDelay || 0
+
+    const executeRename = async () => {
+      try {
+        if (file instanceof TFile) {
+          if (file.path.endsWith(".md")) {
+            await noteRename(file, oldFile, this.plugin, true)
+          } else {
+            await fileRename(file, oldFile, this.plugin, true)
+          }
+        } else if (file instanceof TFolder) {
+          await folderRename(file, oldFile, this.plugin, true)
         }
-      } else if (file instanceof TFolder) {
-        folderRename(file, oldFile, this.plugin, true)
+      } finally {
+        // 【修复】重命名任务完成后，移除标记
+        this.pendingRenamePaths.delete(file.path)
       }
-    })
+    }
+
+    if (delay <= 0) {
+      executeRename()
+    } else {
+      const timer = setTimeout(() => {
+        this.rawEventTimers.delete(file.path)
+        executeRename()
+      }, delay)
+      this.rawEventTimers.set(file.path, timer)
+    }
   }
 
   private watchRaw = (path: string, ctx?: any) => {
@@ -180,12 +214,24 @@ export class EventManager {
   }
 
   /**
+   * 清除指定 key 的定时器
+   * @param key 定时器的 key（文件路径）
+   */
+  private clearTimer(key: string) {
+    if (this.rawEventTimers.has(key)) {
+      clearTimeout(this.rawEventTimers.get(key))
+      this.rawEventTimers.delete(key)
+    }
+  }
+
+  /**
    * 延迟执行同步任务，引入 Atomics 保证原子性
    * @param key 任务唯一标识（通常是文件路径）
-   * @param task 待执行的任务
+   * @param task 待执行的任务（支持 async）
+   * @param delayset 额外延迟时间
    */
-  private runWithDelay(key: string, task: () => void, delayset: number = 0) {
-    // 如果已有定时器，先清除
+  private runWithDelay(key: string, task: () => void | Promise<void>, delayset: number = 0) {
+    // 如果已有相同 key 的定时器，先清除
     if (this.rawEventTimers.has(key)) {
       clearTimeout(this.rawEventTimers.get(key))
       this.rawEventTimers.delete(key)
@@ -198,7 +244,7 @@ export class EventManager {
       // 立即执行也需要加锁，以防与其他异步任务冲突
       // 如果获取锁失败，尝试重试 3 次，每次 50ms
       this.plugin.lockManager.withLock(key, async () => {
-        task()
+        await task()
       }, { maxRetries: 3, retryInterval: 50 })
       return
     }
@@ -209,7 +255,7 @@ export class EventManager {
       // 执行任务时加锁，并带重试逻辑
       // 这里的重试是为了应对可能正好有远程同步在写该文件的情况
       await this.plugin.lockManager.withLock(key, async () => {
-        task()
+        await task()
       }, { maxRetries: 5, retryInterval: 100 })
     }, delay)
 
