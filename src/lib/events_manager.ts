@@ -12,7 +12,7 @@ import { ShareModal } from "../views/share-modal"
 export class EventManager {
   private plugin: FastSync
   private rawEventTimers: Map<string, any> = new Map()
-  // 【修复】记录待处理的重命名路径，用于跳过同时触发的 modify 事件
+  //保存待处理的重命名文件的路径，用于跳过同时触发的 modify 事件
   private pendingRenamePaths: Set<string> = new Set()
 
   constructor(plugin: FastSync) {
@@ -109,8 +109,7 @@ export class EventManager {
     }
     if (this.plugin.settings.manualSyncEnabled || this.plugin.settings.readonlySyncEnabled) return
 
-    // 【修复】如果该路径有待处理的重命名，跳过 modify 事件
-    // 重命名会同时触发 rename 和 modify 事件，但我们只需要发送 rename 消息
+    // 重命名会同时触发 rename 和 modify 事件，但只需要发送 rename 消息即可完成处理，因此跳过 modify 事件
     if (this.pendingRenamePaths.has(file.path)) {
       dump(`Modify skipped due to pending rename: ${file.path}`)
       return
@@ -156,30 +155,66 @@ export class EventManager {
     }
     if (this.plugin.settings.manualSyncEnabled || this.plugin.settings.readonlySyncEnabled) return
 
-    // 【修复】清除旧路径上可能存在的 modify/delete 定时器
+    // 清除旧路径上可能存在的 modify/delete 定时器
     // 因为旧路径已经被重命名，这些操作已无意义
     this.clearTimer(oldFile)
 
-    // 【修复】标记新路径有待处理的重命名，用于跳过同时触发的 modify 事件
+    // 将新路径加入待处理的重命名任务，用于跳过同时触发的 modify 事件
     this.pendingRenamePaths.add(file.path)
 
-    // 【修复】直接使用延迟执行，不走 runWithDelay 的加锁逻辑
+    // 直接使用延迟执行，不走 runWithDelay 的加锁逻辑
     // 因为 noteRename/fileRename 内部已经有锁机制，避免嵌套锁导致死锁
     let delay = this.plugin.settings.syncUpdateDelay || 0
 
     const executeRename = async () => {
       try {
         if (file instanceof TFile) {
-          if (file.path.endsWith(".md")) {
-            await noteRename(file, oldFile, this.plugin, true)
-          } else {
-            await fileRename(file, oldFile, this.plugin, true)
+          //对比新文件名和旧文件名后缀是否一致，如果不一致，则认为是文件类型变更，需要发送文件删除和文件创建消息
+          const oldExt = oldFile.match(/\.([^.]+)$/)?.[1] ?? ''
+          let isDiffFileType = file.extension !== oldExt
+          if (isDiffFileType) {
+            //获取旧文件的TFile对象
+            const oldTFile = this.plugin.app.vault.getAbstractFileByPath(oldFile) as TAbstractFile
+            this.runWithDelay(oldTFile.path, () => {            
+              //如果旧文件是markdown文件，则发送笔记删除消息，否则发送文件删除消息
+              if(oldTFile.path.endsWith(".md"))
+              {
+                //dump(`rename,now delete old note.`,oldTFile.path)
+                noteDelete(oldTFile, this.plugin, true)
+              }
+              else{
+                //dump(`rename,now delete old file.`,oldTFile.path)
+                fileDelete(oldTFile, this.plugin, true)
+              }
+            },0)
+
+            this.runWithDelay(file.path, () => {            
+              //如果新文件是markdown文件，则发送笔记创建消息，否则发送文件创建消息
+              if(file.path.endsWith(".md"))
+              {
+                //dump(`rename,now modify new note.`,oldTFile.path)
+                noteModify(file, this.plugin, true)
+              }
+              else
+              {
+                //dump(`rename,now modify new file.`,oldTFile.path)
+                fileModify(file, this.plugin, true)
+              }
+            },0)            
           }
-        } else if (file instanceof TFolder) {
+          else{
+            if (file.path.endsWith(".md")) {
+              await noteRename(file, oldFile, this.plugin, true)
+            } else {
+              await fileRename(file, oldFile, this.plugin, true)
+            }            
+          }
+        }
+         else if (file instanceof TFolder) {
           await folderRename(file, oldFile, this.plugin, true)
         }
       } finally {
-        // 【修复】重命名任务完成后，移除标记
+        // 重命名任务完成后，移除待处理标志
         this.pendingRenamePaths.delete(file.path)
       }
     }
