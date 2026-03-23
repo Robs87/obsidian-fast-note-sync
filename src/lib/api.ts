@@ -76,17 +76,29 @@ export class HttpApiService {
      */
     private async request(endpoint: string, options: { method: string, headers?: Record<string, string>, body?: string }): Promise<{ status: number, json: any, finalUrl: string }> {
         const networkLibrary = this.plugin.settings.networkLibrary;
-        // 使用 runApi 作为基准，由于已经通过 probeApiRedirect 探测过，此处直接使用
+        // 使用 runApi 作为基准
         const base = (this.plugin.runApi || this.plugin.settings.api).replace(/\/+$/, "");
         const url = addRandomParam(base + endpoint);
 
+        // 默认 Header 标准化
+        const headers: Record<string, string> = {
+            ...options.headers
+        };
+
+        if (this.plugin.settings.apiToken) {
+            headers["Authorization"] = `Bearer ${this.plugin.settings.apiToken}`;
+        }
+        
+        if (options.body && !headers["Content-Type"]) {
+            headers["Content-Type"] = "application/json";
+        }
+
         if (networkLibrary === 'requestUrl') {
-            // 使用 Obsidian 官方 requestUrl
             try {
                 const response = await requestUrl({
                     url: url,
                     method: options.method,
-                    headers: options.headers,
+                    headers: headers,
                     body: options.body,
                     throw: false
                 });
@@ -100,10 +112,9 @@ export class HttpApiService {
                 throw e;
             }
         } else {
-            // 使用原生 fetch
             const fetchOptions: RequestInit = {
                 method: options.method,
-                headers: options.headers,
+                headers: headers,
                 body: options.body,
                 redirect: "follow"
             };
@@ -111,8 +122,6 @@ export class HttpApiService {
             const res = await fetch(url, fetchOptions);
             const json = await res.json();
 
-            // 业务请求内部不再由于业务地址跳转而频繁更新 runApi，
-            // 除非发生了明显的域名变更（作为冗余安全措施）
             if (res.url && res.url !== url) {
                 try {
                     const finalUrlObj = new URL(res.url);
@@ -153,15 +162,14 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
             if (status !== 200) {
                 throw new Error(`HTTP ${status}: Failed to fetch history list`);
             }
 
-            if (!json.status) {
+            if (json.code <= 0) {
                 throw new Error(json?.message || "Failed to fetch history list");
             }
 
@@ -185,11 +193,10 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to fetch history detail";
                 new Notice(msg);
                 throw new Error(msg);
@@ -210,17 +217,13 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "PUT",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     historyId: historyId,
                     vault: this.plugin.settings.vault
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore note version";
                 new Notice(msg);
                 return false;
@@ -250,12 +253,11 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
-            if (status !== 200) {
-                throw new Error(`HTTP ${status}: Failed to fetch file info`);
+            if (status !== 200 || (json && json.code <= 0)) {
+                throw new Error(json?.message || `HTTP ${status}: Failed to fetch file info`);
             }
 
             return json;
@@ -283,15 +285,14 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
             if (status !== 200) {
                 throw new Error(`HTTP ${status}: Failed to fetch note list`);
             }
 
-            if (!json.status) {
+            if (json.code <= 0) {
                 throw new Error(json?.message || "Failed to fetch note list");
             }
 
@@ -320,15 +321,14 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
             if (status !== 200) {
                 throw new Error(`HTTP ${status}: Failed to fetch file list`);
             }
 
-            if (!json.status) {
+            if (json.code <= 0) {
                 throw new Error(json?.message || "Failed to fetch file list");
             }
 
@@ -346,10 +346,6 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "PUT",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     path: path,
                     pathHash: pathHash,
@@ -357,7 +353,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore note";
                 new Notice(msg);
                 return false;
@@ -378,10 +374,6 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "PUT",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     path: path,
                     pathHash: pathHash,
@@ -389,7 +381,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore file";
                 new Notice(msg);
                 return false;
@@ -410,10 +402,6 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "DELETE",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     path: path,
                     pathHash: pathHash,
@@ -421,7 +409,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to delete file";
                 new Notice(msg);
                 return false;
@@ -443,10 +431,6 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "DELETE",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     vault: this.plugin.settings.vault,
                     paths: paths || [],
@@ -454,7 +438,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || (paths && paths.length > 0 ? "批量永久删除失败" : "清空回收站失败");
                 new Notice(msg);
                 return false;
@@ -470,15 +454,11 @@ export class HttpApiService {
     /**
      * 创建分享链接
      */
-    async createShare(path: string): Promise<{ id: number, token: string } | null> {
+    async createShare(path: string): Promise<{ id: number, token: string, isPassword?: boolean, shortLink?: string } | null> {
         const endpoint = `/api/share`;
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "POST",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     path: path,
                     pathHash: hashContent(path),
@@ -486,7 +466,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to create share";
                 new Notice(msg);
                 return null;
@@ -502,7 +482,7 @@ export class HttpApiService {
     /**
      * 查询分享状态
      */
-    async getShare(path: string): Promise<{ id: number, token: string } | null> {
+    async getShare(path: string): Promise<{ id: number, token: string, isPassword?: boolean, shortLink?: string } | null> {
         const params = new URLSearchParams({
             vault: this.plugin.settings.vault,
             path: path,
@@ -511,18 +491,74 @@ export class HttpApiService {
         const endpoint = `/api/share?${params.toString()}`;
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: {
-                    "token": this.plugin.settings.apiToken
-                }
+                method: "GET"
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 return null;
             }
             return json.data;
         } catch (e) {
             console.error("getShare error:", e);
+            return null;
+        }
+    }
+
+    /**
+     * 更新分享密码
+     */
+    async updateSharePassword(path: string, password?: string): Promise<boolean> {
+        const endpoint = `/api/share/password`;
+        try {
+            const { status, json } = await this.request(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                    path: path,
+                    pathHash: hashContent(path),
+                    vault: this.plugin.settings.vault,
+                    password: password
+                })
+            });
+
+            if (status !== 200 || json.code <= 0) {
+                const msg = json?.message || "Failed to update password";
+                new Notice(msg);
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error("updateSharePassword error:", e);
+            new Notice("设置密码失败");
+            return false;
+        }
+    }
+
+    /**
+     * 创建或强制重新生成短链接
+     */
+    async createShortLink(path: string, isForce = false): Promise<string | null> {
+        const endpoint = `/api/share/short_link`;
+        try {
+            const { status, json } = await this.request(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                    path: path,
+                    pathHash: hashContent(path),
+                    vault: this.plugin.settings.vault,
+                    isForce: isForce
+                })
+            });
+
+            if (status !== 200 || json.code <= 0) {
+                const msg = json?.message || "Failed to create short link";
+                new Notice(msg);
+                return null;
+            }
+            // 根据 Web GUI 逻辑，res.data 直接就是短链接字符串
+            return json.data || null;
+        } catch (e) {
+            console.error("createShortLink error:", e);
+            new Notice("生成短链接失败");
             return null;
         }
     }
@@ -535,10 +571,6 @@ export class HttpApiService {
         try {
             const { status, json } = await this.request(endpoint, {
                 method: "DELETE",
-                headers: {
-                    "token": this.plugin.settings.apiToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     path: path,
                     pathHash: hashContent(path),
@@ -546,7 +578,7 @@ export class HttpApiService {
                 })
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to cancel share";
                 new Notice(msg);
                 return false;
@@ -567,11 +599,10 @@ export class HttpApiService {
 
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "GET",
-                headers: { "token": this.plugin.settings.apiToken }
+                method: "GET"
             });
 
-            if (status !== 200 || !json.status) {
+            if (status !== 200 || json.code <= 0) {
                 throw new Error(json?.message || "Failed to fetch user info");
             }
 
