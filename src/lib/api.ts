@@ -536,17 +536,21 @@ export class HttpApiService {
     /**
      * 创建或强制重新生成短链接
      */
-    async createShortLink(path: string, isForce = false): Promise<string | null> {
+    async createShortLink(path: string, isForce = false, shareUrl?: string): Promise<string | null> {
         const endpoint = `/api/share/short_link`;
         try {
+            const body: Record<string, unknown> = {
+                path: path,
+                pathHash: hashContent(path),
+                vault: this.plugin.settings.vault,
+                isForce: isForce,
+            };
+            if (shareUrl) {
+                body.url = shareUrl;
+            }
             const { status, json } = await this.request(endpoint, {
                 method: "POST",
-                body: JSON.stringify({
-                    path: path,
-                    pathHash: hashContent(path),
-                    vault: this.plugin.settings.vault,
-                    isForce: isForce
-                })
+                body: JSON.stringify(body)
             });
 
             if (status !== 200 || json.code <= 0) {
