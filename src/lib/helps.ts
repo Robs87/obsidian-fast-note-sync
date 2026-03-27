@@ -302,6 +302,29 @@ export function addRandomParam(url: string): string {
 }
 
 /**
+ * 生成 UUID v4 (兼性更好的版本)
+ */
+export function generateUUID(): string {
+  // 优先使用标准 API
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  // 兼容性回退方案 (使用 getRandomValues)
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    return (([1e7] as any) + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
+      (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+    );
+  }
+
+  // 最后的兜底方案 (Math.random)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+/**
  * =============================================================================
  * 日志与调试相关 (Logging & Debug)
  * =============================================================================

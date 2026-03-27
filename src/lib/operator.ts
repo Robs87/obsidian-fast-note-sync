@@ -5,7 +5,7 @@ import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, r
 import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename } from "./note_operator";
 import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "./types";
 import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
-import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs } from "./helps";
+import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID } from "./helps";
 import { FileCloudPreview } from "./file_cloud_preview";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
@@ -250,7 +250,7 @@ async function processSyncMessages(messages: any[], plugin: FastSync) {
  * 启动全量/增量同步
  */
 export const handleSync = async function (plugin: FastSync, isLoadLastTime: boolean = false, syncMode: SyncMode = "auto") {
-  const context = crypto.randomUUID();
+  const context = generateUUID();
   dump(`Sync context generated: ${context}`);
   if (!plugin.menuManager.ribbonIconStatus) {
     new Notice($("setting.remote.disconnected"));
