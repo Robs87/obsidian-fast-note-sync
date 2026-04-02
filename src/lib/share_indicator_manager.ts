@@ -25,6 +25,8 @@ export class ShareIndicatorManager {
     private onlineHandler: (() => void) | null = null;
     // 启动延迟定时器 / Startup delay timer
     private startupTimer: ReturnType<typeof setTimeout> | null = null;
+    // 并发同步守卫，防止多个 syncWithServer 同时执行 / Concurrent sync guard to prevent multiple syncWithServer calls running simultaneously
+    private isSyncing = false;
 
     constructor(private plugin: FastSync) {}
 
@@ -33,6 +35,16 @@ export class ShareIndicatorManager {
      * Initialize: load local cache from data.json and inject CSS immediately, then sync from server after delay
      */
     async initialize(): Promise<void> {
+        // 防止重复调用导致监听器和定时器泄漏 / Prevent listener and timer leaks on re-initialization
+        if (this.startupTimer !== null) {
+            clearTimeout(this.startupTimer);
+            this.startupTimer = null;
+        }
+        if (this.onlineHandler) {
+            window.removeEventListener('online', this.onlineHandler);
+            this.onlineHandler = null;
+        }
+
         // 从持久化设置中恢复缓存，立即注入 CSS（不等待网络）
         // Restore cache from persisted settings, inject CSS immediately (no network wait)
         const saved = this.plugin.settings.sharedPaths ?? [];
@@ -58,31 +70,37 @@ export class ShareIndicatorManager {
      * Delta-first server sync: use incremental if lastShareSyncTime exists, else full refresh
      */
     async syncWithServer(): Promise<void> {
-        if (!this.plugin.settings.api || !this.plugin.settings.apiToken) return;
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+        try {
+            if (!this.plugin.settings.api || !this.plugin.settings.apiToken) return;
 
-        const lastSyncTime = Number(
-            this.plugin.localStorageManager?.getMetadata("lastShareSyncTime") ?? 0
-        );
+            const lastSyncTime = Number(
+                this.plugin.localStorageManager?.getMetadata("lastShareSyncTime") ?? 0
+            );
 
-        if (lastSyncTime > 0) {
-            // 增量同步 / Incremental sync
-            const changes = await this.plugin.api.getShareChanges(lastSyncTime);
-            if (changes === null) return; // 网络错误，静默失败 / Network error, fail silently
+            if (lastSyncTime > 0) {
+                // 增量同步 / Incremental sync
+                const changes = await this.plugin.api.getShareChanges(lastSyncTime);
+                if (changes === null) return; // 网络错误，静默失败 / Network error, fail silently
 
-            if (changes.fullRefreshRequired) {
-                await this._fullRefresh();
+                if (changes.fullRefreshRequired) {
+                    await this._fullRefresh();
+                } else {
+                    // 应用增量变更 / Apply delta changes
+                    for (const p of changes.removed) this.sharedPaths.delete(p);
+                    for (const p of changes.added) this.sharedPaths.add(p);
+                    this.plugin.settings.sharedPaths = Array.from(this.sharedPaths);
+                    await this.plugin.saveData(this.plugin.settings);
+                    this.plugin.localStorageManager?.setMetadata("lastShareSyncTime", changes.lastTime);
+                    this.regenerateCss();
+                }
             } else {
-                // 应用增量变更 / Apply delta changes
-                for (const p of changes.removed) this.sharedPaths.delete(p);
-                for (const p of changes.added) this.sharedPaths.add(p);
-                this.plugin.settings.sharedPaths = Array.from(this.sharedPaths);
-                await this.plugin.saveData(this.plugin.settings);
-                this.plugin.localStorageManager?.setMetadata("lastShareSyncTime", changes.lastTime);
-                this.regenerateCss();
+                // 首次同步，全量拉取 / First sync: full fetch
+                await this._fullRefresh();
             }
-        } else {
-            // 首次同步，全量拉取 / First sync: full fetch
-            await this._fullRefresh();
+        } finally {
+            this.isSyncing = false;
         }
     }
 
