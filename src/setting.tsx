@@ -66,6 +66,9 @@ export interface PluginSettings {
   networkLibrary: 'fetch' | 'requestUrl'
   /** 最小化自动暂停同步 */
   autoPauseMinimized: boolean
+  /** 分享中的笔记路径缓存（vault-relative 格式）
+   * Cache of actively shared note paths (vault-relative format) */
+  sharedPaths: string[]
 }
 
 /**
@@ -109,6 +112,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   configSyncOtherDirs: "",
   networkLibrary: "requestUrl",
   autoPauseMinimized: false,
+  sharedPaths: [],
 }
 
 
