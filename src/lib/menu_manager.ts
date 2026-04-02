@@ -66,6 +66,14 @@ export class MenuManager {
       }
     });
 
+    // 监听活动文件切换，更新分享图标颜色
+    // Listen for active file changes to update share icon color
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on("active-leaf-change", () => {
+        this.updateShareIconColor();
+      })
+    );
+
     // 初始化 同步日志 状态栏入口
     this.logStatusBarItem = this.plugin.addStatusBarItem();
     this.logStatusBarItem.addClass("mod-clickable");
@@ -362,5 +370,22 @@ export class MenuManager {
     }
 
     menu.showAtMouseEvent(event);
+  }
+
+  /**
+   * 根据当前活动笔记的分享状态更新状态栏分享图标颜色
+   * Update status bar share icon color based on active note's share status
+   */
+  updateShareIconColor(): void {
+    if (!this.shareStatusBarItem) return;
+    const activeFile = this.plugin.app.workspace.getActiveFile();
+    const isShared = activeFile
+      && this.plugin.shareIndicatorManager
+      && this.plugin.settings.sharedPaths?.includes(activeFile.path);
+
+    const svg = this.shareStatusBarItem.querySelector("svg");
+    if (svg) {
+      svg.style.color = isShared ? "#4caf50" : "";
+    }
   }
 }

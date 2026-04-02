@@ -129,6 +129,8 @@ export class ShareIndicatorManager {
         this.plugin.settings.sharedPaths = Array.from(this.sharedPaths);
         await this.plugin.saveData(this.plugin.settings);
         this.regenerateCss();
+        // 同步更新状态栏分享图标颜色 / Sync status bar share icon color
+        this.plugin.menuManager?.updateShareIconColor();
     }
 
     /**
@@ -140,6 +142,8 @@ export class ShareIndicatorManager {
         this.plugin.settings.sharedPaths = Array.from(this.sharedPaths);
         await this.plugin.saveData(this.plugin.settings);
         this.regenerateCss();
+        // 同步更新状态栏分享图标颜色 / Sync status bar share icon color
+        this.plugin.menuManager?.updateShareIconColor();
     }
 
     /**
@@ -172,9 +176,24 @@ export class ShareIndicatorManager {
 
         const rules: string[] = [];
         for (const path of this.sharedPaths) {
-            // Notebook Navigator: 图标在标题左侧 via ::before 伪元素
-            // Notebook Navigator: icon left of title via ::before pseudo-element
+            // Notebook Navigator 导航树视图: 图标在标题左侧 via ::before 伪元素
+            // Notebook Navigator nav tree view: icon left of title via ::before pseudo-element
             rules.push(`[data-drag-path="${path}"] .nn-navitem-name::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-image: url("${SVG_URI}");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-right: 4px;
+  vertical-align: middle;
+  opacity: 0.85;
+}`);
+
+            // Notebook Navigator 笔记列表视图: 图标在标题左侧 via ::before 伪元素
+            // Notebook Navigator file list view: icon left of title via ::before pseudo-element
+            rules.push(`[data-drag-path="${path}"] .nn-file-name::before {
   content: '';
   display: inline-block;
   width: 12px;
