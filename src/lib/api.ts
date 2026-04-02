@@ -594,6 +594,45 @@ export class HttpApiService {
     }
 
     /**
+     * 获取当前 vault 所有分享中的笔记路径列表（全量）
+     * Get all actively shared note paths for the current vault (full list)
+     */
+    async getSharePaths(): Promise<string[] | null> {
+        const params = new URLSearchParams({
+            vault: this.plugin.settings.vault
+        });
+        const endpoint = `/api/notes/share-paths?${params.toString()}`;
+        try {
+            const { status, json } = await this.request(endpoint, { method: "GET" });
+            if (status !== 200 || json.code <= 0) return null;
+            return json.data || [];
+        } catch (e) {
+            console.error("getSharePaths error:", e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取当前 vault 自 since 时间戳以来的分享路径变更（增量）
+     * Get share path changes since the given timestamp for the current vault (incremental)
+     */
+    async getShareChanges(since: number): Promise<{ added: string[]; removed: string[]; lastTime: number; fullRefreshRequired: boolean } | null> {
+        const params = new URLSearchParams({
+            vault: this.plugin.settings.vault,
+            since: String(since)
+        });
+        const endpoint = `/api/notes/share-changes?${params.toString()}`;
+        try {
+            const { status, json } = await this.request(endpoint, { method: "GET" });
+            if (status !== 200 || json.code <= 0) return null;
+            return json.data || null;
+        } catch (e) {
+            console.error("getShareChanges error:", e);
+            return null;
+        }
+    }
+
+    /**
      * 获取当前用户信息
      */
     async getUserInfo(): Promise<UserDTO> {
