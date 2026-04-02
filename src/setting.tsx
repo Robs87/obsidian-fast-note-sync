@@ -69,6 +69,9 @@ export interface PluginSettings {
   /** 分享中的笔记路径缓存（vault-relative 格式）
    * Cache of actively shared note paths (vault-relative format) */
   sharedPaths: string[]
+  /** 是否显示分享图标（原生文件管理器 & Notebook Navigator）
+   * Whether to show share icon (native file explorer & Notebook Navigator) */
+  showShareIcon: boolean
 }
 
 /**
@@ -113,6 +116,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   networkLibrary: "requestUrl",
   autoPauseMinimized: false,
   sharedPaths: [],
+  showShareIcon: true,
 }
 
 
@@ -323,6 +327,17 @@ export class SettingTab extends PluginSettingTab {
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_notice_desc"))
+
+    new Setting(set).setName($("setting.general.show_share_icon")).addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.showShareIcon).onChange(async (value) => {
+        if (value != this.plugin.settings.showShareIcon) {
+          this.plugin.settings.showShareIcon = value
+          await this.plugin.saveSettings()
+          this.plugin.shareIndicatorManager.regenerateCss()
+        }
+      }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_share_icon_desc"))
 
     new Setting(set)
       .setName("| " + $("setting.support.title"))

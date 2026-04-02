@@ -79,6 +79,8 @@ const ja: Partial<LangMap> = {
   "setting.sync.sync_delay_desc": "ノート、添付ファイル、設定の変更後、同期を実行するまでの待機時間。デフォルト 0ms（即時同期）",
   "setting.general.show_notice": "メッセージ通知を表示",
   "setting.general.show_notice_desc": "すべての正常な操作の通知をオフにします。エラーメッセージは通常通り表示されます",
+  "setting.general.show_share_icon": "共有アイコンを表示",
+  "setting.general.show_share_icon_desc": "有効にすると、<b>ネイティブファイルエクスプローラー</b> とサードパーティ製の <b>Notebook Navigator</b> プラグインに共有ノートのアイコンを表示します。",
   "setting.sync.config_dirs": "設定同期 - 追加ディレクトリの同期",
   "setting.sync.config_dirs_desc": "コア設定の同期に加え、同期が必要な特殊ディレクトリを追加します（必ず <b>.</b> で始まる必要があります）。1行に1つ。\n注意：<b>.</b> で始まらない行は自動的に無視されます。これらの配下の全ファイルが同期対象となります（例：.claude）。",
   "setting.sync.config_dirs_placeholder": "同期に追加するパスを入力（必ず . で始まる、例：.claude）",

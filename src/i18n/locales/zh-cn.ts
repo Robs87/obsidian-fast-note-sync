@@ -79,6 +79,8 @@ const zh_cn: Partial<LangMap> = {
   "setting.sync.sync_delay_desc": "笔记、附件、配置修改后延迟执行同步的时间。默认 0 毫秒 (即时同步)",
   "setting.general.show_notice": "显示消息提示",
   "setting.general.show_notice_desc": "关闭所有成功操作的消息提示，错误消息正常显示",
+  "setting.general.show_share_icon": "显示分享图标",
+  "setting.general.show_share_icon_desc": "开启后，在 <b>原生文件管理器</b> 和 <b>Notebook Navigator</b> 三方插件中显示已分享笔记的图标。",
   "setting.sync.config_dirs": "配置同步-增加目录同步",
   "setting.sync.config_dirs_desc": "在核心配置同步基础上，增加需要同步的特殊目录（必须以 <b>.</b> 开头）。每行一个。\n注意：不以 <b>.</b> 开头的行将被自动忽略，这些目录下的所有文件都将参与同步，例如：.claude。",
   "setting.sync.config_dirs_placeholder": "输入需要增加同步的目录路径，必须以 . 开头，如：.claude",

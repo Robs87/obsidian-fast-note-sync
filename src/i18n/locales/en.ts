@@ -79,6 +79,8 @@ const en: Partial<LangMap> = {
   "setting.sync.sync_delay_desc": "Wait time before performing sync after note, attachment, or config modification. Default 0ms (instant sync)",
   "setting.general.show_notice": "Show Message Notifications",
   "setting.general.show_notice_desc": "Turn off message notifications for all successful operations; error messages will display normally",
+  "setting.general.show_share_icon": "Show Share Icon",
+  "setting.general.show_share_icon_desc": "When enabled, display an icon for shared notes in the <b>native file explorer</b> and <b>Notebook Navigator</b> third-party plugin.",
   "setting.sync.config_dirs": "Config Sync - Add Directory Sync",
   "setting.sync.config_dirs_desc": "In addition to core config sync, add special directories to sync (must start with <b>.</b>). One per line.\nNote: Lines NOT starting with <b>.</b> will be ignored. All files in these directories will participate in sync, e.g., .claude.",
   "setting.sync.config_dirs_placeholder": "Enter directory path to add for sync, must start with ., e.g., .claude",

@@ -79,6 +79,8 @@ const ko: Partial<LangMap> = {
   "setting.sync.sync_delay_desc": "노트, 첨부 파일, 설정 수정 후 동기화를 실행할 때까지의 대기 시간입니다. 기본값 0ms (즉시 동기화)",
   "setting.general.show_notice": "메시지 알림 표시",
   "setting.general.show_notice_desc": "모든 성공적인 작업의 알림을 끕니다. 오류 메시지는 정상적으로 표시됩니다",
+  "setting.general.show_share_icon": "공유 아이콘 표시",
+  "setting.general.show_share_icon_desc": "활성화하면 <b>기본 파일 탐색기</b> 및 서드파티 <b>Notebook Navigator</b> 플러그인에 공유된 노트의 아이콘을 표시합니다.",
   "setting.sync.config_dirs": "설정 동기화 - 추가 디렉토리 동기화",
   "setting.sync.config_dirs_desc": "핵심 설정 동기화 외에 추가로 동기화할 특수 디렉토리를 지정합니다 (반드시 <b>.</b>으로 시작해야 함). 한 줄당 하나.\n주의: <b>.</b>으로 시작하지 않는 행은 무시됩니다. 해당 디렉토리의 모든 파일이 동기화됩니다 (예: .claude).",
   "setting.sync.config_dirs_placeholder": "동기화에 추가할 디렉토리 경로 입력 (반드시 . 으로 시작해야 함, 예: .claude)",

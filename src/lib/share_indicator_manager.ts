@@ -325,12 +325,12 @@ export class ShareIndicatorManager {
      * 重新生成 CSS 规则并注入到 document.head
      * Regenerate CSS rules and inject into document.head
      */
-    private regenerateCss(): void {
+    public regenerateCss(): void {
         // 移除旧的 style 元素 / Remove old style element
         document.getElementById(STYLE_EL_ID)?.remove();
         this.styleEl = null;
 
-        if (this.sharedPaths.size === 0) return;
+        if (!this.plugin.settings.showShareIcon || this.sharedPaths.size === 0) return;
 
         const rules: string[] = [];
         for (const path of this.sharedPaths) {
