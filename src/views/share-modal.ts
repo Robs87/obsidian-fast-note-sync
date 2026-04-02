@@ -98,6 +98,8 @@ export class ShareModal extends Modal {
                 if (res) {
                     this.shareData = res;
                     new Notice($("ui.share.success"));
+                    // 更新分享指示器缓存 / Update share indicator cache
+                    this.plugin.shareIndicatorManager?.addSharedPath(this.path);
                 }
                 this.render();
             });
@@ -422,6 +424,8 @@ export class ShareModal extends Modal {
                 this.isPasswordVisible = false;
                 this.isPasswordDirty = false;
                 new Notice($("ui.share.cancel_success"));
+                // 更新分享指示器缓存 / Update share indicator cache
+                this.plugin.shareIndicatorManager?.removeSharedPath(this.path);
             }
             this.render();
         });
