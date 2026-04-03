@@ -160,6 +160,10 @@ export function checkSyncCompletion(plugin: FastSync, intervalId?: ReturnType<ty
       checkAndUploadAttachments(plugin);
     }
 
+    // 同步完成后刷新分享指示器状态
+    // Refresh share indicator state after sync completion
+    plugin.shareIndicatorManager?.syncWithServer();
+
     setTimeout(() => plugin.updateStatusBar(""), 3000);
   } else {
     // --- 强制完成逻辑与 90% 补偿 ---
@@ -219,7 +223,17 @@ export const receiveOperators: Map<string, ReceiveOperator> = new Map([
   ["FolderSyncDelete", receiveFolderSyncDelete],
   ["FolderSyncRename", receiveFolderSyncRename],
   ["FolderSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "folder")],
+  ["ShareSyncRefresh", receiveShareSyncRefresh],
 ]);
+
+/**
+ * 收到分享状态变更通知，全量刷新分享路径
+ * Received share state change notification, full refresh share paths
+ */
+function receiveShareSyncRefresh(_data: any, plugin: FastSync): void {
+  dump("Receive ShareSyncRefresh, triggering share indicator sync");
+  plugin.shareIndicatorManager?.syncWithServer();
+}
 
 /**
  * 统一处理 SyncEnd 消息的装饰器

@@ -26,10 +26,6 @@ const ICON_CSS_PROPS = `content: '';
 // Delay sync after startup to avoid competing with Obsidian startup tasks for network resources
 const STARTUP_DELAY_MS = 5000;
 
-// 重连后延迟，等待网络连接稳定
-// Delay after reconnect to wait for network connection to stabilize
-const RECONNECT_DELAY_MS = 2000;
-
 export class ShareIndicatorManager {
     // 内存中的分享路径集合 / In-memory set of shared paths
     private sharedPaths: Set<string> = new Set();
@@ -69,10 +65,10 @@ export class ShareIndicatorManager {
         this.sharedPaths = new Set(saved);
         this.regenerateCss();
 
-        // 注册设备上线事件：重连后增量同步，恢复离线期间的变更
-        // Register online event: incremental sync on reconnect to recover offline changes
+        // 注册设备上线事件：重连后全量同步分享状态
+        // Register online event: full sync share state on reconnect
         this.onlineHandler = () => {
-            setTimeout(() => this.syncWithServer().catch(() => {}), RECONNECT_DELAY_MS);
+            setTimeout(() => this.syncWithServer().catch(() => {}), STARTUP_DELAY_MS);
         };
         window.addEventListener("online", this.onlineHandler);
 
@@ -84,8 +80,8 @@ export class ShareIndicatorManager {
     }
 
     /**
-     * 增量优先的服务端同步：有 lastShareSyncTime 时走增量，否则全量拉取
-     * Delta-first server sync: use incremental if lastShareSyncTime exists, else full refresh
+     * 从服务端全量拉取分享路径并更新本地缓存和 CSS
+     * Full fetch share paths from server, update local cache and CSS
      */
     async syncWithServer(): Promise<void> {
         if (this.isSyncing) return;
@@ -93,53 +89,21 @@ export class ShareIndicatorManager {
         try {
             if (!this.plugin.settings.api || !this.plugin.settings.apiToken) return;
 
-            const lastSyncTime = Number(
-                this.plugin.localStorageManager?.getMetadata("lastShareSyncTime") ?? 0
-            );
+            const paths = await this.plugin.api.getSharePaths();
+            if (paths === null) return; // 网络错误，静默失败 / Network error, fail silently
 
-            if (lastSyncTime > 0) {
-                // 增量同步 / Incremental sync
-                const changes = await this.plugin.api.getShareChanges(lastSyncTime);
-                if (changes === null) return; // 网络错误，静默失败 / Network error, fail silently
+            // 路径集合未变更时跳过写盘和 CSS 重建
+            // Skip saveData and CSS rebuild when path set is unchanged
+            const newSet = new Set(paths);
+            if (this.sharedPaths.size === newSet.size && paths.every(p => this.sharedPaths.has(p))) return;
 
-                if (changes.fullRefreshRequired) {
-                    await this._fullRefresh();
-                } else {
-                    // 应用增量变更 / Apply delta changes
-                    if (changes.removed.length > 0 || changes.added.length > 0) {
-                        for (const p of changes.removed) this.sharedPaths.delete(p);
-                        for (const p of changes.added) this.sharedPaths.add(p);
-                        this.plugin.settings.sharedPaths = Array.from(this.sharedPaths);
-                        await this.plugin.saveData(this.plugin.settings);
-                        this.regenerateCss();
-                    }
-                    // 无论是否有变更，都更新时间戳（缩小下次增量查询范围）
-                    // Always update timestamp regardless of changes (narrow next incremental query range)
-                    this.plugin.localStorageManager?.setMetadata("lastShareSyncTime", changes.lastTime);
-                }
-            } else {
-                // 首次同步，全量拉取 / First sync: full fetch
-                await this._fullRefresh();
-            }
+            this.sharedPaths = newSet;
+            this.plugin.settings.sharedPaths = paths;
+            await this.plugin.saveData(this.plugin.settings);
+            this.regenerateCss();
         } finally {
             this.isSyncing = false;
         }
-    }
-
-    /**
-     * 全量拉取并覆盖本地缓存
-     * Full fetch: overwrite local cache with server's complete active share list
-     */
-    private async _fullRefresh(): Promise<void> {
-        const paths = await this.plugin.api.getSharePaths();
-        if (paths === null) return; // 网络错误，静默失败 / Network error, fail silently
-        this.sharedPaths = new Set(paths);
-        this.plugin.settings.sharedPaths = paths;
-        await this.plugin.saveData(this.plugin.settings);
-        // 记录全量拉取完成的时间戳，供后续增量请求使用
-        // Record timestamp of full fetch completion for future delta requests
-        this.plugin.localStorageManager?.setMetadata("lastShareSyncTime", Date.now());
-        this.regenerateCss();
     }
 
     /**
