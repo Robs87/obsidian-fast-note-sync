@@ -7,9 +7,9 @@ import { $ } from "../i18n/lang";
 
 
 /**
- * 排除监听文件的常量
+ * 排除监听文件的常量（针对 .obsidian 根目录）
  */
-export const CONFIG_ROOT_FILES_TO_WATCH = ["app.json", "appearance.json", "backlink.json", "bookmarks.json", "command-palette.json", "community-plugins.json", "core-plugins.json", "core-plugins-migration.json", "graph.json", "hotkeys.json", "page-preview.json", "starred.json", "webviewer.json", "types.json", "daily-notes.json"]
+export const CONFIG_ROOT_FILES_EXCLUDE = ["workspace.json"]
 export const CONFIG_PLUGIN_EXTS_TO_WATCH = [".json", ".js", ".css"]
 export const CONFIG_THEME_EXTS_TO_WATCH = [".css", ".json"]
 
@@ -397,10 +397,13 @@ export const configAllPaths = async function (configDirs: string[], plugin: Fast
 
             // 特殊处理 .obsidian 目录（为了向后兼容和针对插件/主题的特定扫描逻辑）
             if (normalizedConfigDir.endsWith(".obsidian")) {
-                for (const fileName of CONFIG_ROOT_FILES_TO_WATCH) {
-                    const rel = `${configDir}/${fileName}`
-                    if (isExcluded(rel)) continue
-                    if (await adapter.exists(normalizePath(rel))) paths.push(rel)
+                const rootItems = await adapter.list(normalizePath(configDir))
+                for (const file of rootItems.files) {
+                    const fileName = file.split("/").pop() || ""
+                    if (fileName.endsWith(".json") && !CONFIG_ROOT_FILES_EXCLUDE.includes(fileName)) {
+                        if (isExcluded(file)) continue
+                        paths.push(file)
+                    }
                 }
                 const pluginsPath = normalizePath(`${configDir}/plugins`)
                 if (await adapter.exists(pluginsPath)) {

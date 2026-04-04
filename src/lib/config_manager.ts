@@ -1,7 +1,7 @@
 import { normalizePath, Plugin } from "obsidian";
 
 import { dump, getFileName, getDirName, getDirNameOrEmpty, configAddPathExcluded, configIsPathExcluded, isPathInConfigSyncDirs, getConfigSyncCustomDirs } from "./helps";
-import { CONFIG_PLUGIN_EXTS_TO_WATCH, CONFIG_ROOT_FILES_TO_WATCH, CONFIG_THEME_EXTS_TO_WATCH, configModify, configDelete, configAllPaths } from "./config_operator";
+import { CONFIG_PLUGIN_EXTS_TO_WATCH, CONFIG_ROOT_FILES_EXCLUDE, CONFIG_THEME_EXTS_TO_WATCH, configModify, configDelete, configAllPaths } from "./config_operator";
 import type FastSync from "../main";
 
 
@@ -10,14 +10,14 @@ export class ConfigManager {
   private pluginDir: string = ""
   private pluginRealDir: string = ""
   private fileStates: Map<string, number> = new Map()
-  private rootFilesToWatch: string[] = []
+  private rootFilesExclude: string[] = []
   private pluginExtsToWatch: string[] = []
   private themeExtsToWatch: string[] = []
   public enabledPlugins: Set<string> = new Set()
 
   constructor(plugin: FastSync) {
     this.plugin = plugin
-    this.rootFilesToWatch = CONFIG_ROOT_FILES_TO_WATCH
+    this.rootFilesExclude = CONFIG_ROOT_FILES_EXCLUDE
     this.pluginExtsToWatch = CONFIG_PLUGIN_EXTS_TO_WATCH
     this.themeExtsToWatch = CONFIG_THEME_EXTS_TO_WATCH
     this.pluginRealDir = this.plugin.manifest.dir ?? ""
@@ -81,8 +81,8 @@ export class ConfigManager {
       const topDir = parts[0]
 
       if (parts.length === 1) {
-        // 根配置
-        if (this.rootFilesToWatch.includes(fileName)) shouldCheck = true
+        // 根配置：同步所有 JSON 文件，排除指定的名单
+        if (fileName.endsWith(".json") && !this.rootFilesExclude.includes(fileName)) shouldCheck = true
       } else if (topDir === "plugins" || topDir === "themes") {
         const nameDir = getDirNameOrEmpty(parts[1])
         // 插件或主题
