@@ -99,6 +99,9 @@ export class EventManager {
         // 如果未开启自动暂停，确保恢复时监听也是开启的（增强鲁棒性）
         this.plugin.enableWatch()
       }
+      // 恢复前台时刷新分享状态（覆盖短暂后台期间其他设备变更分享的场景）
+      // Refresh share state on foreground resume (covers share changes by other devices during brief background)
+      this.plugin.shareIndicatorManager?.syncWithServer()
     }
   }
 
