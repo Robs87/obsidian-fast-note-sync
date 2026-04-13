@@ -23,7 +23,7 @@ const zh_cn: Partial<LangMap> = {
   "setting.remote.loading_user_info": " (正在加载用户信息...)",
   "setting.remote.setup_title": "远端服务搭建与选择",
   "setting.remote.setup_desc": "选择一个适合自己的远端",
-  "setting.remote.setup_table": "| 方式 | 详情参考 |\n| --- | --- |\n| 自己搭建  |  <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度好, 自由配置, 无隐私风险 |",
+  "setting.remote.setup_table": "\n| 方式 | 详情参考 |\n| --- | --- |\n| 自己搭建  |  <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度好, 自由配置, 无隐私风险 |",
   "setting.remote.paste_config": "粘贴服务端授权配置",
   "setting.remote.paste_success": "接口配置信息已经粘贴到设置中!",
   "setting.remote.no_config": "未检测到配置信息!",
@@ -47,7 +47,7 @@ const zh_cn: Partial<LangMap> = {
   "setting.sync.pdf_state": "PDF 状态同步",
   "setting.sync.pdf_state_desc": "开启后，将同步 PDF 查看器的阅读状态。 (本设置需要开启配置项同步)",
   "setting.sync.merge_strategy": "笔记离线编辑合并策略",
-  "setting.sync.merge_strategy_desc": "Markdown 笔记离线编辑后重连服务端时内容处理方式，仅限本端。\n| 策略 | 策略说明 |\n| --- | --- |\n| 不合并，保留最新 | 不合并，仅保留最后编辑的笔记。若本地笔记编辑时间较旧，同步后本地修改将被丢弃。 |\n| 最新才合并 | 若本地笔记编辑时间较新则合并笔记内容，否则将以服务端为准并丢弃本地修改。 |\n| 强制合并 | 忽略编辑先后顺序，强制合并本地与服务端的笔记内容。 |\n注意：合并过程会与共同基础版本比对，可能会导致已删除的内容重新出现。",
+  "setting.sync.merge_strategy_desc": "Markdown 笔记离线编辑后重连服务端时内容处理方式，仅限本端。\n\n| 策略 | 策略说明 |\n| --- | --- |\n| 不合并，保留最新 | 不合并，仅保留最后编辑的笔记。若本地笔记编辑时间较旧，同步后本地修改将被丢弃。 |\n| 最新才合并 | 若本地笔记编辑时间较新则合并笔记内容，否则将以服务端为准并丢弃本地修改。 |\n| 强制合并 | 忽略编辑先后顺序，强制合并本地与服务端的笔记内容。 |\n注意：合并过程会与共同基础版本比对，可能会导致已删除的内容重新出现。",
   "setting.sync.strategy_default": "不合并，保留最新",
   "setting.sync.strategy_force": "强制合并",
   "setting.sync.strategy_new": "最新才合并",
@@ -62,11 +62,11 @@ const zh_cn: Partial<LangMap> = {
 
   "setting.sync.exclude": "同步排除 (笔记/附件/配置)",
   "setting.sync.exclude_placeholder": "路径或正则，每行一个",
-  "setting.sync.exclude_desc": "设置的笔记、附件、目录或 <b>.obsidian</b> 下的配置文件将不参与同步。\n每行一个,支持正则 (忽略大小写)，\n例如： \n1. <b>Folder1/demo1.md</b> 直接匹配\n2. <b>Folder1</b> 匹配Folder1目录及其所有子目录和文件\n3. <b>.obsidian/plugins/xxx/data.json</b> 排除特定插件配置\n4. <b>Folder1/(.+)\\.jpg</b> 正则匹配 Folder1 目录下所有 jpg 图片",
-  "setting.sync.exclude_extensions": "同步扩展名排除",
-  "setting.sync.exclude_extensions_desc": "设置的文件类型不参与同步，每行一个(带点)。例如：.tmp",
+  "setting.sync.exclude_desc": "符合规则的笔记、附件、目录或 **.obsidian** 配置文件将不会参与同步。\n\n**规则说明：**\n- 支持 `路径前缀`（如文件夹路径）或 `正则表达式`。\n- 每一行代表一条独立规则。\n- 点击右侧的 **Aa** 按钮切换大小写敏感（开启时严格匹配大小写）。\n\n**示例：**\n\n| 规则 | 匹配结果 |\n| --- | --- |\n| `Folder1/abc.md` | 精确匹配该文件 |\n| `Folder1` | 匹配 Folder1 目录及其所有内容 |\n| `.obsidian/plugins/` | 排除特定插件的配置目录 |\n| `.*\\.tmp$` | 正则匹配所有以 .tmp 结尾的文件 |",
+  "setting.sync.exclude_extensions": "同步后缀名排除",
+  "setting.sync.exclude_extensions_desc": "符合所列后缀的文件将不参与同步。每行一个，建议以 `.` 开头。\n例如：`.tmp`、`.bak`。",
   "setting.sync.exclude_whitelist": "同步白名单 (笔记/附件/配置)",
-  "setting.sync.exclude_whitelist_desc": "优先于 <b>同步排除</b> 和 <b>同步排除扩展名</b> 规则，对匹配项强制同步。 \n每行一个，支持正则 (忽略大小写)。",
+  "setting.sync.exclude_whitelist_desc": "对匹配项强制同步，优先级高于 **同步排除** 和 **后缀名排除**，规则参考 <b>同步排除</b>。",
 
   "setting.sync.startup_delay": "启动延迟 (毫秒)",
   "setting.sync.startup_delay_placeholder": "输入延迟毫秒数",
@@ -92,7 +92,7 @@ const zh_cn: Partial<LangMap> = {
   "setting.cloud.type_limit": "附件云预览类型限制",
   "setting.cloud.type_limit_desc": "开启后，仅限 图片/音频/视频/PDF 使用云预览功能，其他附件正常同步。\n注意：请谨慎关闭，本项可能导致附件关联插件失效。",
   "setting.cloud.remote_source": "附件云预览 - 前后缀映射远端源",
-  "setting.cloud.remote_source_desc": "该设置项用于为匹配前缀/后缀的附件指定远端源，支持多行规则。\n格式：<b>前缀名@后缀名#远端源</b>，\n<b>前缀</b>可以省略，多个<b>后缀名</b>可用 <b>$</b> 分隔，前后缀均不匹配则使用默认FNS源，远端源支持变量替换。\n| 变量 | 说明 |\n| --- | --- |\n| {path} | 笔记内的附件路径 |\n| {vaultPath} | 附件对应仓库的相对路径 |\n| {vault} | 仓库名 |\n| {type} | 附件类型 (image/video/audio/pdf/other) |\n例如：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：若使用自定义远端源，确保其支持跨域预览（CORS）及必要的鉴权（若需要）",
+  "setting.cloud.remote_source_desc": "该设置项用于为匹配前缀/后缀的附件指定远端源，支持多行规则。\n格式：<b>前缀名@后缀名#远端源</b>，\n<b>前缀</b>可以省略，多个<b>后缀名</b>可用 <b>$</b> 分隔，前后缀均不匹配则使用默认FNS源，远端源支持变量替换。\n\n| 变量 | 说明 |\n| --- | --- |\n| {path} | 笔记内的附件路径 |\n| {vaultPath} | 附件对应仓库的相对路径 |\n| {vault} | 仓库名 |\n| {type} | 附件类型 (image/video/audio/pdf/other) |\n例如：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：若使用自定义远端源，确保其支持跨域预览（CORS）及必要的鉴权（若需要）",
   "setting.cloud.delete_after_upload": "附件云预览 - 上传后删除",
   "setting.cloud.delete_after_upload_desc": "附件成功上传后将自动删除本地文件以节省空间。\n(本设置需要开启附件云预览)\n注意：请谨慎关闭，本项可能导致附件关联插件失效。",
 
@@ -249,7 +249,11 @@ const zh_cn: Partial<LangMap> = {
 
   // --- ui.button ---
   "ui.button.confirm": "确认",
+  "ui.button.save": "保存",
   "ui.button.cancel": "取消",
+  "ui.button.delete": "删除",
+  "ui.button.add_rule": "添加规则",
+  "ui.button.edit_rule": "编辑规则",
   "ui.button.goto_feedback": "跳转 Github 反馈链接",
   "ui.title.notice": "反馈提示",
 

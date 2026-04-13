@@ -1,9 +1,11 @@
-import { App, PluginSettingTab, Notice, Setting, Platform, SearchComponent } from "obsidian";
+import { App, PluginSettingTab, Notice, Setting, Platform, SearchComponent, MarkdownRenderer, Component } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 
 import { handleSync, resetSettingSyncTime, rebuildAllHashes } from "./lib/operator";
 import { SettingsView, SupportView } from "./views/settings-view";
 import { ConfirmModal } from "./views/confirm-modal";
+import { RuleEditorModal } from "./views/rule-editor-modal";
+import { parseRules } from "./lib/helps";
 import { $ } from "./i18n/lang";
 import FastSync from "./main";
 
@@ -824,45 +826,52 @@ export class SettingTab extends PluginSettingTab {
 
 
 
-    new Setting(set).setName($("setting.sync.exclude")).addTextArea((text) =>
-      text
-        .setPlaceholder($("setting.sync.exclude_placeholder"))
-        .setValue(this.plugin.settings.syncExcludeFolders)
-        .onChange(async (value) => {
-          if (value != this.plugin.settings.syncExcludeFolders) {
-            this.plugin.settings.syncExcludeFolders = value
-            await this.plugin.saveSettings()
+    new Setting(set).setName($("setting.sync.exclude")).addButton((btn) => {
+      btn.setButtonText($("ui.button.edit_rule")).onClick(() => {
+        new RuleEditorModal(
+          this.app,
+          $("setting.sync.exclude"),
+          $("setting.sync.exclude_desc"),
+          parseRules(this.plugin.settings.syncExcludeFolders),
+          async (rules) => {
+            this.plugin.settings.syncExcludeFolders = JSON.stringify(rules);
+            await this.plugin.saveSettings();
           }
-        }),
-    )
+        ).open();
+      });
+    })
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.exclude_desc"))
 
-    new Setting(set).setName($("setting.sync.exclude_extensions")).addTextArea((text) =>
-      text
-        .setPlaceholder(".tmp\n.log")
-        .setValue(this.plugin.settings.syncExcludeExtensions)
-        .onChange(async (value) => {
-          if (value != this.plugin.settings.syncExcludeExtensions) {
-            this.plugin.settings.syncExcludeExtensions = value
-            await this.plugin.saveSettings()
+    new Setting(set).setName($("setting.sync.exclude_extensions")).addButton((btn) => {
+      btn.setButtonText($("ui.button.edit_rule")).onClick(() => {
+        new RuleEditorModal(
+          this.app,
+          $("setting.sync.exclude_extensions"),
+          $("setting.sync.exclude_extensions_desc"),
+          parseRules(this.plugin.settings.syncExcludeExtensions),
+          async (rules) => {
+            this.plugin.settings.syncExcludeExtensions = JSON.stringify(rules);
+            await this.plugin.saveSettings();
           }
-        }),
-    )
+        ).open();
+      });
+    })
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.exclude_extensions_desc"))
 
-    new Setting(set).setName($("setting.sync.exclude_whitelist")).addTextArea((text) =>
-      text
-        .setPlaceholder($("setting.sync.exclude_placeholder"))
-        .setValue(this.plugin.settings.syncExcludeWhitelist)
-        .onChange(async (value) => {
-          if (value != this.plugin.settings.syncExcludeWhitelist) {
-            this.plugin.settings.syncExcludeWhitelist = value
-            await this.plugin.saveSettings()
+    new Setting(set).setName($("setting.sync.exclude_whitelist")).addButton((btn) => {
+      btn.setButtonText($("ui.button.edit_rule")).onClick(() => {
+        new RuleEditorModal(
+          this.app,
+          $("setting.sync.exclude_whitelist"),
+          $("setting.sync.exclude_whitelist_desc"),
+          parseRules(this.plugin.settings.syncExcludeWhitelist),
+          async (rules) => {
+            this.plugin.settings.syncExcludeWhitelist = JSON.stringify(rules);
+            await this.plugin.saveSettings();
           }
-        }),
-    )
-    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.exclude_whitelist_desc"))
-
+        ).open();
+      });
+    })
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.exclude_whitelist_desc"))
 
     new Setting(set).setName($("setting.sync.config_dirs")).addTextArea((text) =>
@@ -975,57 +984,11 @@ export class SettingTab extends PluginSettingTab {
   }
 
   private setDescWithBreaks(el: HTMLElement, desc: string) {
-    const descEl = el.querySelector(".setting-item-description")
+    const descEl = el.querySelector(".setting-item-description") as HTMLElement;
     if (descEl) {
-      descEl.empty()
-      const fragment = document.createDocumentFragment()
-      const lines = desc.split("\n")
-
-      let inTable = false
-      let table: HTMLTableElement | null = null
-      let tbody: HTMLTableSectionElement | null = null
-
-      lines.forEach((line) => {
-        const trimmedLine = line.trim()
-        if (trimmedLine.startsWith("|") && trimmedLine.endsWith("|")) {
-          const parts = trimmedLine
-            .split("|")
-            .filter((p, i, arr) => i > 0 && i < arr.length - 1)
-            .map((p) => p.trim())
-
-          if (!inTable) {
-            inTable = true
-            table = document.createElement("table")
-            table.addClass("fast-note-sync-desc-table")
-            const thead = table.createEl("thead")
-            const tr = thead.createEl("tr")
-            parts.forEach((p) => {
-              const th = tr.createEl("th")
-              th.innerHTML = p
-            })
-            tbody = table.createEl("tbody")
-            fragment.appendChild(table)
-          } else {
-            if (parts.every((p) => p.match(/^-+$/))) {
-              return
-            }
-            if (tbody) {
-              const tr = tbody.createEl("tr")
-              parts.forEach((p) => {
-                const td = tr.createEl("td")
-                td.innerHTML = p
-              })
-            }
-          }
-        } else {
-          inTable = false
-          const lineSpan = document.createElement("span")
-          lineSpan.innerHTML = line
-          fragment.appendChild(lineSpan)
-          fragment.appendChild(document.createElement("br"))
-        }
-      })
-      descEl.appendChild(fragment)
+      descEl.empty();
+      descEl.addClass("fns-setting-desc-markdown");
+      MarkdownRenderer.render(this.app, desc, descEl, "", this.plugin);
     }
   }
 }

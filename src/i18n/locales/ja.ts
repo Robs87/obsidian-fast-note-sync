@@ -23,7 +23,7 @@ const ja: Partial<LangMap> = {
   "setting.remote.loading_user_info": " (ユーザー情報を読み込み中...)",
   "setting.remote.setup_title": "リモートサービスの構築と選択",
   "setting.remote.setup_desc": "自分に適したリモートを選択してください",
-  "setting.remote.setup_table": "| 方法 | 詳細リファレンス |\n| --- | --- |\n| 自己構築 | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度良好、自由な設定、プライバシーリスクなし |",
+  "setting.remote.setup_table": "\n| 方法 | 詳細リファレンス |\n| --- | --- |\n| 自己構築 | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度良好、自由な設定、プライバシーリスクなし |",
   "setting.remote.paste_config": "サーバー認証設定を貼り付け",
   "setting.remote.paste_success": "API設定情報が設定に貼り付けられました！",
   "setting.remote.no_config": "設定情報が検出されませんでした！",
@@ -47,7 +47,7 @@ const ja: Partial<LangMap> = {
   "setting.sync.pdf_state": "PDF状態同期",
   "setting.sync.pdf_state_desc": "有効にすると、PDFビューアの閲覧状態が同期されます。（設定同期の有効化が必要）",
   "setting.sync.merge_strategy": "オフライン編集時のノート統合戦略",
-  "setting.sync.merge_strategy_desc": "オフライン編集後にサーバーと再接続した際のMarkdownノートの処理方法（このクライアントのみ適用）。\n| 戦略 | 説明 |\n| --- | --- |\n| 統合せず、最新を保持 | 統合を行わず、最後に編集されたノートのみを保持します。ローカルが古い場合、変更は破棄されます。 |\n| ローカルが新しい場合のみ統合 | ローカルの編集時間が新しい場合のみ内容を統合します。それ以外はサーバーを優先し、ローカルを破棄します。 |\n| 強制統合 | 編集順序を無視し、ローカルとサーバーのノート内容を強制的に統合します。 |\n注意：統合プロセスは共通のベースバージョンと比較するため、削除済みの内容が再出現する可能性があります。",
+  "setting.sync.merge_strategy_desc": "オフライン編集後にサーバーと再接続した際のMarkdownノートの処理方法（このクライアントのみ適用）。\n\n| 戦略 | 説明 |\n| --- | --- |\n| 統合せず、最新を保持 | 統合を行わず、最後に編集されたノートのみを保持します。ローカルが古い場合、変更は破棄されます。 |\n| ローカルが新しい場合のみ統合 | ローカルの編集時間が新しい場合のみ内容を統合します。それ以外はサーバーを優先し、ローカルを破棄します。 |\n| 強制統合 | 編集順序を無視し、ローカルとサーバーのノート内容を強制的に統合します。 |\n注意：統合プロセスは共通のベースバージョンと比較するため、削除済みの内容が再出現する可能性があります。",
   "setting.sync.strategy_default": "統合せず、最新を保持",
   "setting.sync.strategy_force": "強制統合",
   "setting.sync.strategy_new": "ローカルが新しい場合のみ統合",
@@ -62,11 +62,11 @@ const ja: Partial<LangMap> = {
 
   "setting.sync.exclude": "同期除外 (ノート/添付ファイル/設定)",
   "setting.sync.exclude_placeholder": "パスまたは正規表現、1行に1つ",
-  "setting.sync.exclude_desc": "設定されたノート、添付ファイル、ディレクトリ、または <b>.obsidian</b> 配下の設定ファイルは同期対象外となります。\n1行に1つ、正規表現に対応（大文字小文字を区別しない）。\n例： \n1. <b>Folder1/demo1.md</b> 直接一致\n2. <b>Folder1</b> Folder1ディレクトリとその全子ディレクトリ・ファイルを一致\n3. <b>.obsidian/plugins/xxx/data.json</b> 特定のプラグイン設定を除外\n4. <b>Folder1/(.+)\\.jpg</b> Folder1配下の全jpg画像を正規表現で一致",
+  "setting.sync.exclude_desc": "設定された規則に一致するノート、添付ファイル、ディレクトリ、または **.obsidian** 設定ファイルは同期対象外となります。\n\n**規則の説明：**\n- `パスの接頭辞`（フォルダパスなど）または `正規表現` をサポートしています。\n- 各行が1つの独立した規則を表します。\n- 右側の **Aa** ボタンをクリックすると、大文字小文字の区別の有効/無効を切り替えられます。\n\n**例：**\n\n| 規則 | マッチング結果 |\n| --- | --- |\n| `Folder1/abc.md` | そのファイルを正確に一致 |\n| `Folder1` | Folder1 ディレクトリとその全内容を一致 |\n| `.obsidian/plugins/` | 特定のプラグイン設定を除外 |\n| `.*\\.tmp$` | 拡張子が .tmp の全ファイルを正規表現で一致 |",
   "setting.sync.exclude_extensions": "同期除外拡張子",
-  "setting.sync.exclude_extensions_desc": "同期対象外とするファイル形式を設定します。1行に1つ（ドット付き）。例：.tmp",
+  "setting.sync.exclude_extensions_desc": "設定されたファイル形式は同期対象外となります。1行に1つ（ドット付き）。\n例：`.tmp`、`.log`。\n注意：拡張子の除外は通常、大文字小文字を区別しません。",
   "setting.sync.exclude_whitelist": "同期ホワイトリスト (ノート/添付ファイル/設定)",
-  "setting.sync.exclude_whitelist_desc": "<b>同期除外</b> および <b>同期除外拡張子</b> よりも優先され、一致する項目を強制的に同期します。\n1行に1つ、正規表現に対応（大文字小文字を区別しない）。",
+  "setting.sync.exclude_whitelist_desc": "**同期除外** および **同期除外拡張子** よりも優先され、一致する項目を強制的に同期します。正規表現をサポートしています。\n**Aa** ボタンをクリックすると、この規則の大文字小文字の区別を切り替えられます。",
 
   "setting.sync.startup_delay": "起動遅延（ミリ秒）",
   "setting.sync.startup_delay_placeholder": "遅延ミリ秒数を入力",
@@ -92,7 +92,7 @@ const ja: Partial<LangMap> = {
   "setting.cloud.type_limit": "クラウドプレビューのタイプ制限",
   "setting.cloud.type_limit_desc": "有効にすると、画像/音声/動画/PDFのみクラウドプレビューを使用し、他は通常通り同期します。\n注意：無効にすると添付ファイル関連のプラグインが正常に動作しない可能性があります。",
   "setting.cloud.remote_source": "クラウドプレビュー - 接頭辞/接尾辞マッピングによるリモートソース",
-  "setting.cloud.remote_source_desc": "この項目は、接頭辞/接尾辞に一致する添付ファイルのリモートソースを指定するために使用されます（複数行ルール対応）。\n書式：<b>接頭辞@接尾辞#リモートソース</b>\n<b>接頭辞</b>は省略可能、複数の<b>接尾辞</b>は <b>$</b> で区切ります。一致しない場合はデフォルトのFNSソースを使用し、変数置換に対応します。\n| 変数 | 説明 |\n| --- | --- |\n| {path} | ノート内の添付ファイルパス |\n| {vaultPath} | 保管庫内の相対パス |\n| {vault} | 保管庫名 |\n| {type} | 添付タイプ (image/video/audio/pdf/other) |\n例：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：カスタムソースを使用する場合、CORSおよび必要な認証（必要な場合）をサポートしていることを確認してください。",
+  "setting.cloud.remote_source_desc": "この項目は、接頭辞/接尾辞に一致する添付ファイルのリモートソースを指定するために使用されます（複数行ルール対応）。\n書式：<b>接頭辞@接尾辞#リモートソース</b>\n<b>接頭辞</b>は省略可能、複数の<b>接尾辞</b>は <b>$</b> で区切ります。一致しない場合はデフォルトのFNSソースを使用し、変数置換に対応します。\n\n| 変数 | 説明 |\n| --- | --- |\n| {path} | ノート内の添付ファイルパス |\n| {vaultPath} | 保管庫内の相対パス |\n| {vault} | 保管庫名 |\n| {type} | 添付タイプ (image/video/audio/pdf/other) |\n例：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：カスタムソースを使用する場合、CORSおよび必要な認証（必要な場合）をサポートしていることを確認してください。",
   "setting.cloud.delete_after_upload": "クラウドプレビュー - アップロード後に削除",
   "setting.cloud.delete_after_upload_desc": "アップロード成功後、ローカルファイルを自動的に削除して容量を節約します。\n（クラウドプレビューの有効化が必要）\n注意：无効にすると添付ファイル関連のプラグインが正常に動作しない可能性があります。",
 
@@ -248,9 +248,13 @@ const ja: Partial<LangMap> = {
   "ui.log.action.SettingSyncClear": "同期的なリモート設定消去",
 
   // --- ui.button ---
-  "ui.button.confirm": "確定",
+  "ui.button.confirm": "確認",
+  "ui.button.save": "保存",
   "ui.button.cancel": "キャンセル",
-  "ui.button.goto_feedback": "GitHubへフィードバック",
+  "ui.button.delete": "削除",
+  "ui.button.add_rule": "規則を追加",
+  "ui.button.edit_rule": "規則を編集",
+  "ui.button.goto_feedback": "Github フィードバックリンクへ",
   "ui.title.notice": "フィードバックのお知らせ",
 
   // --- ui.recycle_bin ---

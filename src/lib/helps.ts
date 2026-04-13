@@ -4,6 +4,14 @@ import FastSync from "../main";
 
 
 /**
+ * 同步规则结构
+ */
+export interface SyncRule {
+  pattern: string;
+  caseSensitive: boolean;
+}
+
+/**
  * =============================================================================
  * 路径与过滤相关 (Path & Exclusion)
  * =============================================================================
@@ -53,10 +61,14 @@ export const getDirNameOrEmpty = function (path: string): string {
  * 2. path === pattern (全等)
  * 3. path 以 pattern + "/" 开头 (子目录或文件)
  */
-export const isPathMatch = function (path: string, pattern: string): boolean {
-  // 1. 尝试正则匹配 (默认忽略大小写)2
+export const isPathMatch = function (path: string, pattern: string, caseSensitive: boolean = false): boolean {
+  // 1. 尝试正则匹配
   try {
-    const regex = new RegExp("^" + pattern, "i");
+    // 根据规则决定是否忽略大小写
+    const flags = caseSensitive ? "" : "i";
+    // 检查 pattern 是否已经包含前后斜杠 (如果是纯正则模式)
+    // 这里保持原逻辑：强制从头匹配 ^
+    const regex = new RegExp("^" + pattern, flags);
     if (regex.test(path)) return true;
   } catch (e) {
     // 如果正则非法，则忽略错误，继续后续的路径匹配逻辑
@@ -65,12 +77,47 @@ export const isPathMatch = function (path: string, pattern: string): boolean {
   // 2. 传统路径前缀匹配 (支持 Windows 分隔符兼容)
   const normalizedPath = path.replace(/\\/g, "/");
   const normalizedPattern = pattern.replace(/\\/g, "/");
-  const p = normalizedPattern.endsWith("/") ? normalizedPattern.slice(0, -1) : normalizedPattern;
 
-  if (normalizedPath === p) return true;
-  if (normalizedPath.startsWith(p + "/")) return true;
+  // 如果不区分大小写，统一转小写进行匹配
+  const p1 = caseSensitive ? normalizedPath : normalizedPath.toLowerCase();
+  const p2 = caseSensitive ? normalizedPattern : normalizedPattern.toLowerCase();
+
+  const p = p2.endsWith("/") ? p2.slice(0, -1) : p2;
+
+  if (p1 === p) return true;
+  if (p1.startsWith(p + "/")) return true;
 
   return false;
+}
+
+/**
+ * 将设置中的字符串解析为规则数组
+ * 支持旧版 (换行分隔) 和新版 (JSON)
+ */
+export const parseRules = function (setting: string): SyncRule[] {
+  if (!setting || setting.trim() === "") return [];
+
+  const trimmed = setting.trim();
+  // 检查是否为 JSON 格式
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(item => ({
+          pattern: typeof item === 'string' ? item : (item.pattern || ""),
+          caseSensitive: !!item.caseSensitive
+        })).filter(item => item.pattern !== "");
+      }
+    } catch (e) {
+      // 解析失败，视为普通文本
+    }
+  }
+
+  // 旧版逻辑：换行分隔
+  return trimmed.split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => line !== "")
+    .map(line => ({ pattern: line, caseSensitive: false }));
 }
 
 /**
@@ -82,25 +129,29 @@ export const isPathExcluded = function (path: string, plugin: FastSync): boolean
 
   // 0. 检查白名单 (优先级最高)
   if (syncExcludeWhitelist) {
-    const whitelist = syncExcludeWhitelist.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
-    if (whitelist.some(p => isPathMatch(normalizedPath, p))) {
+    const whitelist = parseRules(syncExcludeWhitelist);
+    if (whitelist.some(rule => isPathMatch(normalizedPath, rule.pattern, rule.caseSensitive))) {
       return false;
     }
   }
 
   // 1. 检查扩展名排除
   if (syncExcludeExtensions) {
-    const extList = syncExcludeExtensions.split(/\r?\n/).map(e => e.trim().toLowerCase()).filter(e => e !== "");
+    const extList = parseRules(syncExcludeExtensions);
     const ext = "." + normalizedPath.split(".").pop()?.toLowerCase();
-    if (extList.some(e => ext === e || (e.startsWith(".") && ext === e) || (!e.startsWith(".") && ext === "." + e))) {
+    if (extList.some(rule => {
+      const e = rule.pattern.toLowerCase();
+      // 扩展名匹配目前强制不区分大小写，因为系统文件扩展名通常被视为同类
+      return ext === e || (e.startsWith(".") && ext === e) || (!e.startsWith(".") && ext === "." + e);
+    })) {
       return true;
     }
   }
 
   // 2. 检查目录/路径排除 (共享设置)
   if (syncExcludeFolders) {
-    const folderList = syncExcludeFolders.split(/\r?\n/).map(f => f.trim()).filter(f => f !== "");
-    if (folderList.some(f => isPathMatch(normalizedPath, f))) {
+    const folderList = parseRules(syncExcludeFolders);
+    if (folderList.some(rule => isPathMatch(normalizedPath, rule.pattern, rule.caseSensitive))) {
       return true;
     }
   }
@@ -122,24 +173,21 @@ export const configIsPathExcluded = function (relativePath: string, plugin: Fast
 
   // 0. 检查白名单 (优先级最高 - 使用共享设置)
   if (syncExcludeWhitelist) {
-    const whitelist = syncExcludeWhitelist.split(/\r?\n/).map((p) => p.trim()).filter((p) => p !== "")
-    if (whitelist.some((p) => isPathMatch(normalizedPath, p))) {
+    const whitelist = parseRules(syncExcludeWhitelist);
+    if (whitelist.some((rule) => isPathMatch(normalizedPath, rule.pattern, rule.caseSensitive))) {
       return false
     }
   }
 
   // 1. 检查内部排除集合 (支持左匹配) - 重要逻辑保留
-  if (Array.from(CONFIG_EXCLUDE_SET).some(p => isPathMatch(normalizedPath, p))) {
+  if (Array.from(CONFIG_EXCLUDE_SET).some(p => isPathMatch(normalizedPath, p, false))) {
     return true
   }
 
   // 2. 检查用户设置的排除 (使用共享设置)
   if (syncExcludeFolders) {
-    const paths = syncExcludeFolders
-      .split(/\r?\n/)
-      .map((p) => p.trim())
-      .filter((p) => p !== "")
-    if (paths.some((p) => isPathMatch(normalizedPath, p))) {
+    const rules = parseRules(syncExcludeFolders);
+    if (rules.some((rule) => isPathMatch(normalizedPath, rule.pattern, rule.caseSensitive))) {
       return true
     }
   }

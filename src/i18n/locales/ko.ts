@@ -23,7 +23,7 @@ const ko: Partial<LangMap> = {
   "setting.remote.loading_user_info": " (사용자 정보를 불러오는 중...)",
   "setting.remote.setup_title": "원격 서비스 구축 및 선택",
   "setting.remote.setup_desc": "자신에게 적합한 원격 서비스를 선택하세요",
-  "setting.remote.setup_table": "| 방식 | 상세 참조 |\n| --- | --- |\n| 셀프 구축 | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 빠른 속도, 자유로운 설정, 개인정보 유출 위험 없음 |",
+  "setting.remote.setup_table": "\n| 방식 | 상세 참조 |\n| --- | --- |\n| 셀프 구축 | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 빠른 속도, 자유로운 설정, 개인정보 유출 위험 없음 |",
   "setting.remote.paste_config": "서버 인증 설정 붙여넣기",
   "setting.remote.paste_success": "API 설정 정보가 설정에 붙여넣어졌습니다!",
   "setting.remote.no_config": "설정 정보가 감지되지 않았습니다!",
@@ -47,7 +47,7 @@ const ko: Partial<LangMap> = {
   "setting.sync.pdf_state": "PDF 상태 동기화",
   "setting.sync.pdf_state_desc": "활성화하면 PDF 뷰어의 읽기 상태가 동기화됩니다. (설정 자동 동기화 활성화 필요)",
   "setting.sync.merge_strategy": "오프라인 편집 시 노트 통합 전략",
-  "setting.sync.merge_strategy_desc": "오프라인 편집 후 서버와 재연결 시 Markdown 노트의 처리 방식입니다 (이 클라이언트에만 적용).\n| 전략 | 설명 |\n| --- | --- |\n| 통합하지 않고 최신 유지 | 통합하지 않고 마지막으로 편집된 노트만 유지합니다. 로컬 노트가 더 오래된 경우 로컬 변경 사항은 삭제됩니다. |\n| 로컬이 새로운 경우에만 통합 | 로컬 편집 시간이 더 최신인 경우에만 콘텐츠를 통합합니다. 그렇지 않으면 서버 버전을 우선으로 하고 로컬 변경 사항은 버립니다. |\n| 강제 통합 | 편집 순서를 무시하고 로컬과 서버의 내용을 강제로 통합합니다. |\n주의: 통합 프로세스는 공통 베이스 버전과 비교하므로 삭제된 내용이 다시 나타날 수 있습니다.",
+  "setting.sync.merge_strategy_desc": "오프라인 편집 후 서버와 재연결 시 Markdown 노트의 처리 방식입니다 (이 클라이언트에만 적용).\n\n| 전략 | 설명 |\n| --- | --- |\n| 통합하지 않고 최신 유지 | 통합하지 않고 마지막으로 편집된 노트만 유지합니다. 로컬 노트가 더 오래된 경우 로컬 변경 사항은 삭제됩니다. |\n| 로컬이 새로운 경우에만 통합 | 로컬 편집 시간이 더 최신인 경우에만 콘텐츠를 통합합니다. 그렇지 않으면 서버 버전을 우선으로 하고 로컬 변경 사항은 버립니다. |\n| 강제 통합 | 편집 순서를 무시하고 로컬과 서버의 내용을 강제로 통합합니다. |\n주의: 통합 프로세스는 공통 베이스 버전과 비교하므로 삭제된 내용이 다시 나타날 수 있습니다.",
   "setting.sync.strategy_default": "통합하지 않고 최신 유지",
   "setting.sync.strategy_force": "강제 통합",
   "setting.sync.strategy_new": "로컬이 새로운 경우에만 통합",
@@ -62,11 +62,11 @@ const ko: Partial<LangMap> = {
 
   "setting.sync.exclude": "동기화 제외 (노트/첨부 파일/설정)",
   "setting.sync.exclude_placeholder": "경로 또는 정규식, 한 줄당 하나",
-  "setting.sync.exclude_desc": "설정된 노트, 첨부 파일, 디렉토리 또는 <b>.obsidian</b> 내의 설정 파일은 동기화에서 제외됩니다.\n한 줄당 하나씩 정규식을 지원합니다 (대소문자 무시).\n예: \n1. <b>Folder1/demo1.md</b> 직접 일치\n2. <b>Folder1</b> Folder1 디렉토리와 모든 하위 디렉토리 및 파일 일치\n3. <b>.obsidian/plugins/xxx/data.json</b> 특정 플러그인 설정 제외\n4. <b>Folder1/(.+)\\.jpg</b> Folder1 아래의 모든 jpg 이미지 정규식 일치",
+  "setting.sync.exclude_desc": "설정된 규칙과 일치하는 노트, 첨부 파일, 디렉토리 또는 **.obsidian** 설정 파일은 동기화에서 제외됩니다.\n\n**규칙 설명:**\n- `경로 접두사`(폴더 경로 등) 또는 `정규표현식`을 지원합니다.\n- 각 줄은 하나의 독립적인 규칙을 나타냅니다.\n- 우측의 **Aa** 버튼을 클릭하여 대소문자 구분 여부를 전환할 수 있습니다.\n\n**예시:**\n\n| 규칙 | 매칭 결과 |\n| --- | --- |\n| `Folder1/abc.md` | 해당 파일과 정확히 일치 |\n| `Folder1` | Folder1 디렉토리 및 모든 하위 내용 일치 |\n| `.obsidian/plugins/` | 특정 플러그인 설정 제외 |\n| `.*\\.tmp$` | .tmp로 끝나는 모든 파일을 정규식으로 일치 |",
   "setting.sync.exclude_extensions": "동기화 확장자 제외",
-  "setting.sync.exclude_extensions_desc": "동기화에서 제외할 파일 형식을 설정하세요. 한 줄당 하나 (점 포함). 예: .tmp",
+  "setting.sync.exclude_extensions_desc": "설정된 파일 형식은 동기화에서 제외됩니다. 한 줄당 하나(점 포함).\n예시: `.tmp`, `.log`.\n주의: 확장자 제외는 일반적으로 대소문자를 구분하지 않습니다.",
   "setting.sync.exclude_whitelist": "동기화 화이트리스트 (노트/첨부 파일/설정)",
-  "setting.sync.exclude_whitelist_desc": "<b>동기화 제외</b> 및 <b>동기화 확장자 제외</b> 규칙보다 우선하며 일치하는 항목을 강제로 동기화합니다.\n한 줄당 하나씩 정규식을 지원합니다 (대소문자 무시).",
+  "setting.sync.exclude_whitelist_desc": "**동기화 제외** 및 **동기화 확장자 제외** 규칙보다 우선하며, 일치하는 항목을 강제로 동기화합니다. 정규표현식을 지원합니다.\n**Aa** 버튼을 클릭하여 해당 규칙의 대소문자 구분 설정을 전환할 수 있습니다.",
 
   "setting.sync.startup_delay": "시작 지연 (밀리초)",
   "setting.sync.startup_delay_placeholder": "지연 밀리초 입력",
@@ -92,7 +92,7 @@ const ko: Partial<LangMap> = {
   "setting.cloud.type_limit": "클라우드 미리보기 유형 제한",
   "setting.cloud.type_limit_desc": "활성화하면 이미지/오디오/비디오/PDF만 클라우드 미리보기를 사용하고 나머지는 정상적으로 동기화합니다.\n주의: 비활성화 시 첨부 파일 관련 플러그인이 정상 작동하지 않을 수 있습니다.",
   "setting.cloud.remote_source": "클라우드 미리보기 - 접두사/접미사 매핑 소스",
-  "setting.cloud.remote_source_desc": "특정 접두사/접미사와 일치하는 첨부 파일의 원격 소스를 지정합니다 (멀티라인 규칙 지원).\n형식: <b>접두사@접미사#원격_소스</b>\n<b>접두사</b>는 생략 가능하며 여러 <b>접미사</b>는 <b>$</b>로 구분합니다. 일치 항목이 없으면 기본 FNS 소스를 사용하며 변수 치환을 지원합니다.\n| 변수 | 설명 |\n| --- | --- |\n| {path} | 노트 내 첨부 파일 경로 |\n| {vaultPath} | 보관소 내 상대 경로 |\n| {vault} | 보관소 이름 |\n| {type} | 첨부 유형 (image/video/audio/pdf/other) |\n예: <b>prefix@.jpg$.png#http://domain.com/{path}</b>\n주의: 사용자 정의 소스를 사용하는 경우 CORS 및 필요한 인증(있는 경우)을 지원하는지 확인하세요.",
+  "setting.cloud.remote_source_desc": "특정 접두사/접미사와 일치하는 첨부 파일의 원격 소스를 지정합니다 (멀티라인 규칙 지원).\n형식: <b>접두사@접미사#원격_소스</b>\n<b>접두사</b>는 생략 가능하며 여러 <b>접미사</b>는 <b>$</b>로 구분합니다. 일치 항목이 없으면 기본 FNS 소스를 사용하며 변수 치환을 지원합니다.\n\n| 변수 | 설명 |\n| --- | --- |\n| {path} | 노트 내 첨부 파일 경로 |\n| {vaultPath} | 보관소 내 상대 경로 |\n| {vault} | 보관소 이름 |\n| {type} | 첨부 유형 (image/video/audio/pdf/other) |\n예: <b>prefix@.jpg$.png#http://domain.com/{path}</b>\n주의: 사용자 정의 소스를 사용하는 경우 CORS 및 필요한 인증(있는 경우)을 지원하는지 확인하세요.",
   "setting.cloud.delete_after_upload": "클라우드 미리보기 - 업로드 후 삭제",
   "setting.cloud.delete_after_upload_desc": "업로드 성공 후 로컬 파일을 자동 삭제하여 저장 공간을 절약합니다.\n(클라우드 미리보기 활성화 필요)\n주의: 비활성화 시 첨부 파일 관련 플러그인이 정상 작동하지 않을 수 있습니다.",
 
@@ -249,7 +249,11 @@ const ko: Partial<LangMap> = {
 
   // --- ui.button ---
   "ui.button.confirm": "확인",
+  "ui.button.save": "저장",
   "ui.button.cancel": "취소",
+  "ui.button.delete": "삭제",
+  "ui.button.add_rule": "규칙 추가",
+  "ui.button.edit_rule": "규칙 편집",
   "ui.button.goto_feedback": "GitHub 피드백으로 이동",
   "ui.title.notice": "피드백 알림",
 

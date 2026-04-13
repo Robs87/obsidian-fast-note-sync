@@ -23,7 +23,7 @@ const en: Partial<LangMap> = {
   "setting.remote.loading_user_info": " (Loading user info...)",
   "setting.remote.setup_title": "Remote Service Setup and Selection",
   "setting.remote.setup_desc": "Select a suitable remote service",
-  "setting.remote.setup_table": "| Mode | Details |\n| --- | --- |\n| Self-hosted | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> Good speed, free config, no privacy risk |",
+  "setting.remote.setup_table": "\n| Mode | Details |\n| --- | --- |\n| Self-hosted | <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> Good speed, free config, no privacy risk |",
   "setting.remote.paste_config": "Paste server authorization config",
   "setting.remote.paste_success": "API configuration info has been pasted into settings!",
   "setting.remote.no_config": "No configuration info detected!",
@@ -47,7 +47,7 @@ const en: Partial<LangMap> = {
   "setting.sync.pdf_state": "PDF State Sync",
   "setting.sync.pdf_state_desc": "When enabled, the reading state of the PDF viewer will be synchronized. (Requires Auto Config Sync to be enabled)",
   "setting.sync.merge_strategy": "Note Offline Merge Strategy",
-  "setting.sync.merge_strategy_desc": "Handling method for Markdown content when reconnecting after offline editing, applied only to this client.\n| Strategy | Description |\n| --- | --- |\n| No merge, keep newest | No merging, only keep the last edited note. If the local note is older, local changes will be discarded. |\n| Merge if newer | If the local note is newer, content will be merged; otherwise, use the server version and discard local changes. |\n| Forced merge | Ignore editing order and force merging local and server contents. |\nNote: The merging process compares with a common base version, which may cause deleted content to reappear.",
+  "setting.sync.merge_strategy_desc": "Handling method for Markdown content when reconnecting after offline editing, applied only to this client.\n\n| Strategy | Description |\n| --- | --- |\n| No merge, keep newest | No merging, only keep the last edited note. If the local note is older, local changes will be discarded. |\n| Merge if newer | If the local note is newer, content will be merged; otherwise, use the server version and discard local changes. |\n| Forced merge | Ignore editing order and force merging local and server contents. |\nNote: The merging process compares with a common base version, which may cause deleted content to reappear.",
   "setting.sync.strategy_default": "No merge, keep newest",
   "setting.sync.strategy_force": "Forced merge",
   "setting.sync.strategy_new": "Merge if newer",
@@ -62,11 +62,11 @@ const en: Partial<LangMap> = {
 
   "setting.sync.exclude": "Sync Exclusion (Notes/Attachments/Config)",
   "setting.sync.exclude_placeholder": "Path or Regex, one per line",
-  "setting.sync.exclude_desc": "Selected notes, attachments, directories, or <b>.obsidian</b> configuration files will not participate in sync.\nOne per line, supports Regex (case-insensitive),\nE.g.: \n1. <b>Folder1/demo1.md</b> Direct match\n2. <b>Folder1</b> Matches Folder1 and all its subdirectories and files\n3. <b>.obsidian/plugins/xxx/data.json</b> Exclude specific plugin config\n4. <b>Folder1/(.+)\\.jpg</b> Regex match for all jpg images in Folder1",
+  "setting.sync.exclude_desc": "Notes, attachments, directories, or **.obsidian** config files matching these rules will be excluded from sync.\n\n**Rule Guide:**\n- Supports `Path Prefix` (e.g., folder path) or `Regular Expressions`.\n- Each line represents an independent rule.\n- Click the **Aa** button to toggle Case Sensitivity (active when highlighted).\n\n**Examples:**\n\n| Rule | Matches |\n| --- | --- |\n| `Folder1/abc.md` | Exact file match |\n| `Folder1` | Matches Folder1 and all its contents |\n| `.obsidian/plugins/` | Exclude specific plugin configurations |\n| `.*\\.tmp$` | Regex match for all .tmp files |",
   "setting.sync.exclude_extensions": "Sync Extension Exclusion",
-  "setting.sync.exclude_extensions_desc": "Selected file types do not participate in sync, one per line (with dot). E.g.: .tmp",
+  "setting.sync.exclude_extensions_desc": "Files matching the listed extensions will be excluded from sync. One per line, starting with `.` is recommended.\nE.g.: `.tmp`, `.bak`.\n**Note:** Extension exclusions are typically case-insensitive.",
   "setting.sync.exclude_whitelist": "Sync Whitelist (Notes/Attachments/Config)",
-  "setting.sync.exclude_whitelist_desc": "Prioritized over <b>Sync Exclusion</b> and <b>Sync Extension Exclusion</b>, matching items are forced to sync. \nOne per line, supports Regex (case-insensitive).",
+  "setting.sync.exclude_whitelist_desc": "Prioritized over **Sync Exclusion** and **Sync Extension Exclusion**, items matching these rules are forced to sync. Supports Regular Expressions.\nClick the **Aa** button to toggle case sensitivity for this rule.",
 
   "setting.sync.startup_delay": "Startup Delay (ms)",
   "setting.sync.startup_delay_placeholder": "Enter delay milliseconds",
@@ -92,7 +92,7 @@ const en: Partial<LangMap> = {
   "setting.cloud.type_limit": "Cloud Preview Type Limit",
   "setting.cloud.type_limit_desc": "When enabled, cloud preview is only for images/audio/video/PDF; other attachments sync normally.\nNote: Disable with caution, this may cause attachment-related plugins to malfunction.",
   "setting.cloud.remote_source": "Cloud Preview - Prefix/Suffix Remote Source Mapping",
-  "setting.cloud.remote_source_desc": "This setting assigns remote sources for attachments matching specific prefixes/suffixes, supporting multi-line rules.\nFormat: <b>prefix@suffix#remote_source</b>,\n<b>prefix</b> can be omitted, multiple <b>suffixes</b> can be separated by <b>$</b>. Use default FNS source if no match. Supports variable replacement.\n| Variable | Description |\n| --- | --- |\n| {path} | Attachment path in note |\n| {vaultPath} | Relative path in vault |\n| {vault} | Vault name |\n| {type} | Attachment type (image/video/audio/pdf/other) |\nE.g.: <b>prefix@.jpg$.png#http://domain.com/{path}</b>\nNote: If using a custom remote source, ensure it supports CORS and necessary authentication (if required)",
+  "setting.cloud.remote_source_desc": "This setting assigns remote sources for attachments matching specific prefixes/suffixes, supporting multi-line rules.\nFormat: <b>prefix@suffix#remote_source</b>,\n<b>prefix</b> can be omitted, multiple <b>suffixes</b> can be separated by <b>$</b>. Use default FNS source if no match. Supports variable replacement.\n\n| Variable | Description |\n| --- | --- |\n| {path} | Attachment path in note |\n| {vaultPath} | Relative path in vault |\n| {vault} | Vault name |\n| {type} | Attachment type (image/video/audio/pdf/other) |\nE.g.: <b>prefix@.jpg$.png#http://domain.com/{path}</b>\nNote: If using a custom remote source, ensure it supports CORS and necessary authentication (if required)",
   "setting.cloud.delete_after_upload": "Cloud Preview - Delete After Upload",
   "setting.cloud.delete_after_upload_desc": "Local files will be automatically deleted after successful upload to save space.\n(Requires Cloud Attachment Preview to be enabled)\nNote: Disable with caution, this may cause attachment-related plugins to malfunction.",
 
@@ -249,7 +249,11 @@ const en: Partial<LangMap> = {
 
   // --- ui.button ---
   "ui.button.confirm": "Confirm",
+  "ui.button.save": "Save",
   "ui.button.cancel": "Cancel",
+  "ui.button.delete": "Delete",
+  "ui.button.add_rule": "Add Rule",
+  "ui.button.edit_rule": "Edit Rules",
   "ui.button.goto_feedback": "Go to GitHub Feedback Link",
   "ui.title.notice": "Feedback Notice",
 

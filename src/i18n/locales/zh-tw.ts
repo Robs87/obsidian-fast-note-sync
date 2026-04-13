@@ -23,7 +23,7 @@ const zh_tw: Partial<LangMap> = {
   "setting.remote.loading_user_info": " (正在載入用戶資訊...)",
   "setting.remote.setup_title": "遠端服務搭建與選擇",
   "setting.remote.setup_desc": "選擇一個適合自己的遠端",
-  "setting.remote.setup_table": "| 方式 | 詳情參考 |\n| --- | --- |\n| 自己搭建  |  <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度好, 自由配置, 無隱私風險 |",
+  "setting.remote.setup_table": "\n| 方式 | 詳情參考 |\n| --- | --- |\n| 自己搭建  |  <a href='https://github.com/haierkeys/obsidian-fast-note-sync-service'>obsidian-fast-note-sync-service</a> 速度好, 自由配置, 無隱私風險 |",
   "setting.remote.paste_config": "粘貼服務端授權配置",
   "setting.remote.paste_success": "接口配置信息已經粘貼到設置中!",
   "setting.remote.no_config": "未檢測到配置信息!",
@@ -62,11 +62,11 @@ const zh_tw: Partial<LangMap> = {
 
   "setting.sync.exclude": "同步排除 (筆記/附件/配置)",
   "setting.sync.exclude_placeholder": "路徑或正則，每行一個",
-  "setting.sync.exclude_desc": "設置的筆記、附件、目錄或 <b>.obsidian</b> 下的配置文件將不參與同步。\n每行一個,支持正則 (忽略大小寫)，\n例如： \n1. <b>Folder1/demo1.md</b> 直接匹配\n2. <b>Folder1</b> 匹配Folder1目錄及其所有子目錄和文件\n3. <b>.obsidian/plugins/xxx/data.json</b> 排除特定插件配置\n4. <b>Folder1/(.+)\\.jpg</b> 正則匹配 Folder1 目錄下所有 jpg 圖片",
+  "setting.sync.exclude_desc": "符合規則的筆記、附件、目錄或 **.obsidian** 配置文件將不會參與同步。\n\n**規則說明：**\n- 支持 `路徑前綴`（如文件夾路徑）或 `正則表達式`。\n- 每一行代表一條獨立規則。\n- 點擊右側的 **Aa** 按鈕切換大小寫敏感（開啟時嚴格匹配大小寫）。\n\n**示例：**\n\n| 規則 | 匹配結果 |\n| --- | --- |\n| `Folder1/abc.md` | 精確匹配該文件 |\n| `Folder1` | 匹配 Folder1 目錄及其所有內容 |\n| `.obsidian/plugins/` | 排除特定插件的配置目錄 |\n| `.*\\.tmp$` | 正则匹配所有以 .tmp 結尾的文件 |",
   "setting.sync.exclude_extensions": "同步擴展名排除",
-  "setting.sync.exclude_extensions_desc": "設置的文件類型不參與同步，每行一個(帶點)。例如：.tmp",
+  "setting.sync.exclude_extensions_desc": "設置的文件類型將不參與同步。每行一個（需包含點）。\n例如：`.tmp`、`.log`。\n注意：擴展名排除通常不區分大小寫。",
   "setting.sync.exclude_whitelist": "同步白名單 (筆記/附件/配置)",
-  "setting.sync.exclude_whitelist_desc": "優先於 <b>同步排除</b> 和 <b>同步排除擴展名</b> 規則，對匹配項強制同步。 \n每行一個，支持正則 (忽略大小寫)。",
+  "setting.sync.exclude_whitelist_desc": "優先級高於 **同步排除** 和 **擴展名排除**，對匹配項強制進行同步。支持正則表達式。\n點擊 **Aa** 按鈕可切換該規則的大小寫敏感設置。",
 
   "setting.sync.startup_delay": "啟動延遲 (毫秒)",
   "setting.sync.startup_delay_placeholder": "輸入延遲毫秒數",
@@ -92,7 +92,7 @@ const zh_tw: Partial<LangMap> = {
   "setting.cloud.type_limit": "附件雲預覽類型限制",
   "setting.cloud.type_limit_desc": "開啟後，僅限 圖片/音頻/視頻/PDF 使用雲預覽功能，其他附件正常同步。\n注意：請謹慎關閉，本項可能導致附件關聯插件失效。",
   "setting.cloud.remote_source": "附件雲預覽 - 前後綴映射遠端源",
-  "setting.cloud.remote_source_desc": "該設置項用於為匹配前綴/後綴的附件指定遠端源，支持多行規則。\n格式：<b>前綴名@後綴名#遠端源</b>，\n<b>前綴</b>可以省略，多個<b>後綴名</b>可用 <b>$</b> 分隔，前後綴均不匹配則使用默認FNS源，遠端源支持變量替換。\n| 變量 | 說明 |\n| --- | --- |\n| {path} | 筆記內的附件路徑 |\n| {vaultPath} | 附件對應倉庫的相對路徑 |\n| {vault} | 倉庫名 |\n| {type} | 附件類型 (image/video/audio/pdf/other) |\n例如：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：若使用自定義遠端源，確保其支持跨域預覽（CORS）及必要的鑒權（若需要）",
+  "setting.cloud.remote_source_desc": "該設置項用於為匹配前綴/後綴的附件指定遠端源，支持多行規則。\n格式：<b>前綴名@後綴名#遠端源</b>，\n<b>前綴</b>可以省略，多個<b>後綴名</b>可用 <b>$</b> 分隔，前後綴均不匹配則使用默認FNS源，遠端源支持變量替換。\n\n| 變量 | 說明 |\n| --- | --- |\n| {path} | 筆記內的附件路徑 |\n| {vaultPath} | 附件對應倉庫的相對路徑 |\n| {vault} | 倉庫名 |\n| {type} | 附件類型 (image/video/audio/pdf/other) |\n例如：<b>prefix@.jpg$.png#http://domain.com/{path}</b>\n注意：若使用自定義遠端源，確保其支持跨域預覽（CORS）及必要的鑒權（若需要）",
   "setting.cloud.delete_after_upload": "附件雲預覽 - 上傳後刪除",
   "setting.cloud.delete_after_upload_desc": "附件成功上傳後將自動刪除本地文件以節省空間。\n(本設置需要開啟附件雲預覽)\n注意：請謹慎關閉，本項可能導致附件關聯插件失效。",
 
@@ -249,8 +249,12 @@ const zh_tw: Partial<LangMap> = {
 
   // --- ui.button ---
   "ui.button.confirm": "確認",
+  "ui.button.save": "保存",
   "ui.button.cancel": "取消",
-  "ui.button.goto_feedback": "跳轉 Github 反饋鏈接",
+  "ui.button.delete": "刪除",
+  "ui.button.add_rule": "添加規則",
+  "ui.button.edit_rule": "編輯規則",
+  "ui.button.goto_feedback": "跳轉 Github 反饋連結",
   "ui.title.notice": "反饋提示",
 
   // --- ui.recycle_bin ---
