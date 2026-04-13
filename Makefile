@@ -3,7 +3,7 @@
 # -------------------------
 # PHONY 目标
 # -------------------------
-.PHONY: all dev ver
+.PHONY: all dev ver build
 
 # 默认目标
 all: test
@@ -19,6 +19,9 @@ dev:
 
 air:
 	pnpm run dev
+
+build:
+	pnpm run build
 
 cp:
 	cp  ./main.js /Users/DevApps/@JsApps/ObsPlugins2/.obsidian/plugins/obsidian-fast-note-sync/

@@ -6,6 +6,10 @@ export class RuleEditorModal extends Modal {
   private showCaseSensitive: boolean;
   private addButtonText: string;
   private inputPlaceholder: string;
+  private description: string;
+  private rules: SyncRule[];
+  private onSave: (rules: SyncRule[]) => void;
+  private component: Component;
 
   constructor(
     app: App,
@@ -46,7 +50,7 @@ export class RuleEditorModal extends Modal {
 
     const listEl = contentEl.createDiv("fns-rule-list");
 
-    this.rules.forEach((rule, index) => {
+    this.rules.forEach((rule: SyncRule, index: number) => {
       const rowEl = listEl.createDiv("fns-rule-row");
 
       // 输入框
@@ -104,7 +108,7 @@ export class RuleEditorModal extends Modal {
       cls: "mod-cta"
     });
     saveBtn.onclick = () => {
-      this.onSave(this.rules.filter(r => r.pattern.trim() !== ""));
+      this.onSave(this.rules.filter((r: SyncRule) => r.pattern.trim() !== ""));
       this.close();
     };
 

@@ -108,7 +108,7 @@ export const HistoryDetail: React.FC<HistoryDetailProps> = ({ content, diffs, sh
             <div className="history-detail-header">
                 <div className="header-title">
                     <LucideIcon icon="file-text" size={16} className="icon" />
-                    {showOriginal ? $("修改前内容") : $("ui.history.diff")}
+                    {showOriginal ? $("ui.history.content_pre") : $("ui.history.diff")}
                 </div>
                 {!showOriginal && (
                     <div className="header-tags">
