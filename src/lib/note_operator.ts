@@ -42,13 +42,13 @@ export const noteModify = async function (file: TAbstractFile, plugin: FastSync,
         // 始终传递 baseHash 信息，如果不可用则标记 baseHashMissing
         ...(baseHash !== null ? { baseHash } : { baseHashMissing: true }),
       }
-      plugin.websocket.SendMessage("NoteModify", data)
+      plugin.websocket.SendMessage("NoteModify", data, undefined, () => {
+        // WebSocket 消息发送后更新哈希表(使用内容哈希)
+        if (contentHash != baseHash) {
+          plugin.fileHashManager.setFileHash(file.path, contentHash)
+        }
+      })
       dump(`Note modify send`, data.path, data.contentHash, data.mtime, data.pathHash)
-
-      // WebSocket 消息发送后更新哈希表(使用内容哈希)
-      if (contentHash != baseHash) {
-        plugin.fileHashManager.setFileHash(file.path, contentHash)
-      }
     } finally {
       plugin.removeIgnoredFile(file.path)
     }
@@ -80,12 +80,12 @@ export const noteDelete = async function (file: TAbstractFile, plugin: FastSync,
         path: file.path,
         pathHash: hashContent(file.path),
       }
-      plugin.websocket.SendMessage("NoteDelete", data)
+      plugin.websocket.SendMessage("NoteDelete", data, undefined, () => {
+        // WebSocket 消息发送后从哈希表中删除
+        plugin.fileHashManager.removeFileHash(file.path)
+      })
 
       dump(`Note delete send`, file.path)
-
-      // WebSocket 消息发送后从哈希表中删除
-      plugin.fileHashManager.removeFileHash(file.path)
     } finally {
       plugin.removeIgnoredFile(file.path)
     }
@@ -109,12 +109,12 @@ export const noteDeleteByPath = async function (filePath: string, plugin: FastSy
         vault: plugin.settings.vault,
         path: filePath,
         pathHash: hashContent(filePath),
+      }, undefined, () => {
+        // WebSocket 消息发送后从哈希表中删除
+        // Remove from hash map after sending WebSocket message
+        plugin.fileHashManager.removeFileHash(filePath)
       })
       dump(`Note delete by path send`, filePath)
-
-      // WebSocket 消息发送后从哈希表中删除
-      // Remove from hash map after sending WebSocket message
-      plugin.fileHashManager.removeFileHash(filePath)
     } finally {
       plugin.removeIgnoredFile(filePath)
     }
@@ -156,12 +156,12 @@ export const noteRename = async function (file: TAbstractFile, oldfile: string, 
         oldPathHash: hashContent(oldfile),
       }
 
-      plugin.websocket.SendMessage("NoteRename", data)
+      plugin.websocket.SendMessage("NoteRename", data, undefined, () => {
+        // 删除旧路径,添加新路径(使用内容哈希)
+        plugin.fileHashManager.removeFileHash(oldfile)
+        plugin.fileHashManager.setFileHash(file.path, contentHash)
+      })
       dump(`Note rename send`, data.path, data.pathHash)
-
-      // 删除旧路径,添加新路径(使用内容哈希)
-      plugin.fileHashManager.removeFileHash(oldfile)
-      plugin.fileHashManager.setFileHash(file.path, contentHash)
     } finally {
       plugin.removeIgnoredFile(file.path)
     }

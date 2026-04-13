@@ -91,12 +91,12 @@ export const configModify = async function (path: string, plugin: FastSync, even
         mtime: mtime,
         ctime: ctime,
     }
-    plugin.websocket.SendMessage("SettingModify", data)
-
-    // 更新配置哈希表
-    if (plugin.configHashManager && plugin.configHashManager.isReady()) {
-        plugin.configHashManager.setFileHash(path, contentHash)
-    }
+    plugin.websocket.SendMessage("SettingModify", data, undefined, () => {
+        // 更新配置哈希表
+        if (plugin.configHashManager && plugin.configHashManager.isReady()) {
+            plugin.configHashManager.setFileHash(path, contentHash)
+        }
+    })
 
     plugin.removeIgnoredConfigFile(path)
 }

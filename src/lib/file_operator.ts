@@ -67,11 +67,11 @@ export const fileModify = async function (file: TAbstractFile, plugin: FastSync,
         // 始终传递 baseHash 信息，如果不可用则标记 baseHashMissing
         ...(baseHash !== null ? { baseHash } : { baseHashMissing: true }),
       }
-      plugin.websocket.SendMessage("FileUploadCheck", data)
+      plugin.websocket.SendMessage("FileUploadCheck", data, undefined, () => {
+        // WebSocket 消息发送后更新哈希表(使用内容哈希)
+        plugin.fileHashManager.setFileHash(file.path, contentHash)
+      })
       dump(`File modify check sent`, data.path, data.contentHash)
-
-      // WebSocket 消息发送后更新哈希表(使用内容哈希)
-      plugin.fileHashManager.setFileHash(file.path, contentHash)
     } finally {
       plugin.removeIgnoredFile(file.path)
     }
@@ -112,11 +112,11 @@ export const fileDelete = async function (file: TAbstractFile, plugin: FastSync,
         path: file.path,
         pathHash: hashContent(file.path),
       }
-      plugin.websocket.SendMessage("FileDelete", data)
+      plugin.websocket.SendMessage("FileDelete", data, undefined, () => {
+        // WebSocket 消息发送后从哈希表中删除
+        plugin.fileHashManager.removeFileHash(file.path)
+      })
       dump(`File delete send`, file.path)
-
-      // WebSocket 消息发送后从哈希表中删除
-      plugin.fileHashManager.removeFileHash(file.path)
     } finally {
       plugin.removeIgnoredFile(file.path)
     }
@@ -148,12 +148,12 @@ export const fileDeleteByPath = async function (filePath: string, plugin: FastSy
         vault: plugin.settings.vault,
         path: filePath,
         pathHash: hashContent(filePath),
+      }, undefined, () => {
+        // WebSocket 消息发送后从哈希表中删除
+        // Remove from hash map after sending WebSocket message
+        plugin.fileHashManager.removeFileHash(filePath)
       })
       dump(`File delete by path send`, filePath)
-
-      // WebSocket 消息发送后从哈希表中删除
-      // Remove from hash map after sending WebSocket message
-      plugin.fileHashManager.removeFileHash(filePath)
     } finally {
       plugin.removeIgnoredFile(filePath)
     }
@@ -203,11 +203,11 @@ export const fileRename = async function (file: TAbstractFile, oldfile: string, 
           path: file.path,
           pathHash: hashContent(file.path),
         }
-        plugin.websocket.SendMessage("FileRename", data)
-        plugin.fileHashManager.setFileHash(file.path, contentHash)
+        plugin.websocket.SendMessage("FileRename", data, undefined, () => {
+          plugin.fileHashManager.setFileHash(file.path, contentHash)
+          plugin.fileHashManager.removeFileHash(oldfile)
+        })
       }
-
-      plugin.fileHashManager.removeFileHash(oldfile)
     } finally {
       plugin.removeIgnoredFile(file.path)
     }

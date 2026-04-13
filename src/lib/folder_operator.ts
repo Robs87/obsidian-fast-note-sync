@@ -23,8 +23,9 @@ export const folderModify = async function (folder: TFolder, plugin: FastSync, e
                 path: folder.path,
                 pathHash: hashContent(folder.path),
             }
-            plugin.folderSnapshotManager.setFolderMtime(folder.path, now)
-            plugin.websocket.SendMessage("FolderModify", data)
+            plugin.websocket.SendMessage("FolderModify", data, undefined, () => {
+                plugin.folderSnapshotManager.setFolderMtime(folder.path, now)
+            })
             dump(`Folder modify send`, data.path, data.pathHash)
         } finally {
             plugin.removeIgnoredFile(folder.path)
@@ -55,8 +56,9 @@ export const folderDelete = async function (folder: TFolder, plugin: FastSync, e
                 path: folder.path,
                 pathHash: hashContent(folder.path),
             }
-            plugin.folderSnapshotManager.removeFolder(folder.path)
-            plugin.websocket.SendMessage("FolderDelete", data)
+            plugin.websocket.SendMessage("FolderDelete", data, undefined, () => {
+                plugin.folderSnapshotManager.removeFolder(folder.path)
+            })
             dump(`Folder delete send`, folder.path)
         } finally {
             plugin.removeIgnoredFile(folder.path)
@@ -90,9 +92,10 @@ export const folderRename = async function (folder: TFolder, oldPath: string, pl
                 oldPath: oldPath,
                 oldPathHash: hashContent(oldPath),
             }
-            plugin.folderSnapshotManager.removeFolder(oldPath)
-            plugin.folderSnapshotManager.setFolderMtime(folder.path, now)
-            plugin.websocket.SendMessage("FolderRename", data)
+            plugin.websocket.SendMessage("FolderRename", data, undefined, () => {
+                plugin.folderSnapshotManager.removeFolder(oldPath)
+                plugin.folderSnapshotManager.setFolderMtime(folder.path, now)
+            })
             dump(`Folder rename send`, data.path, data.pathHash)
         } finally {
             plugin.removeIgnoredFile(folder.path)

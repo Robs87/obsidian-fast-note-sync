@@ -365,7 +365,8 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
         // 使用虚拟化 mtime：优先从快照读取，若是新路径则用当前时间
         let mtime = plugin.folderSnapshotManager.getMtime(file.path) || Date.now();
 
-        if (isLoadLastTime && mtime < Number(plugin.localStorageManager.getMetadata("lastFolderSyncTime"))) continue;
+        // 优化增量同步过滤：仅在文件已追踪且 mtime 未超过上次同步时间时跳过
+        if (isLoadLastTime && mtime < Number(plugin.localStorageManager.getMetadata("lastFolderSyncTime")) && plugin.folderSnapshotManager.getMtime(file.path) !== undefined) continue;
 
         folders.push({
           path: file.path,
@@ -376,7 +377,8 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
 
       if (file instanceof TFile) {
         if (file.extension === "md") {
-          if (isLoadLastTime && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) continue;
+          // 优化增量同步过滤：仅在文件已追踪且 mtime 未超过上次同步时间时跳过
+          if (isLoadLastTime && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime")) && plugin.fileHashManager.getPathHash(file.path) !== null) continue;
           const contentHash = hashContent(await plugin.app.vault.cachedRead(file));
           const baseHash = plugin.fileHashManager.getPathHash(file.path);
           let item = {
@@ -395,7 +397,8 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
           const skipSync = plugin.settings.cloudPreviewEnabled && (!plugin.settings.cloudPreviewTypeRestricted || FileCloudPreview.isRestrictedType("." + file.extension));
           if (skipSync) continue;
 
-          if (isLoadLastTime && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) continue;
+          // 优化增量同步过滤：仅在文件已追踪且 mtime 未超过上次同步时间时跳过
+          if (isLoadLastTime && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastFileSyncTime")) && plugin.fileHashManager.getPathHash(file.path) !== null) continue;
           const contentHash = await hashArrayBuffer(await plugin.app.vault.readBinary(file));
           const baseHash = plugin.fileHashManager.getPathHash(file.path);
           let item = {
@@ -614,7 +617,11 @@ export const handleRequestSend = async function (plugin: FastSync, syncMode: Syn
 
     // 第一步：先发 FolderSync，确保文件夹结构先于笔记/附件在本地建立
     // Step 1: Send FolderSync first to ensure folder structure is created before notes/files
-    plugin.websocket.SendMessage("FolderSync", folderSyncData);
+    plugin.websocket.SendMessage("FolderSync", folderSyncData, undefined, () => {
+      for (const folder of folderSyncData.folders) {
+        plugin.folderSnapshotManager.setFolderMtime(folder.path, Date.now());
+      }
+    });
 
     // 第二步：等待 folderSyncDone（FolderSyncEnd 已收到且所有文件夹任务已完成）
     // 超时兜底：10s 后无论如何继续，避免网络异常时挂起
@@ -640,7 +647,11 @@ export const handleRequestSend = async function (plugin: FastSync, syncMode: Syn
 
     // 第三步：文件夹结构已就绪，发 NoteSync 和 FileSync
     // Step 3: Folder structure is ready, now send NoteSync and FileSync
-    plugin.websocket.SendMessage("NoteSync", noteSyncData);
+    plugin.websocket.SendMessage("NoteSync", noteSyncData, undefined, () => {
+      for (const note of noteSyncData.notes) {
+        plugin.fileHashManager.setFileHash(note.path, note.contentHash);
+      }
+    });
 
     // 如果启用了云预览且未开启类型限制，则不发送 FileSync 请求，从而关闭启动时的 file 同步
     // 若开启了类型限制，则需要发送以同步不受限类型的附件1
@@ -666,7 +677,11 @@ export const handleRequestSend = async function (plugin: FastSync, syncMode: Syn
       ...(plugin.settings.offlineDeleteSyncEnabled ? { delSettings: configData.delConfigs } : {}),
       ...(configData.missingConfigs.length > 0 ? { missingSettings: configData.missingConfigs } : {}),
     };
-    plugin.websocket.SendMessage("SettingSync", configSyncData);
+    plugin.websocket.SendMessage("SettingSync", configSyncData, undefined, () => {
+      for (const config of configSyncData.settings) {
+        plugin.configHashManager.setFileHash(config.path, config.contentHash);
+      }
+    });
 
     // 清理已删除配置的本地哈希数据,防止重复检测
     if (plugin.settings.offlineDeleteSyncEnabled && plugin.configHashManager && plugin.configHashManager.isReady()) {
