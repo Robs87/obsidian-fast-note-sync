@@ -131,6 +131,7 @@ export class SettingTab extends PluginSettingTab {
   activeTab: TabId = "GENERAL"
   searchQuery: string = ""
 
+  private headerScrollLeft: number = 0
   private touchStartX: number = 0
   private touchStartY: number = 0
 
@@ -146,6 +147,11 @@ export class SettingTab extends PluginSettingTab {
 
   display(): void {
     const { containerEl: set } = this
+
+    const oldHeader = set.querySelector(".fns-setting-tab-header")
+    if (oldHeader) {
+      this.headerScrollLeft = oldHeader.scrollLeft
+    }
 
     set.empty()
     this.roots.forEach((root) => root.unmount())
@@ -290,17 +296,29 @@ export class SettingTab extends PluginSettingTab {
       { id: "DEBUG", label: $("setting.tab.debug") },
     ]
 
+    let activeTabEl: HTMLElement | null = null
+
     tabs.forEach((tab) => {
       const tabEl = headerEl.createDiv("fns-setting-tab-item")
       tabEl.setText(tab.label)
       if (this.activeTab === tab.id) {
         tabEl.addClass("is-active")
+        activeTabEl = tabEl
       }
       tabEl.onclick = () => {
         this.activeTab = tab.id
         this.display()
       }
     })
+
+    headerEl.scrollLeft = this.headerScrollLeft
+
+    if (activeTabEl) {
+      requestAnimationFrame(() => {
+        if (!activeTabEl) return
+        activeTabEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+      })
+    }
   }
 
   private renderGeneralSettings(set: HTMLElement) {
