@@ -1020,3 +1020,173 @@
   from { opacity: 0.85; transform: translateX(0); }
   to { opacity: 0; transform: translateX(20px); }
 }
+
+/* Markdown Description Table Styles */
+.fns-rule-editor-desc,
+.fns-setting-desc-markdown {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  line-height: 1.5;
+
+  p {
+    margin: 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    border: 1px solid var(--background-modifier-border);
+
+    th,
+    td {
+      border: 1px solid var(--background-modifier-border) !important;
+      padding: 6px 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--background-secondary);
+      font-weight: bold;
+      font-size: var(--font-ui-smaller);
+    }
+
+    td {
+      font-size: var(--font-ui-small);
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: var(--background-secondary-alt);
+    }
+  }
+
+  code {
+    background-color: var(--background-secondary);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+}
+
+/* Rule Editor Modal Styles */
+.fns-rule-editor-modal-container {
+  width: 700px;
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+
+  .modal-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+.fns-rule-editor-modal {
+  display: flex;
+  flex-direction: column;
+
+  .fns-rule-list {
+    margin: 10px 0;
+    overflow-y: visible; /* 让外部容器处理滚动 */
+  }
+
+  .fns-rule-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    width: 100%;
+
+    .fns-rule-input {
+      flex: 1;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--background-modifier-border);
+      background-color: var(--background-primary);
+      padding: 0 12px;
+      font-size: var(--font-ui-small);
+
+      &:focus {
+        border-color: var(--interactive-accent);
+      }
+    }
+
+    .fns-case-toggle {
+      width: 44px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: var(--font-ui-small);
+      color: var(--text-muted);
+      border: 1px solid var(--background-modifier-border);
+      background-color: var(--background-primary);
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      box-shadow: none;
+
+      &.is-active {
+        color: var(--interactive-accent);
+        background-color: var(--background-modifier-hover);
+        border-color: var(--interactive-accent);
+      }
+
+      &:hover {
+        background-color: var(--background-modifier-hover);
+      }
+    }
+
+    .fns-rule-delete {
+      height: 32px;
+      padding: 0 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-muted);
+      border: 1px solid var(--background-modifier-border);
+      background-color: var(--background-primary);
+      border-radius: 6px;
+      font-size: var(--font-ui-small);
+      box-shadow: none;
+      white-space: nowrap;
+
+      &:hover {
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
+      }
+    }
+  }
+
+  .fns-rule-add-container {
+    margin-top: 0;
+    display: flex;
+    justify-content: flex-start;
+
+    .fns-rule-add {
+      font-size: var(--font-ui-small);
+      padding: 6px 16px;
+      border-radius: 6px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .fns-rule-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--background-modifier-border);
+
+    button {
+      min-width: 90px;
+      height: 32px;
+      border-radius: 6px;
+      font-size: var(--font-ui-small);
+    }
+  }
+}

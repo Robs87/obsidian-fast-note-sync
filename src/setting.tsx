@@ -874,26 +874,34 @@ export class SettingTab extends PluginSettingTab {
     })
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.exclude_whitelist_desc"))
 
-    new Setting(set).setName($("setting.sync.config_dirs")).addTextArea((text) =>
-      text
-        .setPlaceholder($("setting.sync.config_dirs_placeholder"))
-        .setValue(this.plugin.settings.configSyncOtherDirs)
-        .onChange(async (value) => {
-          const lines = value.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
-          // 逻辑反转：必须以 . 开头
-          const hasInvalid = lines.some(l => !l.startsWith("."));
+    new Setting(set).setName($("setting.sync.config_dirs")).addButton((btn) => {
+      btn.setButtonText($("ui.button.add_dir")).onClick(() => {
+        new RuleEditorModal(
+          this.app,
+          $("setting.sync.config_dirs"),
+          $("setting.sync.config_dirs_desc"),
+          parseRules(this.plugin.settings.configSyncOtherDirs),
+          async (rules) => {
+            const lines = rules.map(r => r.pattern.trim()).filter(l => l !== "");
+            const hasInvalid = lines.some(l => !l.startsWith("."));
 
-          if (hasInvalid) {
-            new Notice($("setting.sync.config_dirs_must_start_with_dot_warning"));
-            const filteredValue = lines.filter(l => l.startsWith(".")).join("\n");
-            this.plugin.settings.configSyncOtherDirs = filteredValue;
-            text.setValue(filteredValue);
-          } else {
-            this.plugin.settings.configSyncOtherDirs = value;
-          }
-          await this.plugin.saveSettings();
-        }),
-    )
+            let finalValue = "";
+            if (hasInvalid) {
+              new Notice($("setting.sync.config_dirs_must_start_with_dot_warning"));
+              finalValue = lines.filter(l => l.startsWith(".")).join("\n");
+            } else {
+              finalValue = lines.join("\n");
+            }
+
+            this.plugin.settings.configSyncOtherDirs = finalValue;
+            await this.plugin.saveSettings();
+          },
+          false,
+          $("ui.button.add_dir"),
+          $("setting.sync.config_dirs_placeholder")
+        ).open();
+      });
+    })
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.config_dirs_desc"))
 
 

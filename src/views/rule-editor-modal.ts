@@ -3,21 +3,33 @@ import { SyncRule } from "../lib/helps";
 import { $ } from "../i18n/lang";
 
 export class RuleEditorModal extends Modal {
-  private rules: SyncRule[];
-  private onSave: (rules: SyncRule[]) => void;
-  private description: string;
-  private component: Component;
+  private showCaseSensitive: boolean;
+  private addButtonText: string;
+  private inputPlaceholder: string;
 
-  constructor(app: App, title: string, description: string, rules: SyncRule[], onSave: (rules: SyncRule[]) => void) {
+  constructor(
+    app: App,
+    title: string,
+    description: string,
+    rules: SyncRule[],
+    onSave: (rules: SyncRule[]) => void,
+    showCaseSensitive: boolean = true,
+    addButtonText?: string,
+    inputPlaceholder?: string
+  ) {
     super(app);
     this.titleEl.setText(title);
     this.description = description;
     this.rules = [...rules];
     this.onSave = onSave;
+    this.showCaseSensitive = showCaseSensitive;
+    this.addButtonText = addButtonText || $("ui.button.add_rule") || "Add Rule";
+    this.inputPlaceholder = inputPlaceholder || $("setting.sync.exclude_placeholder");
     this.component = new Component();
   }
 
   onOpen() {
+    this.modalEl.addClass("fns-rule-editor-modal-container");
     this.component.load();
     this.render();
   }
@@ -42,29 +54,31 @@ export class RuleEditorModal extends Modal {
         type: "text",
         value: rule.pattern,
         cls: "fns-rule-input",
-        placeholder: $("setting.sync.exclude_placeholder")
+        placeholder: this.inputPlaceholder
       });
       inputEl.onchange = (e) => {
         this.rules[index].pattern = (e.target as HTMLInputElement).value;
       };
 
       // 大小写敏感开关 (Aa)
-      const caseBtn = rowEl.createEl("button", {
-        text: "Aa",
-        cls: "fns-case-toggle" + (rule.caseSensitive ? " is-active" : ""),
-        title: "Case Sensitive"
-      });
-      caseBtn.onclick = () => {
-        this.rules[index].caseSensitive = !this.rules[index].caseSensitive;
-        caseBtn.toggleClass("is-active", this.rules[index].caseSensitive);
-      };
+      if (this.showCaseSensitive) {
+        const caseBtn = rowEl.createEl("button", {
+          text: "Aa",
+          cls: "fns-case-toggle" + (rule.caseSensitive ? " is-active" : ""),
+          title: "Case Sensitive"
+        });
+        caseBtn.onclick = () => {
+          this.rules[index].caseSensitive = !this.rules[index].caseSensitive;
+          caseBtn.toggleClass("is-active", this.rules[index].caseSensitive);
+        };
+      }
 
       // 删除按钮
       const deleteBtn = rowEl.createEl("button", {
+        text: $("ui.button.delete") || "Delete",
         cls: "fns-rule-delete",
         title: $("ui.button.delete")
       });
-      setIcon(deleteBtn, "trash");
       deleteBtn.onclick = () => {
         this.rules.splice(index, 1);
         this.render();
@@ -74,7 +88,7 @@ export class RuleEditorModal extends Modal {
     // 添加规则按钮
     const addContainer = contentEl.createDiv("fns-rule-add-container");
     const addBtn = addContainer.createEl("button", {
-      text: $("ui.button.add_rule") || "Add Rule",
+      text: this.addButtonText,
       cls: "fns-rule-add"
     });
     addBtn.onclick = () => {
