@@ -403,7 +403,12 @@ export class RecycleBinModal extends Modal {
     }
 
     private async deleteItemPermanently(item: RecycleItem) {
-        const success = await this.api.clearRecycleBin(this.activeTab, [item.path], item.pathHash ? [item.pathHash] : []);
+        // 确保有 pathHash 才执行删除，避免与 clearAll 行为混淆
+        if (!item.pathHash) {
+            new Notice($("ui.history.load_failed"));
+            return;
+        }
+        const success = await this.api.clearRecycleBin(this.activeTab, [item.path], [item.pathHash]);
         if (success) {
             new Notice($("ui.recycle_bin.delete_success"));
             this.items = this.items.filter(i => i.path !== item.path);
@@ -438,8 +443,16 @@ export class RecycleBinModal extends Modal {
     }
 
     private async bulkDelete() {
-        const paths = Array.from(this.selectedPaths);
-        const hashes = paths.map(p => this.selectedPathHashes.get(p)).filter(h => !!h) as string[];
+        const allPaths = Array.from(this.selectedPaths);
+        // 过滤出有 pathHash 的项，确保 paths 和 hashes 数组严格对齐
+        // 缺少 pathHash 的项跳过，避免数组长度不匹配导致服务端清空全部回收站 (Issue #115)
+        const paths = allPaths.filter(p => this.selectedPathHashes.has(p));
+        const hashes = paths.map(p => this.selectedPathHashes.get(p)!);
+
+        if (paths.length === 0) {
+            new Notice($("ui.history.load_failed"));
+            return;
+        }
 
         const success = await this.api.clearRecycleBin(this.activeTab, paths, hashes);
         if (success) {
