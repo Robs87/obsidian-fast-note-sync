@@ -269,23 +269,11 @@ export const hashContent = function (content: string): string {
  * 对 ArrayBuffer 进行哈希
  */
 /**
- * 对 ArrayBuffer 进行哈希 (优化版：优先使用 Web Crypto API 以避免大文件计算导致 UI 冻结)
- * Hash ArrayBuffer (Optimized: prioritizing Web Crypto API to avoid UI freeze due to large file calculation)
+ * 对 ArrayBuffer 进行哈希 (统一采用 JS 数字滚动哈希以保持一致性)
+ * Hash ArrayBuffer (using JS numeric rolling hash for consistency)
  */
 export const hashArrayBuffer = async function (buffer: ArrayBuffer): Promise<string> {
-  // 优先使用 Web Crypto API (SubtleCrypto)
-  if (typeof crypto !== "undefined" && crypto.subtle) {
-    try {
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      // 将 ArrayBuffer 转换为 16 进制字符串，截取前 16 位以保持较短的指纹
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
-    } catch (e) {
-      dump("Web Crypto hash failed, falling back to JS implementation:", e);
-    }
-  }
-
-  // 基础兼容性回退方案 (JS 循环)
+  // 不再使用 Web Crypto API (SubtleCrypto)，以保证哈希计算在所有平台和读取模式下都产出数字字符串格式
   let hash = 0
   const view = new Uint8Array(buffer)
   for (let i = 0; i < view.length; i++) {

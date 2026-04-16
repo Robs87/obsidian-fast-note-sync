@@ -214,6 +214,7 @@ export const receiveConfigUpload = async function (data: ReceivePathMessage, plu
 
     const filePath = normalizePath(data.path);
     let contentStr = "";
+    let contentHash = "";
     let contentBuf: ArrayBuffer | null = null;
     let mtime = 0;
     let ctime = 0;
@@ -225,6 +226,7 @@ export const receiveConfigUpload = async function (data: ReceivePathMessage, plu
             if (stat) {
                 contentBuf = await plugin.app.vault.adapter.readBinary(filePath);
                 contentStr = new TextDecoder().decode(contentBuf);
+                contentHash = await hashArrayBuffer(contentBuf);
                 mtime = stat.mtime;
                 ctime = getSafeCtime(stat);
             }
@@ -246,7 +248,7 @@ export const receiveConfigUpload = async function (data: ReceivePathMessage, plu
         path: data.path,
         pathHash: hashContent(data.path),
         content: contentStr,
-        contentHash: await hashArrayBuffer(contentBuf),
+        contentHash: contentHash,
         mtime: mtime,
         ctime: ctime,
     };
