@@ -430,7 +430,7 @@ export class WebSocketClient {
     this.Send("ClientInfo", JSON.stringify({
       name: clientName,
       version: this.plugin.manifest.version,
-      type: "obsidianPlugin",
+      type: "obsidian-plugin",
       isDesktop: Platform.isDesktop,
       isMobile: Platform.isMobile,
       isPhone: Platform.isPhone,
