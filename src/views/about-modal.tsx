@@ -1,9 +1,11 @@
-import { App, Modal, Notice, MarkdownRenderer, Component } from "obsidian";
+import { App, Modal, Notice, MarkdownRenderer, Component, requestUrl } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import * as React from "react";
+import JSZip from "jszip";
 
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
+import { dump } from "../lib/helps";
 
 
 /**
@@ -112,6 +114,104 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
         }
     };
 
+    const handlePluginUpgrade = async () => {
+        setIsUpgrading(true);
+        setUpgradeStatus($("ui.version.upgrading_plugin"));
+        dump("Starting plugin upgrade process...");
+
+        const latest = pluginNew;
+        if (!latest) {
+            dump("Error: Latest version info not found");
+            new Notice("Latest version information not found.");
+            setIsUpgrading(false);
+            return;
+        }
+
+        const source = plugin.settings.updateSource || 'github';
+        const tag = latest; // User's example: tag is the version (e.g. 1.20.12-alpha)
+
+        // Extract version part for zip filename: 1.20.12-alpha -> 1.20.12
+        const versionPart = latest.split('-')[0];
+        const zipFileName = `fast-note-sync-v${versionPart}.zip`;
+
+        const baseUrl = source === 'github'
+            ? `https://github.com/haierkeys/obsidian-fast-note-sync/releases/download/${tag}`
+            : `https://cnb.tool/haierkeys/obsidian-fast-note-sync/-/releases/download/${tag}`;
+
+        const pluginDir = `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
+        dump(`Upgrade info: source=${source}, tag=${tag}, zipName=${zipFileName}, dir=${pluginDir}`);
+
+        try {
+            setUpgradeStatus($("ui.version.downloading_file", { file: zipFileName }));
+            const url = `${baseUrl}/${zipFileName}`;
+            dump(`Downloading from: ${url}`);
+
+            let arrayBuffer: ArrayBuffer;
+            // 插件升级涉及跨域下载 (GitHub/CNB)，必须使用 requestUrl 以规避 CORS 限制
+            const response = await requestUrl({
+                url: url,
+                method: 'GET',
+            });
+
+            if (response.status !== 200) {
+                dump(`Download failed with status: ${response.status}`);
+                throw new Error(`Failed to download ${zipFileName}: ${response.status}`);
+            }
+            arrayBuffer = response.arrayBuffer;
+            dump(`Download successful, size: ${arrayBuffer.byteLength} bytes`);
+
+            // Extract Zip
+            dump("Loading zip archive...");
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            
+            // 自动检测根目录前缀（寻找 manifest.json 所在位置）
+            let rootPrefix = "";
+            const manifestFile = Object.keys(zip.files).find(f => f.endsWith("manifest.json"));
+            if (manifestFile) {
+                rootPrefix = manifestFile.replace("manifest.json", "");
+                if (rootPrefix) dump(`Detected root prefix in zip: "${rootPrefix}"`);
+            }
+
+            const files = Object.entries(zip.files).filter(([name, file]) => !file.dir && name.startsWith(rootPrefix));
+            dump(`Zip file contains ${files.length} valid items`);
+
+            for (const [realFilename, file] of files) {
+                // 剔除前缀获取相对路径
+                const relativeFilename = realFilename.substring(rootPrefix.length);
+                if (!relativeFilename) continue;
+
+                const content = await file.async('arraybuffer');
+                const path = `${pluginDir}/${relativeFilename}`;
+                dump(`Extracting file: ${realFilename} -> ${path}`);
+
+                // Ensure parent directory exists (recursive)
+                const pathParts = relativeFilename.split('/');
+                if (pathParts.length > 1) {
+                    let currentPath = pluginDir;
+                    for (let i = 0; i < pathParts.length - 1; i++) {
+                        currentPath += `/${pathParts[i]}`;
+                        if (!(await plugin.app.vault.adapter.exists(currentPath))) {
+                            dump(`Creating directory: ${currentPath}`);
+                            await plugin.app.vault.adapter.mkdir(currentPath);
+                        }
+                    }
+                }
+
+                await plugin.app.vault.adapter.writeBinary(path, content);
+            }
+
+            dump("Plugin upgrade completed successfully");
+            new Notice($("ui.version.upgrade_plugin_success"), 10000);
+            closeModal();
+        } catch (e) {
+            dump(`Upgrade failed: ${e.message}`, e);
+            console.error("Plugin upgrade error:", e);
+            new Notice($("ui.version.upgrade_fail") + ": " + e.message);
+        } finally {
+            setIsUpgrading(false);
+        }
+    };
+
     return (
         <div className="fns-about-view">
             <div className="fns-version-section">
@@ -123,6 +223,10 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
                         latest={pluginIsNew ? pluginNew : pluginCurrent}
                         isNew={pluginIsNew}
                         changelog={pluginNewChangelog || pluginCurrentChangelog}
+                        canUpgrade={pluginIsNew}
+                        onUpgrade={handlePluginUpgrade}
+                        isUpgrading={isUpgrading}
+                        status={upgradeStatus}
                     />
                 )}
 
@@ -175,16 +279,25 @@ const VersionItem = ({
             </div>
 
             <div className="fns-version-info">
-                <div className="fns-version-row">
-                    <span>{$("ui.version.current")}:</span>
-                    <span className="fns-version-number">v{current}</span>
-                </div>
-                {isNew && (
-                    <div className="fns-version-row">
-                        <span>{$("ui.version.latest")}:</span>
-                        <span className="fns-version-number fns-new-v">v{latest}</span>
+                <div className="fns-version-row fns-version-row-between">
+                    <div className="fns-version-left">
+                        <span>{$("ui.version.current")}:</span>
+                        <span className="fns-version-number">v{current}</span>
                     </div>
-                )}
+
+                    {isNew ? (
+                        <div className="fns-version-right">
+                            <span>{$("ui.version.latest")}:</span>
+                            <span className="fns-version-number fns-new-v">v{latest}</span>
+                        </div>
+                    ) : (
+                        !canUpgrade && (
+                            <div className="fns-version-uptodate">
+                                <span className="fns-icon-check">✓</span> {$("ui.version.up_to_date")}
+                            </div>
+                        )
+                    )}
+                </div>
             </div>
 
             {changelog && (
@@ -200,16 +313,11 @@ const VersionItem = ({
                         disabled={isUpgrading}
                         onClick={onUpgrade}
                     >
-                        {isUpgrading ? status : $("ui.version.upgrade_server")}
+                        {isUpgrading ? status : (isPlugin ? $("ui.version.upgrade_plugin") : $("ui.version.upgrade_server"))}
                     </button>
                 </div>
             )}
 
-            {!isNew && !canUpgrade && (
-                <div className="fns-version-uptodate">
-                    <span className="fns-icon-check">✓</span> {$("ui.version.up_to_date")}
-                </div>
-            )}
         </div>
     );
 };

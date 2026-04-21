@@ -69,6 +69,8 @@ export interface PluginSettings {
   /** 是否显示分享图标（原生文件管理器 & Notebook Navigator）
    * Whether to show share icon (native file explorer & Notebook Navigator) */
   showShareIcon: boolean
+  /** 插件更新源 */
+  updateSource: 'github' | 'cnb'
 }
 
 /**
@@ -111,6 +113,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   autoPauseMinimized: false,
   sharedPaths: [],
   showShareIcon: true,
+  updateSource: "github",
 }
 
 
@@ -350,6 +353,18 @@ export class SettingTab extends PluginSettingTab {
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_share_icon_desc"))
+
+    new Setting(set).setName($("setting.debug.update_source")).addDropdown((dropdown) =>
+      dropdown
+        .addOption("github", "GitHub")
+        .addOption("cnb", "腾讯 CNB")
+        .setValue(this.plugin.settings.updateSource || "github")
+        .onChange(async (value: 'github' | 'cnb') => {
+          this.plugin.settings.updateSource = value
+          await this.plugin.saveSettings()
+        }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.update_source_desc"))
 
     new Setting(set)
       .setName("| " + $("setting.support.title"))
@@ -646,6 +661,8 @@ export class SettingTab extends PluginSettingTab {
         await this.plugin.saveSettings()
       }),
     )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.show_version_desc"))
+
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.show_version_desc"))
 
     this.renderDebugTools(set, false)

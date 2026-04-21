@@ -1,6 +1,6 @@
 .fast-note-sync-ribbon-icon {
   animation: rotate 2s linear infinite;
-  /* 旋转动画：2秒一圈，线性，无限循环 */
+  /* 旋转动画：2秒一圈，线性，无限循环 1 */
 }
 
 @keyframes rotate {
@@ -932,11 +932,11 @@
     &.fns-sync-log-category-note {
       border-left-color: #08b94e;
     }
- 
+
     &.fns-sync-log-category-attachment {
       border-left-color: #7C4DFF;
     }
- 
+
     &.fns-sync-log-category-config {
       border-left-color: #FF8A33;
     }
@@ -961,7 +961,7 @@
         color: #FF8C00;
       }
     }
- 
+
     &.fns-sync-log-type-receive {
       border-right-color: #007BFF;
       .fns-sync-log-type-tag {
