@@ -191,14 +191,16 @@ export default {
   "ui.version.upgrade_server": "立即升级服务端",
   "ui.version.upgrade_plugin": "立即升级插件",
   "ui.version.upgrading": "正在升级服务端...",
-  "ui.version.upgrading_plugin": "正在升级插件...",
   "ui.version.downloading_file": "正在下载 ${file}...",
   "ui.version.waiting_server": "等待服务端重启...",
   "ui.version.upgrade_success": "升级成功并已重连",
-  "ui.version.upgrade_plugin_success": "插件升级成功，请重启 Obsidian 或重新加载插件以生效",
+  "ui.version.upgrade_plugin_success": "插件升级并重载成功",
   "ui.version.upgrade_fail": "升级请求失败",
   "ui.version.plugin_changelog": "插件更新日志",
   "ui.version.server_changelog": "服务端更新日志",
+  "ui.version.upgrading_plugin": "正在升级插件...",
+  "ui.version.reloading_plugin": "正在重载插件...",
+  "ui.version.upgrade_plugin_fail": "插件升级失败",
 
   // --- ui.log ---
   "ui.log.title": "同步日志",

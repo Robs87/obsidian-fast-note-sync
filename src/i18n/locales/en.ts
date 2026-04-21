@@ -191,14 +191,16 @@ export default {
   "ui.version.upgrade_server": "Upgrade Server Now",
   "ui.version.upgrade_plugin": "Upgrade Plugin Now",
   "ui.version.upgrading": "Upgrading server...",
-  "ui.version.upgrading_plugin": "Upgrading plugin...",
   "ui.version.downloading_file": "Downloading ${file}...",
   "ui.version.waiting_server": "Waiting for server to restart...",
   "ui.version.upgrade_success": "Upgrade success and reconnected",
-  "ui.version.upgrade_plugin_success": "Plugin upgraded successfully. Please restart Obsidian or reload the plugin for changes to take effect.",
+  "ui.version.upgrade_plugin_success": "Plugin upgrade and reload success",
   "ui.version.upgrade_fail": "Upgrade request failed",
   "ui.version.plugin_changelog": "Plugin Changelog",
   "ui.version.server_changelog": "Server Changelog",
+  "ui.version.upgrading_plugin": "Upgrading plugin...",
+  "ui.version.reloading_plugin": "Reloading plugin...",
+  "ui.version.upgrade_plugin_fail": "Plugin upgrade failed",
 
   // --- ui.log ---
   "ui.log.title": "Sync Log",

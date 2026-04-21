@@ -139,6 +139,25 @@ export class HttpApiService {
     }
 
     /**
+     * 下载二进制文件 (用于插件升级 Zip)
+     */
+    async downloadBinary(url: string): Promise<ArrayBuffer | null> {
+        try {
+            const response = await requestUrl({
+                url: url,
+                method: "GET",
+            });
+            if (response.status === 200) {
+                return response.arrayBuffer;
+            }
+            return null;
+        } catch (e) {
+            console.error("downloadBinary error:", e);
+            return null;
+        }
+    }
+
+    /**
      * 内部通用请求方法，支持网络库切换
      * @param endpoint 接口相对路径（如 /api/notes，不包含主机名）
      * @param options 请求选项

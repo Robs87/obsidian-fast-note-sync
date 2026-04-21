@@ -4,8 +4,8 @@ import * as React from "react";
 import JSZip from "jszip";
 
 import type FastSync from "../main";
-import { $ } from "../i18n/lang";
 import { dump } from "../lib/helps";
+import { $ } from "../i18n/lang";
 
 
 /**
@@ -136,7 +136,7 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
 
         const baseUrl = source === 'github'
             ? `https://github.com/haierkeys/obsidian-fast-note-sync/releases/download/${tag}`
-            : `https://cnb.tool/haierkeys/obsidian-fast-note-sync/-/releases/download/${tag}`;
+            : `https://cnb.cool/haierkeys/obsidian-fast-note-sync/-/releases/download/${tag}`;
 
         const pluginDir = `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
         dump(`Upgrade info: source=${source}, tag=${tag}, zipName=${zipFileName}, dir=${pluginDir}`);
@@ -163,7 +163,7 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
             // Extract Zip
             dump("Loading zip archive...");
             const zip = await JSZip.loadAsync(arrayBuffer);
-            
+
             // 自动检测根目录前缀（寻找 manifest.json 所在位置）
             let rootPrefix = "";
             const manifestFile = Object.keys(zip.files).find(f => f.endsWith("manifest.json"));
@@ -200,7 +200,20 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
                 await plugin.app.vault.adapter.writeBinary(path, content);
             }
 
-            dump("Plugin upgrade completed successfully");
+            dump("Plugin upgrade completed successfully, starting hot reload...");
+            setUpgradeStatus($("ui.version.reloading_plugin"));
+
+            const plugins = (plugin.app as any).plugins;
+            const id = plugin.manifest.id;
+
+            // 稍微延迟一下，确保 Notice 和状态更新能被识别
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // 执行热重载：禁用 -> 重新扫描 -> 启用
+            await plugins.disablePlugin(id);
+            await plugins.loadManifests();
+            await plugins.enablePlugin(id);
+
             new Notice($("ui.version.upgrade_plugin_success"), 10000);
             closeModal();
         } catch (e) {
