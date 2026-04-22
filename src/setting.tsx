@@ -6,7 +6,7 @@ import { SettingsView, SupportView } from "./views/settings-view";
 import { ConfirmModal } from "./views/confirm-modal";
 import { RuleEditorModal } from "./views/rule-editor-modal";
 import { RuleEditor } from "./views/rule-editor";
-import { parseRules, SyncRule } from "./lib/helps";
+import { parseRules, SyncRule, getPluginDir } from "./lib/helps";
 import { $ } from "./i18n/lang";
 import FastSync from "./main";
 
@@ -579,7 +579,7 @@ export class SettingTab extends PluginSettingTab {
             this.plugin.settings.networkLibrary = backup.networkLibrary
 
             // 重新初始化某些依赖库路径的动态默认值
-            this.plugin.settings.syncExcludeFolders = JSON.stringify([{ pattern: `${this.app.vault.configDir}/plugins/${this.plugin.manifest.id}`, caseSensitive: false }]);
+            this.plugin.settings.syncExcludeFolders = JSON.stringify([{ pattern: getPluginDir(this.plugin), caseSensitive: false }]);
 
             // 确保客户端名称不被重置
             if (clientNameBackup) {

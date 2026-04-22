@@ -1,6 +1,7 @@
 import { App, Notice, TFolder } from "obsidian";
 import JSZip from "jszip";
 import type FastSync from "../main";
+import { dump, getPluginDir } from "./helps";
 
 export class PluginManager {
     constructor(private app: App, private plugin: FastSync) { }
@@ -15,8 +16,7 @@ export class PluginManager {
             const zip = await jszip.loadAsync(zipData);
             const adapter = this.app.vault.adapter;
             const configDir = this.app.vault.configDir;
-            const pluginId = this.plugin.manifest.id;
-            const pluginPath = `${configDir}/plugins/${pluginId}`;
+            const pluginPath = getPluginDir(this.plugin);
 
             // 检查目录是否存在，不存在则创建
             if (!(await adapter.exists(pluginPath))) {

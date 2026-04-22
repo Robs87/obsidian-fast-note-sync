@@ -4,7 +4,7 @@ import * as React from "react";
 import JSZip from "jszip";
 
 import type FastSync from "../main";
-import { dump } from "../lib/helps";
+import { dump, getPluginDir } from "../lib/helps";
 import { showSyncNotice } from "../lib/operator";
 import { $ } from "../i18n/lang";
 import { LucideIcon } from "./note-history/lucide-icon";
@@ -140,7 +140,7 @@ const AboutView = ({ plugin, type, closeModal }: { plugin: FastSync; type: 'plug
             ? `https://github.com/haierkeys/obsidian-fast-note-sync/releases/download/${tag}`
             : `https://cnb.cool/haierkeys/obsidian-fast-note-sync/-/releases/download/${tag}`;
 
-        const pluginDir = `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
+        const pluginDir = getPluginDir(plugin);
         dump(`Upgrade info: source=${source}, tag=${tag}, zipName=${zipFileName}, dir=${pluginDir}`);
 
         try {

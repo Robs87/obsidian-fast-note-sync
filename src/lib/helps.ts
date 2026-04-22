@@ -4,6 +4,15 @@ import FastSync from "../main";
 
 
 /**
+ * 获取插件真实目录 (处理手动重命名文件夹的情况)
+ * Get the real plugin directory (handles manually renamed folders)
+ */
+export const getPluginDir = function (plugin: FastSync): string {
+  return (plugin.manifest as any).dir || `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
+}
+
+
+/**
  * 同步规则结构
  */
 export interface SyncRule {
