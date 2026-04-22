@@ -72,6 +72,8 @@ export interface PluginSettings {
   showShareIcon: boolean
   /** 插件更新源 */
   updateSource: 'github' | 'cnb'
+  /** 手机端状态点位置 */
+  mobileStatusDotPosition: 'hidden' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 }
 
 /**
@@ -115,11 +117,12 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   sharedPaths: [],
   showShareIcon: true,
   updateSource: "github",
+  mobileStatusDotPosition: "top-right",
 }
 
 
 
-export type TabId = "GENERAL" | "DEBUG" | "REMOTE" | "SYNC" | "CLOUD";
+export type TabId = "GENERAL" | "DISPLAY" | "DEBUG" | "REMOTE" | "SYNC" | "CLOUD";
 
 export class SettingTab extends PluginSettingTab {
   plugin: FastSync
@@ -197,6 +200,9 @@ export class SettingTab extends PluginSettingTab {
         case "CLOUD":
           this.renderCloudSettings(contentEl)
           break
+        case "DISPLAY":
+          this.renderDisplaySettings(contentEl)
+          break
       }
     }
   }
@@ -207,7 +213,7 @@ export class SettingTab extends PluginSettingTab {
     const threshold = 50
 
     if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const tabs: TabId[] = ["GENERAL", "REMOTE", "SYNC", "CLOUD", "DEBUG"]
+      const tabs: TabId[] = ["GENERAL", "DISPLAY", "REMOTE", "SYNC", "CLOUD", "DEBUG"]
       const currentIndex = tabs.indexOf(this.activeTab)
 
       if (deltaX > 0) {
@@ -239,6 +245,7 @@ export class SettingTab extends PluginSettingTab {
 
   private renderAllSettings(contentEl: HTMLElement) {
     this.renderGeneralSettings(contentEl)
+    this.renderDisplaySettings(contentEl)
     this.renderRemoteSettings(contentEl)
     this.renderSyncSettings(contentEl)
     this.renderCloudSettings(contentEl)
@@ -288,6 +295,7 @@ export class SettingTab extends PluginSettingTab {
 
     const tabs: { id: TabId; label: string }[] = [
       { id: "GENERAL", label: $("setting.tab.general") },
+      { id: "DISPLAY", label: $("setting.tab.display") },
       { id: "REMOTE", label: $("setting.tab.remote") },
       { id: "SYNC", label: $("setting.tab.sync") },
       { id: "CLOUD", label: $("setting.tab.cloud") },
@@ -333,27 +341,6 @@ export class SettingTab extends PluginSettingTab {
         }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.startup_delay_desc"))
-
-    new Setting(set).setName($("setting.general.show_notice")).addToggle((toggle) =>
-      toggle.setValue(this.plugin.settings.isShowNotice).onChange(async (value) => {
-        if (value != this.plugin.settings.isShowNotice) {
-          this.plugin.settings.isShowNotice = value
-          await this.plugin.saveSettings()
-        }
-      }),
-    )
-    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_notice_desc"))
-
-    new Setting(set).setName($("setting.general.show_share_icon")).addToggle((toggle) =>
-      toggle.setValue(this.plugin.settings.showShareIcon).onChange(async (value) => {
-        if (value != this.plugin.settings.showShareIcon) {
-          this.plugin.settings.showShareIcon = value
-          await this.plugin.saveSettings()
-          this.plugin.shareIndicatorManager.regenerateCss()
-        }
-      }),
-    )
-    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_share_icon_desc"))
 
     new Setting(set).setName($("setting.debug.update_source")).addDropdown((dropdown) =>
       dropdown
@@ -656,6 +643,36 @@ export class SettingTab extends PluginSettingTab {
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.support.debug_url_desc"))
 
+    this.renderDebugTools(set, false)
+  }
+
+  private renderDisplaySettings(set: HTMLElement) {
+    new Setting(set)
+      .setName("| " + $("setting.tab.display"))
+      .setHeading()
+      .setClass("fast-note-sync-settings-tag")
+
+    new Setting(set).setName($("setting.general.show_notice")).addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.isShowNotice).onChange(async (value) => {
+        if (value != this.plugin.settings.isShowNotice) {
+          this.plugin.settings.isShowNotice = value
+          await this.plugin.saveSettings()
+        }
+      }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_notice_desc"))
+
+    new Setting(set).setName($("setting.general.show_share_icon")).addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.showShareIcon).onChange(async (value) => {
+        if (value != this.plugin.settings.showShareIcon) {
+          this.plugin.settings.showShareIcon = value
+          await this.plugin.saveSettings()
+          this.plugin.shareIndicatorManager.regenerateCss()
+        }
+      }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_share_icon_desc"))
+
     new Setting(set).setName($("setting.debug.show_version")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.showVersionInfo).onChange(async (value) => {
         this.plugin.settings.showVersionInfo = value
@@ -664,9 +681,26 @@ export class SettingTab extends PluginSettingTab {
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.show_version_desc"))
 
-    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.show_version_desc"))
-
-    this.renderDebugTools(set, false)
+    new Setting(set).setName($("setting.remote.mobile_status_dot_pos")).addDropdown((dropdown) =>
+      dropdown
+        .addOption("hidden", $("setting.remote.mobile_status_dot_pos_hidden"))
+        .addOption("top-right", $("setting.remote.mobile_status_dot_pos_tr"))
+        .addOption("top-left", $("setting.remote.mobile_status_dot_pos_tl"))
+        .addOption("bottom-right", $("setting.remote.mobile_status_dot_pos_br"))
+        .addOption("bottom-left", $("setting.remote.mobile_status_dot_pos_bl"))
+        .setValue(this.plugin.settings.mobileStatusDotPosition || "top-right")
+        .setDisabled(!Platform.isMobile)
+        .onChange(async (value: any) => {
+          this.plugin.settings.mobileStatusDotPosition = value
+          await this.plugin.saveSettings()
+          this.plugin.menuManager?.updateRibbonIcon(this.plugin.websocket.isAuth)
+        }),
+    )
+    let posDesc = $("setting.remote.mobile_status_dot_pos_desc")
+    if (!Platform.isMobile) {
+      posDesc += "\n\n" + $("setting.remote.mobile_status_dot_pos_hint")
+    }
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, posDesc)
   }
 
   private renderRemoteSettings(set: HTMLElement) {

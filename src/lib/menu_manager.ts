@@ -20,6 +20,7 @@ export class MenuManager {
   public shareStatusBarItem: HTMLElement;
   public logStatusBarItem: HTMLElement;
   public recycleBinStatusBarItem: HTMLElement;
+  private mobileStatusDot: HTMLElement | null = null;
 
   private statusBarText: HTMLElement;
   private statusBarFill: HTMLElement;
@@ -145,6 +146,55 @@ export class MenuManager {
       this.ribbonIcon.setAttribute("aria-label", $("ui.menu.ribbon_title") + " (" + $("setting.remote.disconnected") + ")");
     }
     this.refreshUpgradeBadge();
+
+    // 更新手机端悬浮状态点 / Update mobile floating status dot
+    if (Platform.isMobile) {
+      this.updateMobileStatusDot(status);
+    }
+  }
+
+  /**
+   * 更新手机端悬浮连接状态小点
+   * Update mobile floating connection status dot
+   */
+  updateMobileStatusDot(status: boolean) {
+    const pos = this.plugin.settings.mobileStatusDotPosition || 'top-right';
+
+    if (pos === 'hidden') {
+      if (this.mobileStatusDot) {
+        this.mobileStatusDot.remove();
+        this.mobileStatusDot = null;
+      }
+      return;
+    }
+
+    if (!this.mobileStatusDot) {
+      this.mobileStatusDot = document.body.createDiv("fns-mobile-status-dot");
+    }
+
+    // 更新位置类 / Update position classes
+    this.mobileStatusDot.className = "fns-mobile-status-dot"; // 重置 / Reset
+    const posClass = pos === 'top-right' ? 'pos-tr' :
+      pos === 'top-left' ? 'pos-tl' :
+        pos === 'bottom-right' ? 'pos-br' : 'pos-bl';
+    this.mobileStatusDot.addClass(posClass);
+
+    if (status) {
+      this.mobileStatusDot.addClass("is-connected");
+    } else {
+      this.mobileStatusDot.removeClass("is-connected");
+    }
+  }
+
+  /**
+   * 清理 UI 元素
+   * Cleanup UI elements
+   */
+  unload() {
+    if (this.mobileStatusDot) {
+      this.mobileStatusDot.remove();
+      this.mobileStatusDot = null;
+    }
   }
 
   refreshUpgradeBadge() {

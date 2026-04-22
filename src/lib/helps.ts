@@ -456,3 +456,13 @@ export const formatFileSize = function (bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
+/**
+ * 检查版本是否有更新 (忽略后缀如 -alpha)
+ * Check if version is new (ignore suffixes like -alpha)
+ */
+export const isVersionNew = function (current: string, latest: string): boolean {
+  if (!current || !latest) return false;
+  const cleanCurrent = current.split('-')[0];
+  const cleanLatest = latest.split('-')[0];
+  return cleanCurrent !== cleanLatest;
+}

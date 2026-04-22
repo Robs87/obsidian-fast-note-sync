@@ -9,6 +9,7 @@ export default {
   "setting.tab.remote": "Remote Configuration",
   "setting.tab.sync": "Sync Control",
   "setting.tab.cloud": "Attachment Cloud Preview",
+  "setting.tab.display": "Display UI",
   "setting.search.placeholder": "Search panel settings...",
   "setting.debug.show_version": "Show version info in sync menu",
   "setting.debug.show_version_desc": "When enabled, version info will be permanently displayed in the sync menu; when disabled, it will only appear when an update is available.",
@@ -38,6 +39,14 @@ export default {
   "setting.remote.client_name": "Client Name",
   "setting.remote.client_name_desc": "Set a custom name for the current client to identify the device during multi-device sync.",
   "setting.remote.client_name_placeholder": "Enter client name",
+  "setting.remote.mobile_status_dot_pos": "Mobile Service Connection Status Dot",
+  "setting.remote.mobile_status_dot_pos_desc": "Set the display position or hide the mobile connection status dot.",
+  "setting.remote.mobile_status_dot_pos_hidden": "Hidden",
+  "setting.remote.mobile_status_dot_pos_tr": "Top Right",
+  "setting.remote.mobile_status_dot_pos_tl": "Top Left",
+  "setting.remote.mobile_status_dot_pos_br": "Bottom Right",
+  "setting.remote.mobile_status_dot_pos_bl": "Bottom Left",
+  "setting.remote.mobile_status_dot_pos_hint": "⚠️ This setting only applies to the mobile client. Please configure it on your mobile device.",
 
   // --- setting.sync ---
   "setting.sync.title": "Sync Control",

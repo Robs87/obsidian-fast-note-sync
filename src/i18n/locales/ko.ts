@@ -9,6 +9,7 @@ export default {
   "setting.tab.remote": "원격 설정",
   "setting.tab.sync": "동기화 제어",
   "setting.tab.cloud": "첨부파일 클라우드 미리보기",
+  "setting.tab.display": "UI 표시",
   "setting.search.placeholder": "패널 설정 검색...",
   "setting.debug.show_version": "동기화 메뉴에 버전 정보 표시",
   "setting.debug.show_version_desc": "활성화하면 버전 정보가 동기화 메뉴에 항상 표시됩니다. 비활성화하면 업데이트가 있을 때만 표시됩니다.",
@@ -38,6 +39,14 @@ export default {
   "setting.remote.client_name": "클라이언트 이름",
   "setting.remote.client_name_desc": "멀티플랫폼 동기화 시 장치를 식별하기 위해 현재 클라이언트에 사용자 지정 이름을 설정합니다.",
   "setting.remote.client_name_placeholder": "클라이언트 이름을 입력하세요",
+  "setting.remote.mobile_status_dot_pos": "모바일 서비스 연결 상태 점",
+  "setting.remote.mobile_status_dot_pos_desc": "모바일 연결 상태 점의 표시 위치 또는 숨김을 설정합니다.",
+  "setting.remote.mobile_status_dot_pos_hidden": "표시 안 함",
+  "setting.remote.mobile_status_dot_pos_tr": "오른쪽 위",
+  "setting.remote.mobile_status_dot_pos_tl": "왼쪽 위",
+  "setting.remote.mobile_status_dot_pos_br": "오른쪽 아래",
+  "setting.remote.mobile_status_dot_pos_bl": "왼쪽 아래",
+  "setting.remote.mobile_status_dot_pos_hint": "⚠️ 이 설정은 모바일에서만 적용되며, 모바일 기기에서 설정해 주세요.",
 
   // --- setting.sync ---
   "setting.sync.title": "동기화 제어",

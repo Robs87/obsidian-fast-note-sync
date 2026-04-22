@@ -9,6 +9,7 @@ export default {
   "setting.tab.remote": "远端配置",
   "setting.tab.sync": "同步控制",
   "setting.tab.cloud": "附件云预览",
+  "setting.tab.display": "显示UI",
   "setting.search.placeholder": "搜索面板设置...",
   "setting.debug.show_version": "在同步菜单中显示版本信息",
   "setting.debug.show_version_desc": "开启后，版本信息将常驻显示在同步菜单中；关闭后，仅在有更新时显示。",
@@ -38,6 +39,14 @@ export default {
   "setting.remote.client_name": "客户端名称",
   "setting.remote.client_name_desc": "为当前客户端设置一个自定义名称，用于多端同步时识别设备。",
   "setting.remote.client_name_placeholder": "输入客户端名称",
+  "setting.remote.mobile_status_dot_pos": "手机端服务连接状态点",
+  "setting.remote.mobile_status_dot_pos_desc": "设置手机端连接状态小点的显示位置或隐藏。",
+  "setting.remote.mobile_status_dot_pos_hidden": "不显示",
+  "setting.remote.mobile_status_dot_pos_tr": "右上",
+  "setting.remote.mobile_status_dot_pos_tl": "左上",
+  "setting.remote.mobile_status_dot_pos_br": "右下",
+  "setting.remote.mobile_status_dot_pos_bl": "左下",
+  "setting.remote.mobile_status_dot_pos_hint": "⚠️ 此项仅在手机端生效，请在手机端进行设置。",
 
   // --- setting.sync ---
   "setting.sync.title": "同步控制",

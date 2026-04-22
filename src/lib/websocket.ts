@@ -2,7 +2,7 @@ import { Notice, moment, Platform } from "obsidian";
 
 import { handleFileChunkDownload, BINARY_PREFIX_FILE_SYNC, clearUploadQueue } from "./file_operator";
 import { receiveOperators, startupSync, startupFullSync, checkSyncCompletion } from "./operator";
-import { dump, isWsUrl, addRandomParam, isPathExcluded } from "./helps";
+import { dump, isWsUrl, addRandomParam, isPathExcluded, isVersionNew } from "./helps";
 import { SyncLogManager } from "./sync_log_manager";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
@@ -116,7 +116,7 @@ export class WebSocketClient {
           timestamp: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
           url: wsUrl
         })
-        this.notifyStatusChange(true)
+        // this.notifyStatusChange(true) // 移至授权成功后通知 / Moved to notification after authorization success
         if (this.plugin.runApi !== this.plugin.settings.api) {
           if (this.plugin.settings.isShowNotice) {
             new Notice($("ui.status.api_connected", { url: this.plugin.runApi }), 5000)
@@ -221,6 +221,7 @@ export class WebSocketClient {
               this.plugin.localStorageManager.setMetadata("serverChangelog", data.data.changelog ?? this.plugin.localStorageManager.getMetadata("serverChangelog"))
             }
             dump("Service authorization success")
+            this.notifyStatusChange(true)
 
             this.sendClientInfo()
             this.StartHandle()
@@ -233,12 +234,23 @@ export class WebSocketClient {
             return
           } else {
             if (data.data) {
-              this.plugin.localStorageManager.setMetadata("serverVersionIsNew", data.data.versionIsNew ?? this.plugin.localStorageManager.getMetadata("serverVersionIsNew"))
+              // 针对服务端版本 (For server version)
+              const serverCurrent = this.plugin.localStorageManager.getMetadata("serverVersion");
+              const serverLatest = data.data.versionNewName || data.data.version;
+              const serverIsNew = (data.data.versionIsNew ?? this.plugin.localStorageManager.getMetadata("serverVersionIsNew")) && isVersionNew(serverCurrent, serverLatest);
+              this.plugin.localStorageManager.setMetadata("serverVersionIsNew", serverIsNew)
+
               this.plugin.localStorageManager.setMetadata("serverVersionNewName", data.data.versionNewName ?? this.plugin.localStorageManager.getMetadata("serverVersionNewName"))
               this.plugin.localStorageManager.setMetadata("serverVersionNewLink", data.data.versionNewLink ?? this.plugin.localStorageManager.getMetadata("serverVersionNewLink"))
               this.plugin.localStorageManager.setMetadata("serverVersionNewChangelogContent", data.data.versionNewChangelogContent ?? this.plugin.localStorageManager.getMetadata("serverVersionNewChangelogContent"))
               this.plugin.localStorageManager.setMetadata("serverVersionChangelogContent", data.data.versionChangelogContent ?? this.plugin.localStorageManager.getMetadata("serverVersionChangelogContent"))
-              this.plugin.localStorageManager.setMetadata("pluginVersionIsNew", data.data.pluginVersionIsNew ?? this.plugin.localStorageManager.getMetadata("pluginVersionIsNew"))
+
+              // 针对插件版本 (For plugin version)
+              const pluginCurrent = this.plugin.manifest.version;
+              const pluginLatest = data.data.pluginVersionNewName;
+              const pluginIsNew = (data.data.pluginVersionIsNew ?? this.plugin.localStorageManager.getMetadata("pluginVersionIsNew")) && isVersionNew(pluginCurrent, pluginLatest);
+              this.plugin.localStorageManager.setMetadata("pluginVersionIsNew", pluginIsNew)
+
               this.plugin.localStorageManager.setMetadata("pluginVersionNewName", data.data.pluginVersionNewName ?? this.plugin.localStorageManager.getMetadata("pluginVersionNewName"))
               this.plugin.localStorageManager.setMetadata("pluginVersionNewLink", data.data.pluginVersionNewLink ?? this.plugin.localStorageManager.getMetadata("pluginVersionNewLink"))
               this.plugin.localStorageManager.setMetadata("pluginVersionNewChangelogContent", data.data.pluginVersionNewChangelogContent ?? this.plugin.localStorageManager.getMetadata("pluginVersionNewChangelogContent"))

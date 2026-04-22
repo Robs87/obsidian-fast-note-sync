@@ -290,6 +290,7 @@ export default class FastSync extends Plugin {
   onunload() {
     this.localStorageManager?.stopWatch()
     this.shareIndicatorManager?.unload()
+    this.menuManager?.unload()
     // 取消注册文件事件
     this.refreshRuntime(false)
     this.updateStatusBar("")

@@ -9,6 +9,7 @@ export default {
   "setting.tab.remote": "リモート設定",
   "setting.tab.sync": "同期制御",
   "setting.tab.cloud": "添付ファイルのクラウドプレビュー",
+  "setting.tab.display": "UIの表示",
   "setting.search.placeholder": "パネル設定を検索...",
   "setting.debug.show_version": "同期メニューにバージョン情報を表示",
   "setting.debug.show_version_desc": "有効にすると、バージョン情報は同期メニューに常に表示されます。無効にすると、更新がある場合のみ表示されます。",
@@ -38,6 +39,14 @@ export default {
   "setting.remote.client_name": "クライアント名",
   "setting.remote.client_name_desc": "マルチ端末同期時にデバイスを識別するために、現在のクライアントにカスタム名を設定します。",
   "setting.remote.client_name_placeholder": "クライアント名を入力してください",
+  "setting.remote.mobile_status_dot_pos": "モバイル端末のサービス接続状態ドット",
+  "setting.remote.mobile_status_dot_pos_desc": "モバイル端末の接続状態ドットの表示位置または非表示を設定します。",
+  "setting.remote.mobile_status_dot_pos_hidden": "非表示",
+  "setting.remote.mobile_status_dot_pos_tr": "右上",
+  "setting.remote.mobile_status_dot_pos_tl": "左上",
+  "setting.remote.mobile_status_dot_pos_br": "右下",
+  "setting.remote.mobile_status_dot_pos_bl": "左下",
+  "setting.remote.mobile_status_dot_pos_hint": "⚠️ この設定はモバイル端末でのみ有効です。モバイル端末で設定してください。",
 
   // --- setting.sync ---
   "setting.sync.title": "同期制御",

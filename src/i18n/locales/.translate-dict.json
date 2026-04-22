@@ -302,5 +302,14 @@
   "ui.button.edit_dir": "725cd65f66bb4fdec46663c49bc563ad",
   "ui.button.edit_exclude": "77837bfcfbb149c81f049261083186b9",
   "ui.button.edit_extension": "fca8babd12ef13678b003ee3d16003e3",
-  "ui.button.edit_whitelist": "7922d285bdcc79ab606aa6cfd1c9e24e"
+  "ui.button.edit_whitelist": "7922d285bdcc79ab606aa6cfd1c9e24e",
+  "setting.tab.display": "0fcf510cf7ba5bcc8611c12e4f8fee9d",
+  "setting.remote.mobile_status_dot_pos": "79a34aed7a1a4efb2117d14a4e84f470",
+  "setting.remote.mobile_status_dot_pos_desc": "52208854c469b5df563573bdf031c36a",
+  "setting.remote.mobile_status_dot_pos_hidden": "2064fc68082b99f92068e83e2cc4c0f4",
+  "setting.remote.mobile_status_dot_pos_tr": "eafeba264b6338939f11f1b1adf40d2b",
+  "setting.remote.mobile_status_dot_pos_tl": "f3296f64a8a1330d7a07f1d269a1db92",
+  "setting.remote.mobile_status_dot_pos_br": "9cd707caffdfb314d939298f2f2c267c",
+  "setting.remote.mobile_status_dot_pos_bl": "d429ffb093e9aa3bf80da125f1be318c",
+  "setting.remote.mobile_status_dot_pos_hint": "f51e5082de5d0ea1f094e871c26a8ff1"
 }

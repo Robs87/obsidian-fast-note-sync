@@ -903,6 +903,42 @@
   animation: fns-toast-fade-out 0.3s ease-in forwards;
 }
 
+.fns-mobile-status-dot {
+  position: fixed;
+  z-index: 10001;
+  width: 8px;
+  height: 8px;
+  background-color: #999;
+  border-radius: 50%;
+  border: 1.5px solid var(--background-primary);
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+.fns-mobile-status-dot.pos-tr {
+  top: 60px;
+  right: 25px;
+}
+.fns-mobile-status-dot.pos-tl {
+  top: 60px;
+  left: 25px;
+}
+.fns-mobile-status-dot.pos-br {
+  bottom: 20px;
+  right: 25px;
+}
+.fns-mobile-status-dot.pos-bl {
+  bottom: 20px;
+  left: 25px;
+}
+
+.fns-mobile-status-dot.is-connected {
+  background-color: #4caf50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+  opacity: 1;
+}
+
 @keyframes fns-toast-fade-in {
   from {
     opacity: 0;
