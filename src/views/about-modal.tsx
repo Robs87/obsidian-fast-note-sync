@@ -7,6 +7,7 @@ import type FastSync from "../main";
 import { dump } from "../lib/helps";
 import { showSyncNotice } from "../lib/operator";
 import { $ } from "../i18n/lang";
+import { LucideIcon } from "./note-history/lucide-icon";
 
 
 /**
@@ -327,6 +328,11 @@ const VersionItem = ({
                         disabled={isUpgrading}
                         onClick={onUpgrade}
                     >
+                        <LucideIcon 
+                            icon={isUpgrading ? "refresh-cw" : "arrow-up-circle"} 
+                            size={16} 
+                            className={isUpgrading ? "is-spinning" : ""} 
+                        />
                         {isUpgrading ? status : (isPlugin ? $("ui.version.upgrade_plugin") : $("ui.version.upgrade_server"))}
                     </button>
                 </div>

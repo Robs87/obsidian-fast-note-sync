@@ -1497,6 +1497,8 @@
   &.fns-version-row-between {
     justify-content: space-between;
     width: 100%;
+    flex-wrap: wrap; /* 允许整块换行 */
+    gap: 12px 20px;
   }
 }
 
@@ -1505,12 +1507,32 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap; /* 强制 标签+版本号 作为一个整体不换行 */
+  flex-shrink: 0;      /* 禁止被挤压 */
 }
 
 .fns-version-number {
   font-weight: 700;
   color: var(--text-normal);
   font-family: var(--font-monospace);
+}
+
+@media (max-width: 550px) {
+  .fns-version-row.fns-version-row-between {
+    justify-content: flex-start;
+  }
+
+  .fns-version-left,
+  .fns-version-right,
+  .fns-version-uptodate {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .fns-version-number {
+    word-break: break-all;
+    white-space: normal;
+  }
 }
 
 .fns-new-v {
@@ -1535,12 +1557,37 @@
   margin-bottom: 10px;
 }
 
-.fns-changelog-content {
+.fns-about-modal-container .fns-changelog-content {
   font-size: 0.9em;
-  max-height: 200px;
-  overflow-y: auto;
-  padding-right: 10px;
+  max-height: 120px !important;
+  overflow-y: auto !important;
+  padding-right: 12px !important;
   color: var(--text-muted);
+
+  /* Webkit 滚动条：始终保留宽度并默认透明 */
+  &::-webkit-scrollbar {
+    width: 8px !important;
+    background-color: transparent !important;
+    display: block !important;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent !important;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent !important;
+    border-radius: 10px !important;
+  }
+
+  /* 鼠标悬停逻辑 */
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: var(--text-accent) !important;
+  }
+
+  &:hover::-webkit-scrollbar-track {
+    background-color: var(--background-modifier-border-faint) !important;
+  }
 
   h1,
   h2,
@@ -1552,16 +1599,29 @@
 
 .fns-upgrade-actions {
   margin-top: 20px;
+  padding-top: 20px;
   display: flex;
   justify-content: center;
+  border-top: 1px dashed var(--background-modifier-border);
 }
 
 .fns-upgrade-btn {
-  min-width: 120px;
+  min-width: 140px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.1em;
+  font-weight: 600;
 
   &.is-loading {
     opacity: 0.8;
     cursor: wait;
+  }
+
+  .is-spinning {
+    animation: rotate 1.5s linear infinite;
   }
 }
 
