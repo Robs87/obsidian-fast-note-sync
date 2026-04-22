@@ -14,7 +14,8 @@ export class RuleEditorModal extends Modal {
     showCaseSensitive: boolean = true,
     addButtonText?: string,
     inputPlaceholder?: string,
-    usePathSuggest: boolean = false
+    usePathSuggest: boolean = false,
+    pathSuggestOptions: any = {}
   ) {
     super(app);
     this.titleEl.setText(title);
@@ -28,7 +29,8 @@ export class RuleEditorModal extends Modal {
       showCaseSensitive,
       addButtonText,
       inputPlaceholder,
-      usePathSuggest
+      usePathSuggest,
+      pathSuggestOptions
     );
   }
 

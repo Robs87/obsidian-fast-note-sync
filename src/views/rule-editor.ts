@@ -15,6 +15,7 @@ export class RuleEditor {
   private inputPlaceholder: string;
   private component: Component;
   private usePathSuggest: boolean;
+  private pathSuggestOptions: any;
 
   constructor(
     containerEl: HTMLElement,
@@ -26,7 +27,8 @@ export class RuleEditor {
     showCaseSensitive: boolean = true,
     addButtonText?: string,
     inputPlaceholder?: string,
-    usePathSuggest: boolean = false
+    usePathSuggest: boolean = false,
+    pathSuggestOptions: any = {}
   ) {
     this.containerEl = containerEl;
     this.app = app;
@@ -39,6 +41,7 @@ export class RuleEditor {
     this.inputPlaceholder = inputPlaceholder || $("setting.sync.exclude_placeholder");
     this.component = new Component();
     this.usePathSuggest = usePathSuggest;
+    this.pathSuggestOptions = pathSuggestOptions;
   }
 
   render() {
@@ -73,7 +76,7 @@ export class RuleEditor {
           new PathSuggest(this.app, inputEl, (val) => {
             this.rules[index].pattern = val;
             this.save();
-          });
+          }, this.pathSuggestOptions);
         }
         
         // 在行内模式下，可能不需要复杂的 scrollIntoView，但保留它也无妨

@@ -897,25 +897,15 @@ export class SettingTab extends PluginSettingTab {
       $("setting.sync.config_dirs_desc"),
       () => parseRules(this.plugin.settings.configSyncOtherDirs),
       async (rules) => {
-        const lines = rules.map(r => r.pattern.trim()).filter(l => l !== "");
-        const hasInvalid = lines.some(l => !l.startsWith("."));
-
-        let finalValue = "";
-        if (hasInvalid) {
-          new Notice($("setting.sync.config_dirs_must_start_with_dot_warning"));
-          finalValue = lines.filter(l => l.startsWith(".")).join("\n");
-        } else {
-          finalValue = lines.join("\n");
-        }
-
-        this.plugin.settings.configSyncOtherDirs = finalValue;
+        this.plugin.settings.configSyncOtherDirs = JSON.stringify(rules);
         await this.plugin.saveSettings();
       },
       false,
       $("ui.button.add_dir"),
       $("setting.sync.config_dirs_placeholder"),
       $("ui.button.edit_dir"),
-      true
+      true,
+      { onlyFolders: true, onlyHidden: true, excludeConfigDir: true }
     );
 
 
@@ -1024,7 +1014,8 @@ export class SettingTab extends PluginSettingTab {
     addButtonText?: string,
     inputPlaceholder?: string,
     editButtonText?: string,
-    usePathSuggest: boolean = false
+    usePathSuggest: boolean = false,
+    pathSuggestOptions: any = {}
   ) {
     const setting = new Setting(set).setName(name);
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, desc);
@@ -1054,7 +1045,8 @@ export class SettingTab extends PluginSettingTab {
               showCaseSensitive,
               addButtonText,
               inputPlaceholder,
-              usePathSuggest
+              usePathSuggest,
+              pathSuggestOptions
             );
             editor.load();
             editor.render();
@@ -1069,7 +1061,8 @@ export class SettingTab extends PluginSettingTab {
             showCaseSensitive,
             addButtonText,
             inputPlaceholder,
-            usePathSuggest
+            usePathSuggest,
+            pathSuggestOptions
           ).open();
         }
       });

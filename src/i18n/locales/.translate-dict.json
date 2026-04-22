@@ -296,5 +296,11 @@
   "ui.version.upgrade_plugin_fail": "be36ff00b1038f0f454b6dacd8230e5c",
   "ui.common.name": "d7ec2d3fea4756bc1642e0f10c180cf5",
   "ui.common.na": "1622dc9b6b57a5faf337b87b13fc1200",
-  "ui.system.wsClientName": "efc6882b4eb779c3d987d7df084a0069"
+  "ui.system.wsClientName": "efc6882b4eb779c3d987d7df084a0069",
+  "setting.sync.exclude_extensions_placeholder": "ba13a1c516576ee9684aea5a99bf0af0",
+  "ui.button.collapse": "def9e98b60e3bfc493bcd7693e702096",
+  "ui.button.edit_dir": "725cd65f66bb4fdec46663c49bc563ad",
+  "ui.button.edit_exclude": "77837bfcfbb149c81f049261083186b9",
+  "ui.button.edit_extension": "fca8babd12ef13678b003ee3d16003e3",
+  "ui.button.edit_whitelist": "7922d285bdcc79ab606aa6cfd1c9e24e"
 }
