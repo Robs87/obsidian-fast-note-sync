@@ -293,52 +293,57 @@ export class MenuManager {
       (item as any).dom.setAttribute("aria-label", $("ui.menu.settings"));
     });
 
-    menu.addSeparator();
-
     const showVersion = this.plugin.settings.showVersionInfo;
     const pluginNew = this.plugin.localStorageManager.getMetadata("pluginVersionIsNew");
-
-    const onPluginVersionClick = () => {
-      new AboutModal(this.plugin.app, this.plugin, 'plugin').open();
-    };
-
-    menu.addItem((item: MenuItem) => {
-      const title = $("ui.menu.plugin") + ": v" + this.plugin.manifest.version;
-      item.setTitle(title)
-        .setIcon("info")
-        .onClick(onPluginVersionClick);
-
-      if (pluginNew) {
-        const ariaLabel = $("ui.status.new_version", { version: this.plugin.localStorageManager.getMetadata("pluginVersionNewName") || "" });
-        (item as any).dom.setAttribute("aria-label", ariaLabel);
-
-        const itemDom = (item as any).dom as HTMLElement;
-        const titleEl = itemDom.querySelector(".menu-item-title");
-        if (titleEl) {
-          const iconSpan = titleEl.createSpan({ cls: "fast-note-sync-update-icon" });
-          setIcon(iconSpan, "circle-arrow-up");
-          iconSpan.style.color = "var(--text-success)";
-          iconSpan.style.marginLeft = "4px";
-          iconSpan.style.width = "14px";
-          iconSpan.style.height = "14px";
-          iconSpan.style.display = "inline-flex";
-          iconSpan.style.verticalAlign = "top";
-        }
-      } else {
-        (item as any).dom.setAttribute("aria-label", $("ui.menu.plugin_desc"));
-      }
-    });
-
-
     const serverVersion = this.plugin.localStorageManager.getMetadata("serverVersion");
     const serverNew = this.plugin.localStorageManager.getMetadata("serverVersionIsNew");
 
-    if (serverVersion) {
+    const showPlugin = showVersion || pluginNew;
+    const showServer = serverVersion && (showVersion || serverNew);
+
+    menu.addSeparator();
+
+    if (showPlugin) {
+      const onPluginVersionClick = () => {
+        new AboutModal(this.plugin.app, this.plugin, 'plugin').open();
+      };
+
+      menu.addItem((item: MenuItem) => {
+        const title = $("ui.menu.plugin") + ": v" + this.plugin.manifest.version;
+        item.setTitle(title)
+          .setIcon("info")
+          .onClick(onPluginVersionClick);
+
+        if (pluginNew) {
+          const ariaLabel = $("ui.status.new_version", { version: this.plugin.localStorageManager.getMetadata("pluginVersionNewName") || "" });
+          (item as any).dom.setAttribute("aria-label", ariaLabel);
+
+          const itemDom = (item as any).dom as HTMLElement;
+          const titleEl = itemDom.querySelector(".menu-item-title");
+          if (titleEl) {
+            const iconSpan = titleEl.createSpan({ cls: "fast-note-sync-update-icon" });
+            setIcon(iconSpan, "circle-arrow-up");
+            iconSpan.style.color = "var(--text-success)";
+            iconSpan.style.marginLeft = "4px";
+            iconSpan.style.width = "14px";
+            iconSpan.style.height = "14px";
+            iconSpan.style.display = "inline-flex";
+            iconSpan.style.verticalAlign = "top";
+          }
+        } else {
+          (item as any).dom.setAttribute("aria-label", $("ui.menu.plugin_desc"));
+        }
+      });
+    }
+
+    if (showServer) {
+      if (showPlugin) {
+        menu.addSeparator();
+      }
       const onServerVersionClick = () => {
         new AboutModal(this.plugin.app, this.plugin, 'server').open();
       };
 
-      menu.addSeparator();
       menu.addItem((item: MenuItem) => {
         const title = $("ui.menu.server") + ": v" + serverVersion;
         item.setTitle(title)
