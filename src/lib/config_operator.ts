@@ -9,7 +9,7 @@ import { $ } from "../i18n/lang";
 /**
  * 排除监听文件的常量（针对 .obsidian 根目录）
  */
-export const CONFIG_ROOT_FILES_EXCLUDE = ["workspace.json"]
+export const CONFIG_ROOT_FILES_EXCLUDE = ["workspace.json", "workspace-mobile.json"]
 export const CONFIG_PLUGIN_EXTS_TO_WATCH = [".json", ".js", ".css"]
 export const CONFIG_THEME_EXTS_TO_WATCH = [".css", ".json"]
 
