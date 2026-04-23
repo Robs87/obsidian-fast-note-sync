@@ -3,7 +3,7 @@ import { createRoot, Root } from "react-dom/client";
 
 import { handleSync, resetSettingSyncTime, rebuildAllHashes } from "./lib/operator";
 import { SettingsView, SupportView } from "./views/settings-view";
-import { parseRules, SyncRule, getPluginDir } from "./lib/helps";
+import { parseRules, SyncRule, getPluginDir, debounce } from "./lib/helps";
 import { RuleEditorModal } from "./views/rule-editor-modal";
 import { ConfirmModal } from "./views/confirm-modal";
 import { RuleEditor } from "./views/rule-editor";
@@ -132,9 +132,10 @@ export class SettingTab extends PluginSettingTab {
   activeTab: TabId = "GENERAL"
   searchQuery: string = ""
 
-  private headerScrollLeft: number = 0
-  private touchStartX: number = 0
-  private touchStartY: number = 0
+  // 缓存结构，避免频繁重绘导致卡顿
+  private contentEl: HTMLElement | null = null
+  private searchComponent: SearchComponent | null = null
+  private lastViewMode: string = "" // 用于记录上次渲染的模式 (TabId 或 "SEARCH")
 
   constructor(app: App, plugin: FastSync) {
     super(app, plugin)
@@ -149,62 +150,89 @@ export class SettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl: set } = this
 
-    const oldHeader = set.querySelector(".fns-setting-tab-header")
-    if (oldHeader) {
-      this.headerScrollLeft = oldHeader.scrollLeft
+    // 1. 初始化基础布局结构 (仅在首次或容器被清空时)
+    const headerEl = set.querySelector(".fns-setting-tab-header") as HTMLElement
+    const hasSearch = set.querySelector(".fns-setting-search-container")
+    this.contentEl = set.querySelector(".fns-setting-tab-content") as HTMLElement
+
+    if (!headerEl || !hasSearch || !this.contentEl) {
+      set.empty()
+      this.unmountRoots()
+      this.renderSearch(set)
+      this.renderHeader(set)
+      this.contentEl = set.createDiv("fns-setting-tab-content")
+      this.lastViewMode = "" // 重置模式以强制重新渲染内容
+    } else {
+      // 如果结构已存在，则同步更新 Header 的选中状态 (避免 Tab 无法切换的视觉错觉)
+      this.updateHeaderSelection(headerEl)
     }
 
-    set.empty()
-    this.roots.forEach((root) => root.unmount())
-    this.roots = []
+    const contentEl = this.contentEl!
 
-    // 渲染搜索框
-    this.renderSearch(set)
-
-    // 渲染选项卡头部导航
-    this.renderHeader(set)
-
-    const contentEl = set.createDiv("fns-setting-tab-content")
-
-    if (Platform.isMobile) {
+    // 2. 移动端滑动监听 (如果 contentEl 是新建的，需要重新挂载)
+    if (Platform.isMobile && !contentEl.hasAttribute("data-swipe-init")) {
+      contentEl.setAttribute("data-swipe-init", "true")
+      let touchStartX = 0
+      let touchStartY = 0
       contentEl.addEventListener("touchstart", (e) => {
-        this.touchStartX = e.changedTouches[0].screenX
-        this.touchStartY = e.changedTouches[0].screenY
+        touchStartX = e.changedTouches[0].screenX
+        touchStartY = e.changedTouches[0].screenY
       }, { passive: true })
 
       contentEl.addEventListener("touchend", (e) => {
         const touchEndX = e.changedTouches[0].screenX
         const touchEndY = e.changedTouches[0].screenY
-        this.handleSwipe(this.touchStartX, this.touchStartY, touchEndX, touchEndY)
+        this.handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY)
       }, { passive: true })
     }
 
-    if (this.searchQuery) {
-      this.renderAllSettings(contentEl)
-      this.applySearchFilter(contentEl)
-    } else {
-      // 根据活动选项卡渲染内容
-      switch (this.activeTab) {
-        case "GENERAL":
-          this.renderGeneralSettings(contentEl)
-          break
-        case "DEBUG":
-          this.renderDebugSettings(contentEl)
-          break
-        case "REMOTE":
-          this.renderRemoteSettings(contentEl)
-          break
-        case "SYNC":
-          this.renderSyncSettings(contentEl)
-          break
-        case "CLOUD":
-          this.renderCloudSettings(contentEl)
-          break
-        case "DISPLAY":
-          this.renderDisplaySettings(contentEl)
-          break
+    // 3. 根据搜索状态或标签页渲染内容
+    const currentMode = this.searchQuery ? "SEARCH" : this.activeTab
+
+    if (currentMode !== this.lastViewMode) {
+      contentEl.empty()
+      this.unmountRoots()
+
+      if (this.searchQuery) {
+        this.renderAllSettings(contentEl)
+      } else {
+        switch (this.activeTab) {
+          case "GENERAL": this.renderGeneralSettings(contentEl); break
+          case "DEBUG": this.renderDebugSettings(contentEl); break
+          case "REMOTE": this.renderRemoteSettings(contentEl); break
+          case "SYNC": this.renderSyncSettings(contentEl); break
+          case "CLOUD": this.renderCloudSettings(contentEl); break
+          case "DISPLAY": this.renderDisplaySettings(contentEl); break
+        }
       }
+      this.lastViewMode = currentMode
     }
+
+    // 4. 执行搜索过滤 (如果是搜索模式)
+    if (this.searchQuery) {
+      this.applySearchFilter(contentEl)
+    }
+  }
+
+  private updateHeaderSelection(headerEl: HTMLElement) {
+    const tabs = headerEl.querySelectorAll(".fns-setting-tab-item")
+    tabs.forEach((tabEl) => {
+      const el = tabEl as HTMLElement
+      if (el.dataset.tabId === this.activeTab && !this.searchQuery) {
+        el.addClass("is-active")
+        // 确保选中的 Tab 可见
+        el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+      } else {
+        el.removeClass("is-active")
+      }
+    })
+  }
+
+  private unmountRoots() {
+    this.roots.forEach((root) => {
+      try { root.unmount() } catch (e) { /* ignore */ }
+    })
+    this.roots = []
   }
 
   private handleSwipe(startX: number, startY: number, endX: number, endY: number) {
@@ -234,13 +262,21 @@ export class SettingTab extends PluginSettingTab {
 
   private renderSearch(containerEl: HTMLElement) {
     const searchContainer = containerEl.createDiv("fns-setting-search-container")
-    new SearchComponent(searchContainer)
+    const search = new SearchComponent(searchContainer)
       .setPlaceholder($("setting.search.placeholder"))
       .setValue(this.searchQuery)
-      .onChange((value) => {
-        this.searchQuery = value
-        this.display()
-      })
+
+    this.searchComponent = search
+
+    // 优化：使用防抖减少重绘，并提高响应速度 (从 500ms 默认降低到 150ms)
+    const debouncedApply = debounce(() => {
+      this.display()
+    }, 150)
+
+    search.onChange((value) => {
+      this.searchQuery = value
+      debouncedApply()
+    })
   }
 
   private renderAllSettings(contentEl: HTMLElement) {
@@ -254,15 +290,21 @@ export class SettingTab extends PluginSettingTab {
 
   private applySearchFilter(containerEl: HTMLElement) {
     const query = this.searchQuery.toLowerCase()
-    const children = containerEl.querySelectorAll(".setting-item")
+    const children = Array.from(containerEl.children) as HTMLElement[]
     let hasVisibleItem = false
 
-    children.forEach((child) => {
-      const item = child as HTMLElement
+    // 1. 第一阶段：处理所有非标题项的显示隐藏
+    children.forEach((item) => {
+      // 标题栏在第二阶段处理
+      if (item.classList.contains("setting-item-heading")) return
+
+      // 对于普通的 setting-item，检查名称和描述
       const name = item.querySelector(".setting-item-name")?.textContent?.toLowerCase() || ""
       const desc = item.querySelector(".setting-item-description")?.textContent?.toLowerCase() || ""
+      // 对于其他 div (如 React 渲染的容器)，检查其整体文本内容
+      const otherText = item.classList.contains("setting-item") ? "" : (item.textContent?.toLowerCase() || "")
 
-      if (name.includes(query) || desc.includes(query)) {
+      if (name.includes(query) || desc.includes(query) || otherText.includes(query)) {
         item.style.display = ""
         hasVisibleItem = true
       } else {
@@ -270,20 +312,25 @@ export class SettingTab extends PluginSettingTab {
       }
     })
 
-    // 隐藏空的标题栏
-    const headings = containerEl.querySelectorAll(".setting-item-heading")
-    headings.forEach((heading) => {
-      let next = heading.nextElementSibling
+    // 2. 第二阶段：根据后续项的显示状态来决定标题栏是否显示
+    children.forEach((item, index) => {
+      if (!item.classList.contains("setting-item-heading")) return
+
       let shouldShow = false
-      while (next && !next.classList.contains("setting-item-heading")) {
-        if ((next as HTMLElement).style.display !== "none") {
+      // 向后搜索，直到遇到下一个标题栏或容器末尾
+      for (let i = index + 1; i < children.length; i++) {
+        const next = children[i]
+        if (next.classList.contains("setting-item-heading")) break
+        if (next.style.display !== "none") {
           shouldShow = true
           break
         }
-        next = next.nextElementSibling
       }
-      ; (heading as HTMLElement).style.display = shouldShow ? "" : "none"
+      item.style.display = shouldShow ? "" : "none"
     })
+
+    // 3. 处理 "No results" 消息
+    containerEl.querySelectorAll(".fns-setting-no-results").forEach((el) => el.remove())
 
     if (!hasVisibleItem) {
       containerEl.createDiv("fns-setting-no-results").setText("No results found.")
@@ -307,11 +354,14 @@ export class SettingTab extends PluginSettingTab {
     tabs.forEach((tab) => {
       const tabEl = headerEl.createDiv("fns-setting-tab-item")
       tabEl.setText(tab.label)
+      tabEl.dataset.tabId = tab.id // 设置标识用于后续更新状态
       if (this.activeTab === tab.id) {
         tabEl.addClass("is-active")
         activeTabEl = tabEl
       }
       tabEl.onclick = () => {
+        this.searchQuery = "" // 切换标签时清空搜索
+        if (this.searchComponent) this.searchComponent.setValue("")
         this.activeTab = tab.id
         this.display()
       }

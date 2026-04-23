@@ -329,6 +329,19 @@ export const stringToDate = function (date: string): string {
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * 防抖函数
+ */
+export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  return function (this: any, ...args: Parameters<T>) {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func.apply(this, args);
+    }, wait);
+  };
+}
+
+/**
  * 等待文件夹变为空
  */
 export const waitForFolderEmpty = async function (path: string, plugin: FastSync, timeoutMs: number = 10000): Promise<boolean> {

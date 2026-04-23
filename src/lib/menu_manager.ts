@@ -151,6 +151,11 @@ export class MenuManager {
     // Mobile uses "wifi" fixedly, desktop switches based on status
     const iconId = Platform.isMobile ? "wifi" : (status ? "wifi" : "wifi-off");
 
+    // 更新手机端悬浮状态点 / Update mobile floating status dot
+    if (Platform.isMobile) {
+      this.updateMobileStatusDot(status);
+    }
+
     // 性能优化：避免频繁触发（如 layout-change 引起的重复刷新导致闪烁）
     // 如果存在预期的 SVG 图标，且我们自己的红点没被 Obsidian 重排时清理掉，说明状态依然是对的，无需重绘
     const hasCorrectIcon = this.ribbonIcon.querySelector(`.lucide-${iconId}`);
@@ -181,11 +186,6 @@ export class MenuManager {
       this.ribbonIcon.setAttribute("aria-label", $("ui.menu.ribbon_title") + " (" + $("setting.remote.disconnected") + ")");
     }
     this.refreshUpgradeBadge();
-
-    // 更新手机端悬浮状态点 / Update mobile floating status dot
-    if (Platform.isMobile) {
-      this.updateMobileStatusDot(status);
-    }
   }
 
   /**
