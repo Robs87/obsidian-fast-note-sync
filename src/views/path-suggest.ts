@@ -1,5 +1,6 @@
 import { App, AbstractInputSuggest, TAbstractFile, TFile, TFolder, setIcon } from "obsidian";
 
+
 export interface PathSuggestOptions {
   onlyFolders?: boolean;
   onlyHidden?: boolean;
@@ -14,7 +15,7 @@ export class PathSuggest extends AbstractInputSuggest<string> {
   private options: PathSuggestOptions;
 
   constructor(app: App, inputEl: HTMLInputElement | HTMLTextAreaElement, onSelectCb: (value: string) => void, options: PathSuggestOptions = {}) {
-    super(app, inputEl);
+    super(app, inputEl as HTMLInputElement);
     this.inputEl = inputEl;
     this.onSelectCb = onSelectCb;
     this.options = options;
@@ -43,10 +44,10 @@ export class PathSuggest extends AbstractInputSuggest<string> {
 
     for (const file of loadedFiles) {
       if (file.path === "/" || file.path === "") continue;
-      
+
       // 过滤逻辑
       if (this.options.onlyFolders && !(file instanceof TFolder)) continue;
-      
+
       let displayPath = file.path;
       const folderName = file.name;
       const normalizedPath = displayPath.replace(/\/$/, "");
@@ -87,7 +88,7 @@ export class PathSuggest extends AbstractInputSuggest<string> {
 
     const result = await this.app.vault.adapter.list(path);
     const configDir = this.app.vault.configDir;
-    
+
     // 处理文件
     if (!this.options.onlyFolders) {
       for (const filePath of result.files) {
@@ -105,7 +106,7 @@ export class PathSuggest extends AbstractInputSuggest<string> {
     // 处理并递归目录
     for (const dirPath of result.folders) {
       const folderName = dirPath.split("/").pop() || "";
-      
+
       let displayPath = dirPath;
       if (!displayPath.endsWith("/")) {
         displayPath += "/";
@@ -122,7 +123,7 @@ export class PathSuggest extends AbstractInputSuggest<string> {
         suggestions.add(displayPath);
       }
       if (suggestions.size >= 100) return;
-      
+
       if (folderName.startsWith(".") || dirPath.toLowerCase().includes(query) || depth < 2) {
           await this.scanDirectory(dirPath, query, suggestions, depth + 1);
       }
@@ -133,10 +134,10 @@ export class PathSuggest extends AbstractInputSuggest<string> {
     el.addClass("fns-suggest-item");
     const isFolder = value.endsWith("/");
     const icon = isFolder ? "folder" : "file-text";
-    
+
     const iconEl = el.createDiv("fns-suggest-icon");
     setIcon(iconEl, icon);
-    
+
     el.createSpan({ text: value, cls: "fns-suggest-text" });
   }
 
@@ -160,7 +161,7 @@ export class PathSuggest extends AbstractInputSuggest<string> {
 
     // @ts-ignore
     super.onKeyDown(event);
-    
+
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       setTimeout(() => {
         const activeItem = document.querySelector(".suggestion-item.mod-active");
