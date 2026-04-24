@@ -22,6 +22,7 @@ export class MenuManager {
   public logStatusBarItem: HTMLElement;
   public recycleBinStatusBarItem: HTMLElement;
   private mobileStatusDot: HTMLElement | null = null;
+  private ribbonMutationTimer: ReturnType<typeof setTimeout> | null = null;
 
   private statusBarText: HTMLElement;
   private statusBarFill: HTMLElement;
@@ -48,14 +49,19 @@ export class MenuManager {
     // 如果发现预期的图标或红点丢失，立刻自我修复。
     const observer = new MutationObserver(() => {
       if (!this.ribbonIcon) return;
-      const expectedIconId = Platform.isMobile ? "wifi" : (this.ribbonIconStatus ? "wifi" : "wifi-off");
-      const hasCorrectIcon = this.ribbonIcon.querySelector(`.lucide-${expectedIconId}`);
-      const hasBadge = this.badgeEl && this.badgeEl.parentElement === this.ribbonIcon;
-      
-      // 只要预期图标和红点还在，就不干涉（比如 iconic 追加了另一个 SVG，不影响我们的存在）
-      if (!hasCorrectIcon || !hasBadge) {
-        this.updateRibbonIcon(this.ribbonIconStatus);
-      }
+      if (this.ribbonMutationTimer) clearTimeout(this.ribbonMutationTimer);
+
+      this.ribbonMutationTimer = setTimeout(() => {
+        const expectedIconId = Platform.isMobile ? "wifi" : (this.ribbonIconStatus ? "wifi" : "wifi-off");
+        const hasCorrectIcon = this.ribbonIcon.querySelector(`.lucide-${expectedIconId}`);
+        const hasBadge = this.badgeEl && this.badgeEl.parentElement === this.ribbonIcon;
+        
+        // 只要预期图标和红点还在，就不干涉（比如 iconic 追加了另一个 SVG，不影响我们的存在）
+        if (!hasCorrectIcon || !hasBadge) {
+          this.updateRibbonIcon(this.ribbonIconStatus);
+        }
+        this.ribbonMutationTimer = null;
+      }, 100);
     });
     observer.observe(this.ribbonIcon, { childList: true, subtree: true });
 
