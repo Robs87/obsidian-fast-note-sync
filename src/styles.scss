@@ -31,6 +31,13 @@
   display: none;
 }
 
+.is-tablet .fns-ribbon-container .fns-ribbon-badge {
+  top: 12px;
+  right: 6px;
+  height: 11px;
+  width: 11px;
+}
+
 .fns-menu-badge {
   display: inline-block;
   width: 6px;
@@ -1116,7 +1123,7 @@
 /* ===== 移动端同步 Toast / Mobile Sync Toast ===== */
 .fns-mobile-toast {
   position: fixed;
-  top: 100px;
+  top: 110px;
   right: 12px;
   z-index: 9999;
   min-width: 90px;
@@ -1137,6 +1144,17 @@
 
   &.fns-mobile-toast-hiding {
     animation: fns-toast-fade-out 0.3s ease-in forwards;
+  }
+
+  .theme-dark & {
+    background-color: rgba(40, 40, 40, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 255, 255, 0.08);
+  }
+
+  .is-tablet & {
+    top: 126px;
   }
 }
 

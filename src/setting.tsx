@@ -117,7 +117,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   sharedPaths: [],
   showShareIcon: true,
   updateSource: "github",
-  mobileStatusDotPosition: "top-right",
+  mobileStatusDotPosition: "menu-bar",
 }
 
 
