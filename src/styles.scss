@@ -1797,4 +1797,17 @@
 // 注入到 view-actions 的 FNS 连接状态按钮（menu-bar 模式）
 // FNS connection status button injected into view-actions (menu-bar mode)
 .fns-status-action {
+  .fns-ribbon-badge {
+    top: 13px;
+    right: 8px;
+    width: 11px;
+    height: 11px;
+  }
+}
+
+.is-tablet .fns-status-action .fns-ribbon-badge {
+  top: 8px;
+  right: 4px;
+  width: 11px;
+  height: 11px;
 }

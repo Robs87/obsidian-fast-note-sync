@@ -1,4 +1,4 @@
-import { Notice, moment, normalizePath, TFolder } from "obsidian";
+import { Notice, moment, normalizePath, TFolder, Platform } from "obsidian";
 
 import FastSync from "../main";
 
@@ -487,7 +487,7 @@ export const dumpTable = function (message: any): void {
  * 显示错误消息通知
  */
 export const showErrorDialog = function (message: string): void {
-  new Notice(message)
+  showSyncNotice(message)
 }
 
 /**
@@ -510,4 +510,57 @@ export const isVersionNew = function (current: string, latest: string): boolean 
   const cleanCurrent = current.split('-')[0];
   const cleanLatest = latest.split('-')[0];
   return cleanCurrent !== cleanLatest;
+}
+
+/**
+ * 通知接口定义
+ */
+export interface SyncNotice {
+  setMessage(message: string): void;
+  hide(): void;
+}
+
+/**
+ * 显示同步状态通知（桌面端用标准 Notice，移动端用右上角小型 toast）
+ * Show sync status notification (desktop: standard Notice, mobile: compact floating toast)
+ */
+export function showSyncNotice(message: string, duration: number = 2500): SyncNotice {
+  if (!Platform.isMobile) {
+    const notice = new Notice(message, duration);
+    return {
+      setMessage: (msg: string) => notice.setMessage(msg),
+      hide: () => notice.hide()
+    };
+  }
+  // 移除已有 toast 避免堆叠 / Remove existing toast to avoid stacking
+  const existing = document.querySelector('.fns-mobile-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'fns-mobile-toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  let hideTimeout: any = null;
+
+  const startHide = () => {
+    if (toast.parentElement) {
+      toast.classList.add('fns-mobile-toast-hiding');
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }
+  };
+
+  if (duration > 0) {
+    hideTimeout = setTimeout(startHide, duration);
+  }
+
+  return {
+    setMessage: (msg: string) => {
+      toast.textContent = msg;
+    },
+    hide: () => {
+      if (hideTimeout) clearTimeout(hideTimeout);
+      startHide();
+    }
+  };
 }

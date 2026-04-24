@@ -1,8 +1,8 @@
-import { App, PluginSettingTab, Notice, Setting, Platform, SearchComponent, MarkdownRenderer, Component } from "obsidian";
+import { App, PluginSettingTab, Setting, Platform, SearchComponent, MarkdownRenderer, Component } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 
 import { handleSync, resetSettingSyncTime, rebuildAllHashes } from "./lib/operator";
-import { parseRules, SyncRule, getPluginDir, debounce } from "./lib/helps";
+import { parseRules, SyncRule, getPluginDir, debounce, showSyncNotice } from "./lib/helps";
 import { SettingsView, SupportView } from "./views/settings-view";
 import { RuleEditorModal } from "./views/rule-editor-modal";
 import { ConfirmModal } from "./views/confirm-modal";
@@ -512,7 +512,7 @@ export class SettingTab extends PluginSettingTab {
     debugButton.setText($("setting.support.debug_copy"))
     debugButton.onclick = async () => {
       await window.navigator.clipboard.writeText(this.getDebugInfo())
-      new Notice($("setting.support.debug_desc"))
+      showSyncNotice($("setting.support.debug_desc"))
     }
 
     if (isHomePage) {
@@ -641,7 +641,7 @@ export class SettingTab extends PluginSettingTab {
             // 保存设置
             await this.plugin.saveSettings()
 
-            new Notice($("setting.debug.reset_all_success"))
+            showSyncNotice($("setting.debug.reset_all_success"))
 
             // 重新渲染设置页面以展示变化
             this.display()

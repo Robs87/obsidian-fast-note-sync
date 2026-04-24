@@ -1,8 +1,8 @@
-import { Notice, moment, Platform } from "obsidian";
+import { moment, Platform } from "obsidian";
 
 import { handleFileChunkDownload, BINARY_PREFIX_FILE_SYNC, clearUploadQueue } from "./file_operator";
 import { receiveOperators, startupSync, startupFullSync, checkSyncCompletion } from "./operator";
-import { dump, isWsUrl, addRandomParam, isPathExcluded, isVersionNew } from "./helps";
+import { dump, isWsUrl, addRandomParam, isPathExcluded, isVersionNew, showSyncNotice } from "./helps";
 import { SyncLogManager } from "./sync_log_manager";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
@@ -118,7 +118,7 @@ export class WebSocketClient {
         // this.notifyStatusChange(true) // 移至授权成功后通知 / Moved to notification after authorization success
         if (this.plugin.runApi !== this.plugin.settings.api) {
           if (this.plugin.settings.isShowNotice) {
-            new Notice($("ui.status.api_connected", { url: this.plugin.runApi }), 5000)
+            showSyncNotice($("ui.status.api_connected", { url: this.plugin.runApi }), 5000)
           }
         }
         this.Send("Authorization", this.plugin.settings.apiToken)
@@ -141,9 +141,9 @@ export class WebSocketClient {
         })
 
         if (e.reason == "AuthorizationFaild") {
-          new Notice("Remote Service Connection Closed: " + e.reason)
+          showSyncNotice("Remote Service Connection Closed: " + e.reason)
         } else if (e.reason == "ClientClose") {
-          new Notice("Remote Service Connection Closed: " + e.reason)
+          showSyncNotice("Remote Service Connection Closed: " + e.reason)
         }
 
         // Only reconnect if we differ intended to be registered
@@ -211,7 +211,7 @@ export class WebSocketClient {
 
         if (msgAction == "Authorization") {
           if (data.code == 0 || data.code > 200) {
-            new Notice("Service Authorization Error: Code=" + data.code + " Msg=" + data.msg + data.details)
+            showSyncNotice("Service Authorization Error: Code=" + data.code + " Msg=" + data.msg + data.details)
             return
           } else {
             this.isAuth = true
@@ -265,7 +265,7 @@ export class WebSocketClient {
           if (data.code === ERROR_SYNC_CONFLICT) {
             this.handleConflictError(data)
           } else {
-            new Notice("Service Error: Code=" + data.code + " Message=" + data.message + " Details=" + data.details)
+            showSyncNotice("Service Error: Code=" + data.code + " Message=" + data.message + " Details=" + data.details)
           }
         } else {
 
@@ -348,7 +348,7 @@ export class WebSocketClient {
 
             // 调试尝试使用较短延迟
             delay = 1000
-            new Notice(`[FastSync] 尝试连接调试地址: ${url}`)
+            showSyncNotice(`[FastSync] 尝试连接调试地址: ${url}`)
           }
           this.plugin.updateRuntimeApi(this.plugin.settings.api);
           dump(`Debug URLs failed, reverting to settings API`)
@@ -398,7 +398,7 @@ export class WebSocketClient {
       while (!this.plugin.fileHashManager || !this.plugin.fileHashManager.isReady()) {
         if (Date.now() - startTime > maxWaitTime) {
           dump(`FileHashManager initialization timeout after ${maxWaitTime}ms`)
-          new Notice("文件哈希管理器初始化超时,同步可能不稳定")
+          showSyncNotice("文件哈希管理器初始化超时,同步可能不稳定")
           break
         }
         await new Promise((resolve) => setTimeout(resolve, 100))
@@ -560,7 +560,7 @@ export class WebSocketClient {
 
     if (data.code === ERROR_SYNC_CONFLICT && path) {
       // 冲突文件已创建，显示详细通知
-      new Notice($("ui.status.conflict", { path: path }), 10000)
+      showSyncNotice($("ui.status.conflict", { path: path }), 10000)
     }
   }
 }

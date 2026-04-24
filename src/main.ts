@@ -1,7 +1,7 @@
 import { Plugin, WorkspaceLeaf, Platform } from "obsidian";
-import { Notice } from "obsidian";
 
-import { dump, setLogEnabled, isPathMatch, parseRules, stringifyRules, getPluginDir } from "./lib/helps";
+
+import { dump, setLogEnabled, isPathMatch, parseRules, stringifyRules, getPluginDir, showSyncNotice } from "./lib/helps";
 import { SettingTab, PluginSettings, DEFAULT_SETTINGS } from "./setting";
 import { SyncLogView, SYNC_LOG_VIEW_TYPE } from "./views/sync-log-view";
 import { ShareIndicatorManager } from "./lib/share_indicator_manager";
@@ -236,7 +236,7 @@ export default class FastSync extends Plugin {
           this.wsSettingChange = true
           this.localStorageManager.setMetadata("isInitSync", false)
           await this.saveSettings()
-          new Notice($("ui.status.config_imported"), 5000)
+          showSyncNotice($("ui.status.config_imported"), 5000)
         }
       })
     } catch (e) {

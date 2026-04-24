@@ -1,6 +1,6 @@
-import { Notice, normalizePath } from "obsidian";
+import { normalizePath } from "obsidian";
 
-import { hashContent, hashContentAsync, hashArrayBuffer, dump, configIsPathExcluded, getConfigSyncCustomDirs } from "./helps";
+import { hashContent, hashContentAsync, hashArrayBuffer, dump, configIsPathExcluded, getConfigSyncCustomDirs, showSyncNotice } from "./helps";
 import { configAllPaths } from "./config_operator";
 import type FastSync from "../main";
 
@@ -50,7 +50,7 @@ export class ConfigHashManager {
     }
 
     private async buildConfigHashMap(): Promise<void> {
-        const notice = new Notice("正在初始化配置哈希映射...", 0);
+        const notice = showSyncNotice("正在初始化配置哈希映射...", 0);
 
         try {
             // 获取所有配置文件路径
@@ -123,7 +123,7 @@ export class ConfigHashManager {
             dump(`ConfigHashManager: 构建完成,共 ${totalConfigs} 个配置`);
         } catch (error) {
             notice.hide();
-            new Notice(`配置哈希映射初始化失败: ${error.message}`);
+            showSyncNotice(`配置哈希映射初始化失败: ${error.message}`);
             dump("ConfigHashManager: 构建失败", error);
             throw error;
         }
@@ -190,7 +190,7 @@ export class ConfigHashManager {
             localStorage.setItem(this.storageKey, data);
         } catch (error) {
             dump("ConfigHashManager: 保存到 localStorage 失败", error);
-            new Notice(`保存配置哈希映射失败: ${error.message}`);
+            showSyncNotice(`保存配置哈希映射失败: ${error.message}`);
         }
     }
 

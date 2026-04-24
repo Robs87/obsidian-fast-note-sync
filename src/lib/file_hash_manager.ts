@@ -1,6 +1,6 @@
-import { TFile, Notice } from "obsidian";
+import { TFile } from "obsidian";
 
-import { hashContent, hashContentAsync, hashArrayBuffer, dump, isPathExcluded } from "./helps";
+import { hashContent, hashContentAsync, hashArrayBuffer, dump, isPathExcluded, showSyncNotice } from "./helps";
 import type FastSync from "../main";
 
 
@@ -49,7 +49,7 @@ export class FileHashManager {
   }
 
   private async buildFileHashMap(): Promise<void> {
-    const notice = new Notice("正在初始化文件哈希映射...", 0);
+    const notice = showSyncNotice("正在初始化文件哈希映射...", 0);
 
     try {
       const files = this.plugin.app.vault.getFiles();
@@ -119,7 +119,7 @@ export class FileHashManager {
       dump(`FileHashManager: 构建完成,共 ${totalFiles} 个文件`);
     } catch (error) {
       notice.hide();
-      new Notice(`文件哈希映射初始化失败: ${error.message}`);
+      showSyncNotice(`文件哈希映射初始化失败: ${error.message}`);
       dump("FileHashManager: 构建失败", error);
       throw error;
     }
@@ -186,7 +186,7 @@ export class FileHashManager {
       localStorage.setItem(this.storageKey, data);
     } catch (error) {
       dump("FileHashManager: 保存到 localStorage 失败", error);
-      new Notice(`保存文件哈希映射失败: ${error.message}`);
+      showSyncNotice(`保存文件哈希映射失败: ${error.message}`);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+
 import * as React from "react";
 
 import { NoteHistoryItem, HttpApiService, NoteHistoryDetail as NoteHistoryDetailData } from "../../lib/api";
@@ -6,6 +6,7 @@ import { HistoryDetail } from "./history-detail";
 import { LucideIcon } from "./lucide-icon";
 import type FastSync from "../../main";
 import { $ } from "../../i18n/lang";
+import { showSyncNotice } from "../../lib/helps";
 
 
 interface HistoryViewProps {
@@ -68,7 +69,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ plugin, filePath }) =>
             setLoading(true);
             const success = await service.restoreNoteVersion(id);
             if (success) {
-                new Notice($("ui.history.restore_success"));
+                showSyncNotice($("ui.history.restore_success"));
                 loadHistory(page);
             }
         } catch (e) {

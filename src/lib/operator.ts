@@ -5,34 +5,11 @@ import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, r
 import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename } from "./note_operator";
 import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "./types";
 import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
-import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID } from "./helps";
+import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice } from "./helps";
 import { FileCloudPreview } from "./file_cloud_preview";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
 
-/**
- * 显示同步状态通知（桌面端用标准 Notice，移动端用右上角小型 toast）
- * Show sync status notification (desktop: standard Notice, mobile: compact floating toast)
- */
-export function showSyncNotice(message: string, duration: number = 2500): void {
-  if (!Platform.isMobile) {
-    new Notice(message);
-    return;
-  }
-  // 移除已有 toast 避免堆叠 / Remove existing toast to avoid stacking
-  const existing = document.querySelector('.fns-mobile-toast');
-  if (existing) existing.remove();
-
-  const toast = document.createElement('div');
-  toast.className = 'fns-mobile-toast';
-  toast.textContent = message;
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add('fns-mobile-toast-hiding');
-    toast.addEventListener('animationend', () => toast.remove());
-  }, duration);
-}
 
 export const startupSync = (plugin: FastSync): void => {
   void handleSync(plugin, plugin.localStorageManager.getMetadata("isInitSync"));
@@ -43,7 +20,7 @@ export const startupFullSync = async (plugin: FastSync) => {
 
 export const resetSettingSyncTime = async (plugin: FastSync) => {
   plugin.localStorageManager.clearSyncTime();
-  new Notice($("setting.debug.clear_time_success"));
+  showSyncNotice($("setting.debug.clear_time_success"));
 };
 
 export const rebuildAllHashes = async (plugin: FastSync) => {
@@ -312,7 +289,7 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   const context = generateUUID();
   dump(`Sync context generated: ${context}`);
   if (!plugin.menuManager.ribbonIconStatus) {
-    new Notice($("setting.remote.disconnected"));
+    showSyncNotice($("setting.remote.disconnected"));
     return;
   }
   if (!plugin.getWatchEnabled()) {

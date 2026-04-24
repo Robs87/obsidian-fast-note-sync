@@ -1,6 +1,7 @@
-import { Menu, MenuItem, Notice, setIcon, Platform } from 'obsidian';
+import { Menu, MenuItem, setIcon, Platform } from 'obsidian';
 
 import { startupSync, startupFullSync, resetSettingSyncTime, rebuildAllHashes } from './operator';
+import { showSyncNotice } from './helps';
 import { NoteHistoryModal } from '../views/note-history/history-modal';
 import { ShareModal } from '../views/share-modal';
 import { RecycleBinModal } from '../views/recycle-bin-modal';
@@ -86,7 +87,7 @@ export class MenuManager {
       if (activeFile && activeFile.extension === "md") {
         new NoteHistoryModal(this.plugin.app, this.plugin, activeFile.path).open();
       } else {
-        new Notice($("ui.history.md_only"));
+        showSyncNotice($("ui.history.md_only"));
       }
     });
 
@@ -100,7 +101,7 @@ export class MenuManager {
       if (activeFile && activeFile.extension === "md") {
         new ShareModal(this.plugin.app, this.plugin, activeFile.path).open();
       } else {
-        new Notice($("ui.history.md_only"));
+        showSyncNotice($("ui.history.md_only"));
       }
     });
 
@@ -449,7 +450,7 @@ export class MenuManager {
           .setTitle($("ui.menu.disable_sync"))
           .onClick(async () => {
             this.plugin.websocket.unRegister();
-            new Notice($("ui.menu.disable_sync_desc"));
+            showSyncNotice($("ui.menu.disable_sync_desc"));
           });
         (item as any).dom.setAttribute("aria-label", $("ui.menu.disable_sync_desc"));
       });
@@ -460,7 +461,7 @@ export class MenuManager {
           .setTitle($("ui.menu.enable_sync"))
           .onClick(async () => {
             this.plugin.websocket.register();
-            new Notice($("ui.menu.enable_sync_desc"));
+            showSyncNotice($("ui.menu.enable_sync_desc"));
           });
         (item as any).dom.setAttribute("aria-label", $("ui.menu.enable_sync_desc"));
       });

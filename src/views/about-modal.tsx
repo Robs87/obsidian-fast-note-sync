@@ -1,11 +1,11 @@
-import { App, Modal, Notice, MarkdownRenderer, Component, requestUrl } from "obsidian";
+import { App, Modal, MarkdownRenderer, Component, requestUrl } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import * as React from "react";
 import JSZip from "jszip";
 
 import type FastSync from "../main";
 import { dump, getPluginDir } from "../lib/helps";
-import { showSyncNotice } from "../lib/operator";
+import { showSyncNotice } from "../lib/helps";
 import { $ } from "../i18n/lang";
 import { LucideIcon } from "./note-history/lucide-icon";
 

@@ -1,6 +1,7 @@
-import { App, Modal, Notice, setIcon, ButtonComponent } from "obsidian";
+import { App, Modal, setIcon, ButtonComponent } from "obsidian";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
+import { showSyncNotice } from "../lib/helps";
 
 export class ShareModal extends Modal {
     private plugin: FastSync;
@@ -97,7 +98,7 @@ export class ShareModal extends Modal {
                 this.loading = false;
                 if (res) {
                     this.shareData = res;
-                    new Notice($("ui.share.success"));
+                    showSyncNotice($("ui.share.success"));
                     // 更新分享指示器缓存 / Update share indicator cache
                     this.plugin.shareIndicatorManager?.addSharedPath(this.path);
                 }
@@ -165,7 +166,7 @@ export class ShareModal extends Modal {
 
         copyBtn.onClick(() => {
             navigator.clipboard.writeText(shareUrl);
-            new Notice($("ui.share.copy_success"));
+            showSyncNotice($("ui.share.copy_success"));
         });
 
         // 查看分享按钮 (保持在外面)
@@ -252,7 +253,7 @@ export class ShareModal extends Modal {
             .setDisabled(this.loading)
             .onClick(async () => {
                 if (!this.isPasswordDirty) {
-                    new Notice($("ui.common.noChange"));
+                    showSyncNotice($("ui.common.noChange"));
                     return;
                 }
                 this.loading = true;
@@ -260,7 +261,7 @@ export class ShareModal extends Modal {
                 const success = await this.plugin.api.updateSharePassword(this.path, this.passwordValue);
                 this.loading = false;
                 if (success) {
-                    new Notice($("ui.common.saveSuccess"));
+                    showSyncNotice($("ui.common.saveSuccess"));
                     this.shareData!.isPassword = !!this.passwordValue;
                     this.isPasswordDirty = false;
                     if (this.passwordValue) {
@@ -326,7 +327,7 @@ export class ShareModal extends Modal {
 
             shortCopyBtn.onClick(() => {
                 navigator.clipboard.writeText(this.shareData!.shortLink!);
-                new Notice($("ui.share.copy_success"));
+                showSyncNotice($("ui.share.copy_success"));
             });
             
             // 刷新/重新生成按钮
@@ -423,7 +424,7 @@ export class ShareModal extends Modal {
                 this.passwordValue = "";
                 this.isPasswordVisible = false;
                 this.isPasswordDirty = false;
-                new Notice($("ui.share.cancel_success"));
+                showSyncNotice($("ui.share.cancel_success"));
                 // 更新分享指示器缓存 / Update share indicator cache
                 this.plugin.shareIndicatorManager?.removeSharedPath(this.path);
             }

@@ -1,6 +1,6 @@
-import { normalizePath, Notice } from "obsidian";
+import { normalizePath } from "obsidian";
 
-import { hashContent, hashArrayBuffer, dump, configIsPathExcluded, configAddPathExcluded, getSafeCtime, isPathInConfigSyncDirs } from "./helps";
+import { hashContent, hashArrayBuffer, dump, configIsPathExcluded, configAddPathExcluded, getSafeCtime, isPathInConfigSyncDirs, showSyncNotice } from "./helps";
 import { ReceiveMessage, ReceiveMtimeMessage, ReceivePathMessage, SyncEndData } from "./types";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
@@ -355,7 +355,7 @@ export const receiveConfigSyncEnd = async function (data: any, plugin: FastSync)
 
 export const receiveConfigSyncClear = async function (data: any, plugin: FastSync) {
     plugin.localStorageManager.setMetadata("lastConfigSyncTime", 0)
-    new Notice($("ui.status.clear_success"))
+    showSyncNotice($("ui.status.clear_success"))
     plugin.configSyncTasks.completed++
 
     if (plugin.isWaitClearSync) {

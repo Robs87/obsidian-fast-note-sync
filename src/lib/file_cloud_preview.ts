@@ -1,7 +1,7 @@
-import { MarkdownPostProcessorContext, parseLinktext, loadPdfJs, MarkdownView, requestUrl, setIcon, Notice, Platform } from "obsidian";
+import { MarkdownPostProcessorContext, parseLinktext, loadPdfJs, MarkdownView, requestUrl, setIcon, Platform } from "obsidian";
 import { ViewPlugin, ViewUpdate, EditorView } from "@codemirror/view";
 
-import { hashContent } from "./helps";
+import { hashContent, showSyncNotice } from "./helps";
 import type FastSync from "../main";
 
 
@@ -407,7 +407,7 @@ export class FileCloudPreview {
         }
       } catch (e) {
         console.error("PDF Render Error", e);
-        new Notice("Error rendering PDF");
+        showSyncNotice("Error rendering PDF");
       } finally {
         isRendering = false;
       }

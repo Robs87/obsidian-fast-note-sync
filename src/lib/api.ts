@@ -1,6 +1,6 @@
-import { Notice, requestUrl } from "obsidian";
+import { requestUrl } from "obsidian";
 
-import { hashContent, addRandomParam } from "./helps";
+import { hashContent, addRandomParam, showSyncNotice } from "./helps";
 import type FastSync from "../main";
 
 
@@ -289,7 +289,7 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to fetch history detail";
-                new Notice(msg);
+                showSyncNotice(msg);
                 throw new Error(msg);
             }
 
@@ -316,14 +316,14 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore note version";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
 
             return true;
         } catch (e) {
             console.error("restoreNoteVersion error:", e);
-            new Notice("恢复版本请求失败");
+            showSyncNotice("恢复版本请求失败");
             return false;
         }
     }
@@ -446,13 +446,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore note";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("restoreNote error:", e);
-            new Notice("恢复笔记失败");
+            showSyncNotice("恢复笔记失败");
             return false;
         }
     }
@@ -474,13 +474,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to restore file";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("restoreFile error:", e);
-            new Notice("恢复文件失败");
+            showSyncNotice("恢复文件失败");
             return false;
         }
     }
@@ -502,13 +502,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to delete file";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("deleteFile error:", e);
-            new Notice("删除文件失败");
+            showSyncNotice("删除文件失败");
             return false;
         }
     }
@@ -531,13 +531,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || (path ? "永久删除失败" : "清空回收站失败");
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("clearRecycleBin error:", e);
-            new Notice("请求失败，请检查网络");
+            showSyncNotice("请求失败，请检查网络");
             return false;
         }
     }
@@ -559,13 +559,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to create share";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return null;
             }
             return json.data;
         } catch (e) {
             console.error("createShare error:", e);
-            new Notice("创建分享失败");
+            showSyncNotice("创建分享失败");
             return null;
         }
     }
@@ -613,13 +613,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to update password";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("updateSharePassword error:", e);
-            new Notice("设置密码失败");
+            showSyncNotice("设置密码失败");
             return false;
         }
     }
@@ -644,14 +644,14 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to create short link";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return null;
             }
             // 根据 Web GUI 逻辑，res.data 直接就是短链接字符串
             return json.data || null;
         } catch (e) {
             console.error("createShortLink error:", e);
-            new Notice("生成短链接失败");
+            showSyncNotice("生成短链接失败");
             return null;
         }
     }
@@ -673,13 +673,13 @@ export class HttpApiService {
 
             if (status !== 200 || json.code <= 0) {
                 const msg = json?.message || "Failed to cancel share";
-                new Notice(msg);
+                showSyncNotice(msg);
                 return false;
             }
             return true;
         } catch (e) {
             console.error("cancelShare error:", e);
-            new Notice("取消分享失败");
+            showSyncNotice("取消分享失败");
             return false;
         }
     }

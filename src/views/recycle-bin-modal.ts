@@ -1,7 +1,7 @@
-import { App, Modal, Notice, setIcon, ButtonComponent } from "obsidian";
+import { App, Modal, setIcon, ButtonComponent } from "obsidian";
 
 import { ConfirmModal } from "./confirm-modal";
-import { formatFileSize } from "../lib/helps";
+import { formatFileSize, showSyncNotice } from "../lib/helps";
 import { HttpApiService } from "../lib/api";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
@@ -376,7 +376,7 @@ export class RecycleBinModal extends Modal {
                 this.totalRows = res?.pager?.totalRows || 0;
             }
         } catch (e) {
-            new Notice($("ui.history.load_failed"));
+            showSyncNotice($("ui.history.load_failed"));
             console.error("Failed to load recycle bin data", e);
         } finally {
             this.loading = false;
@@ -393,7 +393,7 @@ export class RecycleBinModal extends Modal {
         }
 
         if (success) {
-            new Notice($("ui.recycle_bin.restore_success"));
+            showSyncNotice($("ui.recycle_bin.restore_success"));
             this.items = this.items.filter(i => i.path !== item.path);
             this.totalRows--;
             this.selectedPaths.delete(item.path);
@@ -405,12 +405,12 @@ export class RecycleBinModal extends Modal {
     private async deleteItemPermanently(item: RecycleItem) {
         // 确保有 pathHash 才执行删除，避免与 clearAll 行为混淆
         if (!item.pathHash) {
-            new Notice($("ui.history.load_failed"));
+            showSyncNotice($("ui.history.load_failed"));
             return;
         }
         const success = await this.api.clearRecycleBin(this.activeTab, item.path, item.pathHash);
         if (success) {
-            new Notice($("ui.recycle_bin.delete_success"));
+            showSyncNotice($("ui.recycle_bin.delete_success"));
             this.items = this.items.filter(i => i.path !== item.path);
             this.totalRows--;
             this.selectedPaths.delete(item.path);
@@ -434,7 +434,7 @@ export class RecycleBinModal extends Modal {
         }
 
         if (successCount > 0) {
-            new Notice(`成功恢复 ${successCount} 个项目`);
+            showSyncNotice(`成功恢复 ${successCount} 个项目`);
             this.page = 1;
             this.selectedPaths.clear();
             this.selectedPathHashes.clear();
@@ -450,7 +450,7 @@ export class RecycleBinModal extends Modal {
         const hashes = paths.map(p => this.selectedPathHashes.get(p)!);
 
         if (paths.length === 0) {
-            new Notice($("ui.history.load_failed"));
+            showSyncNotice($("ui.history.load_failed"));
             return;
         }
 
@@ -461,7 +461,7 @@ export class RecycleBinModal extends Modal {
         }
 
         if (successCount > 0) {
-            new Notice($("ui.recycle_bin.delete_success"));
+            showSyncNotice($("ui.recycle_bin.delete_success"));
             this.page = 1;
             this.selectedPaths.clear();
             this.selectedPathHashes.clear();
@@ -472,7 +472,7 @@ export class RecycleBinModal extends Modal {
     private async clearAll() {
         const success = await this.api.clearRecycleBin(this.activeTab);
         if (success) {
-            new Notice($("ui.recycle_bin.clear_success"));
+            showSyncNotice($("ui.recycle_bin.clear_success"));
             this.items = [];
             this.totalRows = 0;
             this.selectedPaths.clear();
