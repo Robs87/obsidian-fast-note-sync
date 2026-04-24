@@ -1,5 +1,5 @@
 import { configModify } from "./config_operator";
-import { hashContent, dump } from "./helps";
+import { hashContent, dump, SyncRule } from "./helps";
 import type FastSync from "../main";
 
 
@@ -42,7 +42,7 @@ export class LocalStorageManager {
     /**
      * 获取元数据项
      */
-    getMetadata(field: 'lastNoteSyncTime' | 'lastFileSyncTime' | 'lastConfigSyncTime' | 'lastFolderSyncTime' | 'clientName' | 'isInitSync' | 'serverVersion' | 'serverChangelog' | 'serverVersionIsNew' | 'serverVersionNewName' | 'serverVersionNewLink' | 'serverVersionNewChangelogContent' | 'serverVersionChangelogContent' | 'pluginVersionIsNew' | 'pluginVersionNewName' | 'pluginVersionNewLink' | 'pluginVersionNewChangelogContent' | 'pluginVersionChangelogContent'): any {
+    getMetadata(field: 'lastNoteSyncTime' | 'lastFileSyncTime' | 'lastConfigSyncTime' | 'lastFolderSyncTime' | 'clientName' | 'isInitSync' | 'serverVersion' | 'serverChangelog' | 'serverVersionIsNew' | 'serverVersionNewName' | 'serverVersionNewLink' | 'serverVersionNewChangelogContent' | 'serverVersionChangelogContent' | 'pluginVersionIsNew' | 'pluginVersionNewName' | 'pluginVersionNewLink' | 'pluginVersionNewChangelogContent' | 'pluginVersionChangelogContent' | 'internalExcludes'): any {
         const value = this.read(this.getInternalKey(field));
         if (field.endsWith('Time')) {
             return value ? Number(value) : 0;
@@ -56,8 +56,29 @@ export class LocalStorageManager {
     /**
      * 设置元数据项
      */
-    setMetadata(field: 'lastNoteSyncTime' | 'lastFileSyncTime' | 'lastConfigSyncTime' | 'lastFolderSyncTime' | 'clientName' | 'isInitSync' | 'serverVersion' | 'serverChangelog' | 'serverVersionIsNew' | 'serverVersionNewName' | 'serverVersionNewLink' | 'serverVersionNewChangelogContent' | 'serverVersionChangelogContent' | 'pluginVersionIsNew' | 'pluginVersionNewName' | 'pluginVersionNewLink' | 'pluginVersionNewChangelogContent' | 'pluginVersionChangelogContent', value: any): void {
+    setMetadata(field: 'lastNoteSyncTime' | 'lastFileSyncTime' | 'lastConfigSyncTime' | 'lastFolderSyncTime' | 'clientName' | 'isInitSync' | 'serverVersion' | 'serverChangelog' | 'serverVersionIsNew' | 'serverVersionNewName' | 'serverVersionNewLink' | 'serverVersionNewChangelogContent' | 'serverVersionChangelogContent' | 'pluginVersionIsNew' | 'pluginVersionNewName' | 'pluginVersionNewLink' | 'pluginVersionNewChangelogContent' | 'pluginVersionChangelogContent' | 'internalExcludes', value: any): void {
         this.write(this.getInternalKey(field), String(value));
+    }
+
+    /**
+     * 获取内部排除规则 (Internal Sync Excludes)
+     */
+    getInternalExcludes(): SyncRule[] {
+        const value = this.getMetadata('internalExcludes');
+        if (!value) return [];
+        try {
+            return JSON.parse(value);
+        } catch (e) {
+            dump("[LocalStorageManager] Failed to parse internalExcludes:", e);
+            return [];
+        }
+    }
+
+    /**
+     * 设置内部排除规则 (Internal Sync Excludes)
+     */
+    setInternalExcludes(rules: SyncRule[]): void {
+        this.setMetadata('internalExcludes', JSON.stringify(rules));
     }
 
     /**

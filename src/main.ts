@@ -334,11 +334,33 @@ export default class FastSync extends Plugin {
 
     // 数据迁移与清理：统一规则格式为 JSON
     let hasMigration = false
-    const pluginSelfDir = getPluginDir(this);
-
     // 1. 处理同步排除文件夹 (syncExcludeFolders)
+    const pluginSelfDir = getPluginDir(this);
+    const internalExcludes = this.localStorageManager.getInternalExcludes();
     const folderRules = parseRules(this.settings.syncExcludeFolders)
-    const initialFolderRulesCount = folderRules.length
+    
+    // 迁移：如果 data.json 中包含插件目录规则，则移动到 LocalStorage
+    if (data && data.syncExcludeFolders) {
+        const rawRules = parseRules(data.syncExcludeFolders);
+        const toMove = rawRules.filter(r => isPathMatch(r.pattern, pluginSelfDir));
+        if (toMove.length > 0) {
+            toMove.forEach(rule => {
+                if (!internalExcludes.some(ir => ir.pattern === rule.pattern)) {
+                    internalExcludes.push(rule);
+                }
+            });
+            this.localStorageManager.setInternalExcludes(internalExcludes);
+            hasMigration = true;
+        }
+    }
+
+    // 确保运行时始终包含内部排除规则
+    const currentRules = parseRules(this.settings.syncExcludeFolders);
+    const externalRules = currentRules.filter(r => !isPathMatch(r.pattern, pluginSelfDir));
+    const mergedRules = [...externalRules, ...internalExcludes];
+    this.settings.syncExcludeFolders = stringifyRules(mergedRules);
+
+    const initialFolderRulesCount = mergedRules.length
 
     // 迁移旧版配置排除 (configExclude)
     if (data && data.configExclude) {
@@ -365,8 +387,8 @@ export default class FastSync extends Plugin {
       });
     }
 
-    if (folderRules.length !== initialFolderRulesCount || !this.settings.syncExcludeFolders.startsWith("[")) {
-      this.settings.syncExcludeFolders = stringifyRules(folderRules)
+    if (mergedRules.length !== initialFolderRulesCount || !this.settings.syncExcludeFolders.startsWith("[")) {
+      this.settings.syncExcludeFolders = stringifyRules(mergedRules)
       hasMigration = true
     }
 
@@ -426,7 +448,20 @@ export default class FastSync extends Plugin {
     this.fileHashManager?.cleanupExcludedHashes()
     this.configHashManager?.cleanupExcludedHashes()
     // 文件夹暂未实现 cleanupExcludedHashes，但 FolderHashManager 初始化时会自动过滤
-    await this.saveData(this.settings)
+    
+    // 拆分规则：将匹配插件自身目录的规则存入 LocalStorage，其余存入 data.json
+    const pluginSelfDir = getPluginDir(this);
+    const allRules = parseRules(this.settings.syncExcludeFolders);
+    const internalRules = allRules.filter(r => isPathMatch(r.pattern, pluginSelfDir));
+    const externalRules = allRules.filter(r => !isPathMatch(r.pattern, pluginSelfDir));
+
+    this.localStorageManager.setInternalExcludes(internalRules);
+
+    const settingsToSave = { 
+        ...this.settings, 
+        syncExcludeFolders: stringifyRules(externalRules) 
+    };
+    await this.saveData(settingsToSave)
   }
 
   async refreshRuntime(forceRegister: boolean = true, setItem: string = "") {
