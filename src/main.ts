@@ -221,22 +221,28 @@ export default class FastSync extends Plugin {
     // 初始化锁管理器 (必须在事件管理器和操作模块之前)
     this.lockManager = new LockManager()
 
-    // 注册协议处理器 (核心功能)
-    this.registerObsidianProtocolHandler("fast-note-sync/sso", async (data) => {
-      if (data?.pushApi) {
-        this.settings.api = data.pushApi
-        this.settings.apiToken = data.pushApiToken
-        if (data?.pushVault) {
-          this.settings.vault = data.pushVault
-        }
-        this.wsSettingChange = true
-        this.localStorageManager.setMetadata("isInitSync", false)
-        await this.saveSettings()
-        new Notice($("ui.status.config_imported"), 5000)
-      }
-    })
 
-    // 大部分初始化逻辑移动到 onLayoutReady 之后，避免阻塞 Obsidian 启动
+    // 注册协议处理器 (核心功能)
+    const ssoAction = "fast-note-sync/sso";
+    try {
+      this.registerObsidianProtocolHandler(ssoAction, async (data) => {
+        if (data?.pushApi) {
+          this.settings.api = data.pushApi
+          this.settings.apiToken = data.pushApiToken
+          if (data?.pushVault) {
+            this.settings.vault = data.pushVault
+          }
+          this.wsSettingChange = true
+          this.localStorageManager.setMetadata("isInitSync", false)
+          await this.saveSettings()
+          new Notice($("ui.status.config_imported"), 5000)
+        }
+      })
+    } catch (e) {
+      console.warn(`Fast Note Sync: Protocol handler ${ssoAction} registration skipped or already exists. / 协议处理器注册跳过或已存在:`, e);
+    }
+
+    // 大部分初始化逻辑移动到 onLayoutReady 之后，避免阻塞 Obsidian 启动16
     this.app.workspace.onLayoutReady(async () => {
       // 防止重复初始化 (Prevent duplicate initialization)
       if (this.menuManager) return;
@@ -257,7 +263,7 @@ export default class FastSync extends Plugin {
       // 3. 初始化 UI 管理器
       this.menuManager = new MenuManager(this)
       this.menuManager.init()
-      
+
       // 注册 WebSocket 状态监听 (Register WebSocket status listener)
       this.websocket.addStatusListener((status) => this.updateRibbonIcon(status))
 
@@ -294,7 +300,7 @@ export default class FastSync extends Plugin {
       // 8. 监听外观变更 (Listen for CSS/Theme changes)
       this.registerEvent(
         this.app.workspace.on("css-change", () => {
-          this.menuManager?.updateRibbonIcon(this.websocket.isAuth)
+          this.menuManager?.refreshUpgradeBadge()
           this.shareIndicatorManager?.regenerateCss()
         })
       )
@@ -341,8 +347,6 @@ export default class FastSync extends Plugin {
       const defaultExcludes = [
         `${pluginSelfDir}/data.json`,
         `${this.app.vault.configDir}/community-plugins.json`,
-        `${this.app.vault.configDir}/appearance.json`,
-        `${this.app.vault.configDir}/app.json`
       ];
       defaultExcludes.forEach(pattern => {
         if (!folderRules.some(r => r.pattern === pattern)) {
@@ -394,7 +398,6 @@ export default class FastSync extends Plugin {
   }
 
   async saveSettings(setItem: string = "") {
-    dump("saveSettings12")
     if (this.settings.api && this.settings.apiToken) {
       this.settings.api = this.settings.api.replace(/\/+$/, "") // 去除尾部斜杠
     }
@@ -453,6 +456,41 @@ export default class FastSync extends Plugin {
   }
 
   /**
+   * 获取命令当前的快捷键字符串 (Linkage with system hotkeys)
+   */
+  getCommandHotkey(commandId: string): string {
+    const fullId = `${this.manifest.id}:${commandId}`;
+    const hotkeyManager = (this.app as any).hotkeyManager;
+    let hotkeys = hotkeyManager?.getHotkeys(fullId);
+
+    // 如果没有自定义热键，尝试获取默认热键
+    if (!hotkeys || hotkeys.length === 0) {
+      hotkeys = hotkeyManager?.getDefaultHotkeys(fullId);
+    }
+    
+    if (hotkeys && hotkeys.length > 0) {
+      const { modifiers, key } = hotkeys[0];
+      const parts = [...modifiers];
+      if (key) parts.push(key.toUpperCase());
+      return parts.join("+");
+    }
+    return "";
+  }
+
+  /**
+   * 设置命令的快捷键 (Linkage with system hotkeys)
+   */
+  async setCommandHotkey(commandId: string, shortcutStr: string) {
+    const fullId = `${this.manifest.id}:${commandId}`;
+    const parts = shortcutStr.split("+");
+    const modifiers = parts.filter(p => ["Mod", "Ctrl", "Alt", "Shift", "Meta"].includes(p)) as any[];
+    const key = parts.find(p => !["Mod", "Ctrl", "Alt", "Shift", "Meta"].includes(p));
+
+    const hotkey = { modifiers, key: key || "" };
+    await (this.app as any).hotkeyManager?.setHotkeys(fullId, [hotkey]);
+  }
+
+  /**
    * 更新运行时 API 地址
    * 当检测到 301/302 重定向时调用
    * @param newBaseUrl 新的基准地址（http/https）
@@ -471,18 +509,25 @@ export default class FastSync extends Plugin {
   async activateLogView() {
     const { workspace } = this.app
 
-    let leaf: WorkspaceLeaf | null = null
     const leaves = workspace.getLeavesOfType(SYNC_LOG_VIEW_TYPE)
 
     if (leaves.length > 0) {
-      leaf = leaves[0]
-    } else {
-      leaf = workspace.getRightLeaf(false)
-      await leaf?.setViewState({ type: SYNC_LOG_VIEW_TYPE, active: true })
-    }
-
-    if (leaf) {
+      const leaf = leaves[0]
+      // 如果已经打开，判断是否处于当前视图且可见，如果是则关闭
+      if (leaf === workspace.activeLeaf || (leaf as any).view?.containerEl?.isShown()) {
+        leaf.detach()
+        return
+      }
+      // 否则显示它
       workspace.revealLeaf(leaf)
+    } else {
+      // 否则创建新的
+      const leaf = workspace.getRightLeaf(false)
+      await leaf?.setViewState({ type: SYNC_LOG_VIEW_TYPE, active: true })
+      if (leaf) {
+        workspace.revealLeaf(leaf)
+      }
     }
   }
+
 }

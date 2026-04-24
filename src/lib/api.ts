@@ -85,11 +85,11 @@ export class HttpApiService {
      * 服务端自动升级
      * 调用 /api/admin/upgrade
      */
-    async adminUpgrade(): Promise<boolean> {
-        const endpoint = `/api/admin/upgrade`;
+    async adminUpgrade(version: string = "latest"): Promise<boolean> {
+        const endpoint = `/api/admin/upgrade?version=${version}`;
         try {
             const { status, json } = await this.request(endpoint, {
-                method: "POST"
+                method: "GET"
             });
             return status === 200 && json.code > 0;
         } catch (e) {

@@ -2,11 +2,11 @@ import { App, PluginSettingTab, Notice, Setting, Platform, SearchComponent, Mark
 import { createRoot, Root } from "react-dom/client";
 
 import { handleSync, resetSettingSyncTime, rebuildAllHashes } from "./lib/operator";
+import { parseRules, SyncRule, getPluginDir, debounce } from "./lib/helps";
 import { SettingsView, SupportView } from "./views/settings-view";
-import { ConfirmModal } from "./views/confirm-modal";
 import { RuleEditorModal } from "./views/rule-editor-modal";
+import { ConfirmModal } from "./views/confirm-modal";
 import { RuleEditor } from "./views/rule-editor";
-import { parseRules, SyncRule, getPluginDir } from "./lib/helps";
 import { $ } from "./i18n/lang";
 import FastSync from "./main";
 
@@ -122,7 +122,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 
 
 
-export type TabId = "GENERAL" | "DISPLAY" | "DEBUG" | "REMOTE" | "SYNC" | "CLOUD";
+export type TabId = "GENERAL" | "DISPLAY" | "SHORTCUT" | "REMOTE" | "SYNC" | "CLOUD" | "DEBUG";
 
 export class SettingTab extends PluginSettingTab {
   plugin: FastSync
@@ -131,10 +131,12 @@ export class SettingTab extends PluginSettingTab {
   // 设置当前活动选项卡，默认为通用
   activeTab: TabId = "GENERAL"
   searchQuery: string = ""
+  headerScrollLeft: number = 0
 
-  private headerScrollLeft: number = 0
-  private touchStartX: number = 0
-  private touchStartY: number = 0
+  // 缓存结构，避免频繁重绘导致卡顿
+  private contentEl: HTMLElement | null = null
+  private searchComponent: SearchComponent | null = null
+  private lastViewMode: string = "" // 用于记录上次渲染的模式 (TabId 或 "SEARCH")
 
   constructor(app: App, plugin: FastSync) {
     super(app, plugin)
@@ -149,62 +151,90 @@ export class SettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl: set } = this
 
-    const oldHeader = set.querySelector(".fns-setting-tab-header")
-    if (oldHeader) {
-      this.headerScrollLeft = oldHeader.scrollLeft
+    // 1. 初始化基础布局结构 (仅在首次或容器被清空时)
+    const headerEl = set.querySelector(".fns-setting-tab-header") as HTMLElement
+    const hasSearch = set.querySelector(".fns-setting-search-container")
+    this.contentEl = set.querySelector(".fns-setting-tab-content") as HTMLElement
+
+    if (!headerEl || !hasSearch || !this.contentEl) {
+      set.empty()
+      this.unmountRoots()
+      this.renderSearch(set)
+      this.renderHeader(set)
+      this.contentEl = set.createDiv("fns-setting-tab-content")
+      this.lastViewMode = "" // 重置模式以强制重新渲染内容
+    } else {
+      // 如果结构已存在，则同步更新 Header 的选中状态 (避免 Tab 无法切换的视觉错觉)
+      this.updateHeaderSelection(headerEl)
     }
 
-    set.empty()
-    this.roots.forEach((root) => root.unmount())
-    this.roots = []
+    const contentEl = this.contentEl!
 
-    // 渲染搜索框
-    this.renderSearch(set)
-
-    // 渲染选项卡头部导航
-    this.renderHeader(set)
-
-    const contentEl = set.createDiv("fns-setting-tab-content")
-
-    if (Platform.isMobile) {
+    // 2. 移动端滑动监听 (如果 contentEl 是新建的，需要重新挂载)
+    if (Platform.isMobile && !contentEl.hasAttribute("data-swipe-init")) {
+      contentEl.setAttribute("data-swipe-init", "true")
+      let touchStartX = 0
+      let touchStartY = 0
       contentEl.addEventListener("touchstart", (e) => {
-        this.touchStartX = e.changedTouches[0].screenX
-        this.touchStartY = e.changedTouches[0].screenY
+        touchStartX = e.changedTouches[0].screenX
+        touchStartY = e.changedTouches[0].screenY
       }, { passive: true })
 
       contentEl.addEventListener("touchend", (e) => {
         const touchEndX = e.changedTouches[0].screenX
         const touchEndY = e.changedTouches[0].screenY
-        this.handleSwipe(this.touchStartX, this.touchStartY, touchEndX, touchEndY)
+        this.handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY)
       }, { passive: true })
     }
 
-    if (this.searchQuery) {
-      this.renderAllSettings(contentEl)
-      this.applySearchFilter(contentEl)
-    } else {
-      // 根据活动选项卡渲染内容
-      switch (this.activeTab) {
-        case "GENERAL":
-          this.renderGeneralSettings(contentEl)
-          break
-        case "DEBUG":
-          this.renderDebugSettings(contentEl)
-          break
-        case "REMOTE":
-          this.renderRemoteSettings(contentEl)
-          break
-        case "SYNC":
-          this.renderSyncSettings(contentEl)
-          break
-        case "CLOUD":
-          this.renderCloudSettings(contentEl)
-          break
-        case "DISPLAY":
-          this.renderDisplaySettings(contentEl)
-          break
+    // 3. 根据搜索状态或标签页渲染内容
+    const currentMode = this.searchQuery ? "SEARCH" : this.activeTab
+
+    if (currentMode !== this.lastViewMode) {
+      contentEl.empty()
+      this.unmountRoots()
+
+      if (this.searchQuery) {
+        this.renderAllSettings(contentEl)
+      } else {
+        switch (this.activeTab) {
+          case "GENERAL": this.renderGeneralSettings(contentEl); break
+          case "DEBUG": this.renderDebugSettings(contentEl); break
+          case "REMOTE": this.renderRemoteSettings(contentEl); break
+          case "SYNC": this.renderSyncSettings(contentEl); break
+          case "CLOUD": this.renderCloudSettings(contentEl); break
+          case "DISPLAY": this.renderDisplaySettings(contentEl); break
+          case "SHORTCUT": this.renderShortcutSettings(contentEl); break
+        }
       }
+      this.lastViewMode = currentMode
     }
+
+    // 4. 执行搜索过滤 (如果是搜索模式)
+    if (this.searchQuery) {
+      this.applySearchFilter(contentEl)
+    }
+  }
+
+  private updateHeaderSelection(headerEl: HTMLElement) {
+    const tabs = headerEl.querySelectorAll(".fns-setting-tab-item")
+    tabs.forEach((tabEl) => {
+      const el = tabEl as HTMLElement
+      if (el.dataset.tabId === this.activeTab && !this.searchQuery) {
+        el.addClass("is-active")
+        // 确保选中的 Tab 可见
+        el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+      } else {
+        el.removeClass("is-active")
+      }
+    })
+  }
+
+  private unmountRoots() {
+    this.roots.forEach((root) => {
+      try { root.unmount() } catch (e) { /* ignore */ }
+    })
+    this.roots = []
   }
 
   private handleSwipe(startX: number, startY: number, endX: number, endY: number) {
@@ -213,7 +243,7 @@ export class SettingTab extends PluginSettingTab {
     const threshold = 50
 
     if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const tabs: TabId[] = ["GENERAL", "DISPLAY", "REMOTE", "SYNC", "CLOUD", "DEBUG"]
+      const tabs: TabId[] = ["GENERAL", "DISPLAY", "REMOTE", "SYNC", "SHORTCUT", "CLOUD", "DEBUG"]
       const currentIndex = tabs.indexOf(this.activeTab)
 
       if (deltaX > 0) {
@@ -234,13 +264,21 @@ export class SettingTab extends PluginSettingTab {
 
   private renderSearch(containerEl: HTMLElement) {
     const searchContainer = containerEl.createDiv("fns-setting-search-container")
-    new SearchComponent(searchContainer)
+    const search = new SearchComponent(searchContainer)
       .setPlaceholder($("setting.search.placeholder"))
       .setValue(this.searchQuery)
-      .onChange((value) => {
-        this.searchQuery = value
-        this.display()
-      })
+
+    this.searchComponent = search
+
+    // 优化：使用防抖减少重绘，并提高响应速度 (从 500ms 默认降低到 150ms)
+    const debouncedApply = debounce(() => {
+      this.display()
+    }, 150)
+
+    search.onChange((value) => {
+      this.searchQuery = value
+      debouncedApply()
+    })
   }
 
   private renderAllSettings(contentEl: HTMLElement) {
@@ -248,21 +286,28 @@ export class SettingTab extends PluginSettingTab {
     this.renderDisplaySettings(contentEl)
     this.renderRemoteSettings(contentEl)
     this.renderSyncSettings(contentEl)
+    this.renderShortcutSettings(contentEl)
     this.renderCloudSettings(contentEl)
     this.renderDebugSettings(contentEl)
   }
 
   private applySearchFilter(containerEl: HTMLElement) {
     const query = this.searchQuery.toLowerCase()
-    const children = containerEl.querySelectorAll(".setting-item")
+    const children = Array.from(containerEl.children) as HTMLElement[]
     let hasVisibleItem = false
 
-    children.forEach((child) => {
-      const item = child as HTMLElement
+    // 1. 第一阶段：处理所有非标题项的显示隐藏
+    children.forEach((item) => {
+      // 标题栏在第二阶段处理
+      if (item.classList.contains("setting-item-heading")) return
+
+      // 对于普通的 setting-item，检查名称和描述
       const name = item.querySelector(".setting-item-name")?.textContent?.toLowerCase() || ""
       const desc = item.querySelector(".setting-item-description")?.textContent?.toLowerCase() || ""
+      // 对于其他 div (如 React 渲染的容器)，检查其整体文本内容
+      const otherText = item.classList.contains("setting-item") ? "" : (item.textContent?.toLowerCase() || "")
 
-      if (name.includes(query) || desc.includes(query)) {
+      if (name.includes(query) || desc.includes(query) || otherText.includes(query)) {
         item.style.display = ""
         hasVisibleItem = true
       } else {
@@ -270,20 +315,25 @@ export class SettingTab extends PluginSettingTab {
       }
     })
 
-    // 隐藏空的标题栏
-    const headings = containerEl.querySelectorAll(".setting-item-heading")
-    headings.forEach((heading) => {
-      let next = heading.nextElementSibling
+    // 2. 第二阶段：根据后续项的显示状态来决定标题栏是否显示
+    children.forEach((item, index) => {
+      if (!item.classList.contains("setting-item-heading")) return
+
       let shouldShow = false
-      while (next && !next.classList.contains("setting-item-heading")) {
-        if ((next as HTMLElement).style.display !== "none") {
+      // 向后搜索，直到遇到下一个标题栏或容器末尾
+      for (let i = index + 1; i < children.length; i++) {
+        const next = children[i]
+        if (next.classList.contains("setting-item-heading")) break
+        if (next.style.display !== "none") {
           shouldShow = true
           break
         }
-        next = next.nextElementSibling
       }
-      ; (heading as HTMLElement).style.display = shouldShow ? "" : "none"
+      item.style.display = shouldShow ? "" : "none"
     })
+
+    // 3. 处理 "No results" 消息
+    containerEl.querySelectorAll(".fns-setting-no-results").forEach((el) => el.remove())
 
     if (!hasVisibleItem) {
       containerEl.createDiv("fns-setting-no-results").setText("No results found.")
@@ -298,6 +348,7 @@ export class SettingTab extends PluginSettingTab {
       { id: "DISPLAY", label: $("setting.tab.display") },
       { id: "REMOTE", label: $("setting.tab.remote") },
       { id: "SYNC", label: $("setting.tab.sync") },
+      { id: "SHORTCUT", label: $("setting.tab.shortcut") },
       { id: "CLOUD", label: $("setting.tab.cloud") },
       { id: "DEBUG", label: $("setting.tab.debug") },
     ]
@@ -307,17 +358,23 @@ export class SettingTab extends PluginSettingTab {
     tabs.forEach((tab) => {
       const tabEl = headerEl.createDiv("fns-setting-tab-item")
       tabEl.setText(tab.label)
+      tabEl.dataset.tabId = tab.id // 设置标识用于后续更新状态
       if (this.activeTab === tab.id) {
         tabEl.addClass("is-active")
         activeTabEl = tabEl
       }
       tabEl.onclick = () => {
+        this.searchQuery = "" // 切换标签时清空搜索
+        if (this.searchComponent) this.searchComponent.setValue("")
         this.activeTab = tab.id
         this.display()
       }
     })
 
     headerEl.scrollLeft = this.headerScrollLeft
+    headerEl.onscroll = () => {
+      this.headerScrollLeft = headerEl.scrollLeft
+    }
 
     if (activeTabEl) {
       requestAnimationFrame(() => {
@@ -355,7 +412,7 @@ export class SettingTab extends PluginSettingTab {
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.update_source_desc"))
 
     new Setting(set)
-      .setName("| " + $("setting.support.title"))
+      .setName($("setting.support.title"))
       .setHeading()
       .setClass("fast-note-sync-settings-tag")
 
@@ -569,8 +626,6 @@ export class SettingTab extends PluginSettingTab {
             const defaultExcludes = [
               `${getPluginDir(this.plugin)}/data.json`,
               `${this.app.vault.configDir}/community-plugins.json`,
-              `${this.app.vault.configDir}/appearance.json`,
-              `${this.app.vault.configDir}/app.json`
             ];
             this.plugin.settings.syncExcludeFolders = JSON.stringify(defaultExcludes.map(pattern => ({ pattern, caseSensitive: false })));
 
@@ -613,10 +668,7 @@ export class SettingTab extends PluginSettingTab {
   }
 
   private renderDebugSettings(set: HTMLElement) {
-    new Setting(set)
-      .setName("| " + $("setting.tab.debug"))
-      .setHeading()
-      .setClass("fast-note-sync-settings-tag")
+
 
     new Setting(set).setName($("setting.support.log")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.logEnabled).onChange(async (value) => {
@@ -653,10 +705,7 @@ export class SettingTab extends PluginSettingTab {
   }
 
   private renderDisplaySettings(set: HTMLElement) {
-    new Setting(set)
-      .setName("| " + $("setting.tab.display"))
-      .setHeading()
-      .setClass("fast-note-sync-settings-tag")
+
 
     new Setting(set).setName($("setting.general.show_notice")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.isShowNotice).onChange(async (value) => {
@@ -711,10 +760,7 @@ export class SettingTab extends PluginSettingTab {
   }
 
   private renderRemoteSettings(set: HTMLElement) {
-    new Setting(set)
-      .setName("| " + $("setting.remote.title"))
-      .setHeading()
-      .setClass("fast-note-sync-settings-tag")
+
 
     const apiSet = set.createDiv()
     apiSet.addClass("fast-note-sync-settings")
@@ -780,11 +826,181 @@ export class SettingTab extends PluginSettingTab {
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.remote.client_name_desc"))
   }
 
-  private renderSyncSettings(set: HTMLElement) {
+  private renderShortcutSettings(set: HTMLElement) {
     new Setting(set)
-      .setName("| " + $("setting.sync.title"))
+      .setDesc($("setting.shortcut.title_desc"))
       .setHeading()
-      .setClass("fast-note-sync-settings-tag")
+      .setClass("fast-note-sync-settings-tag-desc")
+
+    const shortcutSetting = new Setting(set)
+      .setName($("setting.shortcut.open_log"))
+      .setDesc($("setting.shortcut.open_log_desc"))
+
+    const displayShortcut = (val: string) => {
+      if (!val) return ""
+      let display = val
+      if (Platform.isMacOS) {
+        display = display.replace(/Mod/g, "Cmd").replace(/Ctrl/g, "Control")
+      } else {
+        display = display.replace(/Mod/g, "Ctrl")
+      }
+      return display
+    }
+
+    shortcutSetting.addText((text) => {
+      text
+        .setPlaceholder("Ctrl+Shift+Q")
+        .setValue(displayShortcut(this.plugin.getCommandHotkey("open-sync-log")))
+
+      text.inputEl.addEventListener("keydown", async (e: KeyboardEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const modifiers = []
+        if (e.ctrlKey) modifiers.push(Platform.isMacOS ? "Control" : "Ctrl")
+        if (e.metaKey) modifiers.push(Platform.isMacOS ? "Cmd" : "Meta")
+        if (e.altKey) modifiers.push("Alt")
+        if (e.shiftKey) modifiers.push("Shift")
+
+        let key = e.key
+        if (["Control", "Meta", "Alt", "Shift"].includes(key)) {
+          key = ""
+        }
+
+        if (modifiers.length > 0 || key) {
+          let shortcutStr = modifiers.join("+")
+          if (key) {
+            if (shortcutStr) shortcutStr += "+"
+            shortcutStr += key.toUpperCase()
+          }
+
+          let storageStr = shortcutStr
+          if (Platform.isMacOS) {
+            storageStr = storageStr.replace(/Cmd/g, "Mod").replace(/Control/g, "Ctrl")
+          } else {
+            storageStr = storageStr.replace(/Ctrl/g, "Mod")
+          }
+
+          text.setValue(shortcutStr)
+          await this.plugin.setCommandHotkey("open-sync-log", storageStr)
+        }
+      })
+    })
+
+    shortcutSetting.addButton((btn) => {
+      btn.setButtonText($("ui.button.reset")).onClick(async () => {
+        await this.plugin.setCommandHotkey("open-sync-log", "Ctrl+Shift+Q")
+        this.lastViewMode = "" // 强制重新渲染内容
+        this.display()
+      })
+    })
+
+    const menuShortcutSetting = new Setting(set)
+      .setName($("setting.shortcut.open_menu"))
+      .setDesc($("setting.shortcut.open_menu_desc"))
+
+    menuShortcutSetting.addText((text) => {
+      text
+        .setPlaceholder("Ctrl+Shift+W")
+        .setValue(displayShortcut(this.plugin.getCommandHotkey("open-sync-menu")))
+
+      text.inputEl.addEventListener("keydown", async (e: KeyboardEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const modifiers = []
+        if (e.ctrlKey) modifiers.push(Platform.isMacOS ? "Control" : "Ctrl")
+        if (e.metaKey) modifiers.push(Platform.isMacOS ? "Cmd" : "Meta")
+        if (e.altKey) modifiers.push("Alt")
+        if (e.shiftKey) modifiers.push("Shift")
+
+        let key = e.key
+        if (["Control", "Meta", "Alt", "Shift"].includes(key)) {
+          key = ""
+        }
+
+        if (modifiers.length > 0 || key) {
+          let shortcutStr = modifiers.join("+")
+          if (key) {
+            if (shortcutStr) shortcutStr += "+"
+            shortcutStr += key.toUpperCase()
+          }
+
+          let storageStr = shortcutStr
+          if (Platform.isMacOS) {
+            storageStr = storageStr.replace(/Cmd/g, "Mod").replace(/Control/g, "Ctrl")
+          } else {
+            storageStr = storageStr.replace(/Ctrl/g, "Mod")
+          }
+
+          text.setValue(shortcutStr)
+          await this.plugin.setCommandHotkey("open-sync-menu", storageStr)
+        }
+      })
+    })
+
+    menuShortcutSetting.addButton((btn) => {
+      btn.setButtonText($("ui.button.reset")).onClick(async () => {
+        await this.plugin.setCommandHotkey("open-sync-menu", "Ctrl+Shift+W")
+        this.lastViewMode = "" // 强制重新渲染内容
+        this.display()
+      })
+    })
+
+    const settingShortcutSetting = new Setting(set)
+      .setName($("setting.shortcut.open_settings"))
+      .setDesc($("setting.shortcut.open_settings_desc"))
+
+    settingShortcutSetting.addText((text) => {
+      text
+        .setPlaceholder("Ctrl+Shift+S")
+        .setValue(displayShortcut(this.plugin.getCommandHotkey("open-settings")))
+
+      text.inputEl.addEventListener("keydown", async (e: KeyboardEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const modifiers = []
+        if (e.ctrlKey) modifiers.push(Platform.isMacOS ? "Control" : "Ctrl")
+        if (e.metaKey) modifiers.push(Platform.isMacOS ? "Cmd" : "Meta")
+        if (e.altKey) modifiers.push("Alt")
+        if (e.shiftKey) modifiers.push("Shift")
+
+        let key = e.key
+        if (["Control", "Meta", "Alt", "Shift"].includes(key)) {
+          key = ""
+        }
+
+        if (modifiers.length > 0 || key) {
+          let shortcutStr = modifiers.join("+")
+          if (key) {
+            if (shortcutStr) shortcutStr += "+"
+            shortcutStr += key.toUpperCase()
+          }
+
+          let storageStr = shortcutStr
+          if (Platform.isMacOS) {
+            storageStr = storageStr.replace(/Cmd/g, "Mod").replace(/Control/g, "Ctrl")
+          } else {
+            storageStr = storageStr.replace(/Ctrl/g, "Mod")
+          }
+
+          text.setValue(shortcutStr)
+          await this.plugin.setCommandHotkey("open-settings", storageStr)
+        }
+      })
+    })
+
+    settingShortcutSetting.addButton((btn) => {
+      btn.setButtonText($("ui.button.reset")).onClick(async () => {
+        await this.plugin.setCommandHotkey("open-settings", "Ctrl+Shift+S")
+        this.lastViewMode = "" // 强制重新渲染内容
+        this.display()
+      })
+    })
+  }
+
+  private renderSyncSettings(set: HTMLElement) {
 
     new Setting(set).setName($("setting.sync.auto_note")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.syncEnabled).onChange(async (value) => {
@@ -984,10 +1200,7 @@ export class SettingTab extends PluginSettingTab {
   }
 
   private renderCloudSettings(set: HTMLElement) {
-    new Setting(set)
-      .setName("| " + $("setting.cloud.title"))
-      .setHeading()
-      .setClass("fast-note-sync-settings-tag")
+
 
     new Setting(set).setName($("setting.cloud.title")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.cloudPreviewEnabled).onChange(async (value) => {
