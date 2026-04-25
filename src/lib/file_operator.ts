@@ -69,6 +69,9 @@ export const fileModify = async function (file: TAbstractFile, plugin: FastSync,
       }
       // 将 hash 暂存到 pending map，等待服务端 FileUploadAck 后再写入 hashManager
       // Temporarily store hash in pending map, update hashManager only after server FileUploadAck
+      // 新建操作覆盖删除意图，清除 pending 防止晚到的 Ack 错误删除新文件 hash
+      // New upload supersedes delete intent; clear pending to prevent stale Ack from removing new hash
+      plugin.pendingFileDeleteAcks.delete(file.path)
       plugin.pendingUploadHashes.set(file.path, contentHash)
       plugin.websocket.SendMessage("FileUploadCheck", data)
       dump(`File modify check sent`, data.path, data.contentHash)
@@ -118,8 +121,9 @@ export const fileDelete = async function (file: TAbstractFile, plugin: FastSync,
         pathHash: hashContent(file.path),
       }
       plugin.websocket.SendMessage("FileDelete", data, undefined, () => {
-        // WebSocket 消息发送后从哈希表中删除
-        plugin.fileHashManager.removeFileHash(file.path)
+        // 消息真正写入 TCP 缓冲区后加入 pending set，等待 FileDeleteAck 再删 hash
+        // Add to pending set only after message is actually buffered; remove hash only on FileDeleteAck
+        plugin.pendingFileDeleteAcks.add(file.path)
       })
       dump(`File delete send`, file.path)
     } finally {
@@ -159,9 +163,9 @@ export const fileDeleteByPath = async function (filePath: string, plugin: FastSy
         path: filePath,
         pathHash: hashContent(filePath),
       }, undefined, () => {
-        // WebSocket 消息发送后从哈希表中删除
-        // Remove from hash map after sending WebSocket message
-        plugin.fileHashManager.removeFileHash(filePath)
+        // 消息真正写入 TCP 缓冲区后加入 pending set，等待 FileDeleteAck 再删 hash
+        // Add to pending set only after message is actually buffered; remove hash only on FileDeleteAck
+        plugin.pendingFileDeleteAcks.add(filePath)
       })
       dump(`File delete by path send`, filePath)
     } finally {
@@ -415,6 +419,9 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
  */
 export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdateMessage, plugin: FastSync) {
   if (plugin.settings.syncEnabled == false) return
+  // 服务端推送说明该路径已有新内容，清除可能残留的 deleteAck pending 防止 Ack 删除新 hash
+  // Server push means path has new content; clear stale deleteAck pending to protect newly-written hash
+  plugin.pendingFileDeleteAcks.delete(data.path)
   if (isPathExcluded(data.path, plugin)) {
     plugin.fileSyncTasks.completed++;
     return
@@ -952,6 +959,18 @@ export const receiveFileUploadAck = function (data: { lastTime?: number; path?: 
   if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) {
     plugin.localStorageManager.setMetadata("lastFileSyncTime", data.lastTime)
     dump(`FileUploadAck: lastFileSyncTime updated to`, data.lastTime)
+  }
+}
+
+// 收到 FileDeleteAck，仅当路径仍在 pending set 中时才从 hashManager 移除
+// Receive FileDeleteAck; only remove from hashManager if path is still pending
+export const receiveFileDeleteAck = function (data: { lastTime?: number; path?: string }, plugin: FastSync) {
+  if (data.path && plugin.pendingFileDeleteAcks.has(data.path)) {
+    plugin.fileHashManager.removeFileHash(data.path)
+    plugin.pendingFileDeleteAcks.delete(data.path)
+  }
+  if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) {
+    plugin.localStorageManager.setMetadata("lastFileSyncTime", data.lastTime)
   }
 }
 

@@ -1,8 +1,8 @@
 import { TFolder, TFile, Notice, normalizePath, Platform } from "obsidian";
 
-import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename, receiveFileRenameAck, receiveFileUploadAck } from "./file_operator";
+import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename, receiveFileRenameAck, receiveFileUploadAck, receiveFileDeleteAck } from "./file_operator";
 import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, receiveConfigSyncDelete, receiveConfigSyncEnd, configAllPaths, receiveConfigSyncClear } from "./config_operator";
-import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename, receiveNoteModifyAck, receiveNoteRenameAck } from "./note_operator";
+import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename, receiveNoteModifyAck, receiveNoteRenameAck, receiveNoteDeleteAck } from "./note_operator";
 import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "./types";
 import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
 import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice } from "./helps";
@@ -204,6 +204,7 @@ export const receiveOperators: Map<string, ReceiveOperator> = new Map([
   ["NoteSyncRename", receiveNoteSyncRename],
   ["NoteModifyAck", (data, plugin) => receiveNoteModifyAck(data, plugin)],
   ["NoteRenameAck", (data, plugin) => receiveNoteRenameAck(data, plugin)],
+  ["NoteDeleteAck", (data, plugin) => receiveNoteDeleteAck(data, plugin)],
   ["NoteSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "note")],
   ["FileUpload", receiveFileUpload],
   ["FileSyncUpdate", receiveFileSyncUpdate],
@@ -214,6 +215,7 @@ export const receiveOperators: Map<string, ReceiveOperator> = new Map([
   ["FileSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "file")],
   ["FileRenameAck", receiveFileRenameAck],
   ["FileUploadAck", receiveFileUploadAck],
+  ["FileDeleteAck", (data, plugin) => receiveFileDeleteAck(data, plugin)],
   ["SettingSyncModify", receiveConfigSyncModify],
   ["SettingSyncNeedUpload", receiveConfigUpload],
   ["SettingSyncMtime", receiveConfigSyncMtime],
@@ -342,6 +344,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   plugin.pendingDeleteFilePaths.clear()
   plugin.pendingDeleteFolderPaths.clear()
   plugin.pendingDeleteConfigPaths.clear()
+  // 重连时清空 pending Ack 集合；路径保留在 hashManager，将自然进入 delNotes
+  // On reconnect clear pending Ack sets; paths remain in hashManager and flow into delNotes naturally
+  plugin.pendingNoteDeleteAcks.clear()
+  plugin.pendingFileDeleteAcks.clear()
   plugin.disableWatch();
 
   if (plugin.settings.isShowNotice && (plugin.settings.syncEnabled || plugin.settings.configSyncEnabled)) {

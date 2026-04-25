@@ -45,6 +45,9 @@ export const noteModify = async function (file: TAbstractFile, plugin: FastSync,
       // 将 hash 暂存到 pending map，等待服务端 NoteModifyAck 后再写入 hashManager
       // Temporarily store hash in pending map, update hashManager only after server NoteModifyAck
       if (contentHash != baseHash) {
+        // 新建操作覆盖删除意图，清除 pending 防止晚到的 Ack 错误删除新文件 hash
+        // New create supersedes delete intent; clear pending to prevent stale Ack from removing new hash
+        plugin.pendingNoteDeleteAcks.delete(file.path)
         plugin.pendingNoteModifies.set(file.path, contentHash)
       }
       plugin.websocket.SendMessage("NoteModify", data)
@@ -84,8 +87,9 @@ export const noteDelete = async function (file: TAbstractFile, plugin: FastSync,
         pathHash: hashContent(file.path),
       }
       plugin.websocket.SendMessage("NoteDelete", data, undefined, () => {
-        // WebSocket 消息发送后从哈希表中删除
-        plugin.fileHashManager.removeFileHash(file.path)
+        // 消息真正写入 TCP 缓冲区后加入 pending set，等待 NoteDeleteAck 再删 hash
+        // Add to pending set only after message is actually buffered; remove hash only on NoteDeleteAck
+        plugin.pendingNoteDeleteAcks.add(file.path)
       })
 
       dump(`Note delete send`, file.path)
@@ -116,9 +120,9 @@ export const noteDeleteByPath = async function (filePath: string, plugin: FastSy
         path: filePath,
         pathHash: hashContent(filePath),
       }, undefined, () => {
-        // WebSocket 消息发送后从哈希表中删除
-        // Remove from hash map after sending WebSocket message
-        plugin.fileHashManager.removeFileHash(filePath)
+        // 消息真正写入 TCP 缓冲区后加入 pending set，等待 NoteDeleteAck 再删 hash
+        // Add to pending set only after message is actually buffered; remove hash only on NoteDeleteAck
+        plugin.pendingNoteDeleteAcks.add(filePath)
       })
       dump(`Note delete by path send`, filePath)
     } finally {
@@ -219,6 +223,9 @@ export const receiveNoteSyncModify = async function (data: ReceiveMessage, plugi
       // 服务端版本已覆盖本地，清理 pending 避免增量过滤器旁路导致该笔记无限重传
       // Server version overrides local; clear pending to avoid incremental filter bypass loop
       plugin.pendingNoteModifies.delete(data.path)
+      // 服务端推送新内容说明该路径已被创建/更新，清理可能残留的 deleteAck pending
+      // Server push means path was created/updated; clear any stale deleteAck pending
+      plugin.pendingNoteDeleteAcks.delete(data.path)
     } finally {
       setTimeout(() => {
         plugin.removeIgnoredFile(normalizedPath)
@@ -500,6 +507,18 @@ export const receiveNoteRenameAck = function (data: { lastTime?: number }, plugi
   if (pending) {
     plugin.fileHashManager.removeFileHash(pending.oldPath)
     plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash)
+  }
+  if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
+    plugin.localStorageManager.setMetadata("lastNoteSyncTime", data.lastTime)
+  }
+}
+
+// 收到 NoteDeleteAck，仅当路径仍在 pending set 中时才从 hashManager 移除
+// Receive NoteDeleteAck; only remove from hashManager if path is still pending
+export const receiveNoteDeleteAck = function (data: { lastTime?: number; path?: string }, plugin: FastSync) {
+  if (data.path && plugin.pendingNoteDeleteAcks.has(data.path)) {
+    plugin.fileHashManager.removeFileHash(data.path)
+    plugin.pendingNoteDeleteAcks.delete(data.path)
   }
   if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
     plugin.localStorageManager.setMetadata("lastNoteSyncTime", data.lastTime)

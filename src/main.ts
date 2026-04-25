@@ -68,6 +68,12 @@ export default class FastSync extends Plugin {
   pendingDeleteFilePaths: Set<string> = new Set()
   pendingDeleteFolderPaths: Set<string> = new Set()
   pendingDeleteConfigPaths: Set<string> = new Set()
+  // 待服务端 NoteDeleteAck 确认的路径集合，Ack 到达后才从 hashManager 移除
+  // Paths pending NoteDeleteAck; remove from hashManager only after server confirms deletion
+  pendingNoteDeleteAcks: Set<string> = new Set()
+  // 待服务端 FileDeleteAck 确认的路径集合，Ack 到达后才从 hashManager 移除
+  // Paths pending FileDeleteAck; remove from hashManager only after server confirms deletion
+  pendingFileDeleteAcks: Set<string> = new Set()
 
   syncTypeCompleteCount: number = 0 // 已完成同步的类型计数
   expectedSyncCount: number = 0 // 预期的同步类型计数
