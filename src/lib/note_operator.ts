@@ -42,12 +42,12 @@ export const noteModify = async function (file: TAbstractFile, plugin: FastSync,
         // 始终传递 baseHash 信息，如果不可用则标记 baseHashMissing
         ...(baseHash !== null ? { baseHash } : { baseHashMissing: true }),
       }
-      plugin.websocket.SendMessage("NoteModify", data, undefined, () => {
-        // WebSocket 消息发送后更新哈希表(使用内容哈希)
-        if (contentHash != baseHash) {
-          plugin.fileHashManager.setFileHash(file.path, contentHash)
-        }
-      })
+      // 将 hash 暂存到 pending map，等待服务端 NoteModifyAck 后再写入 hashManager
+      // Temporarily store hash in pending map, update hashManager only after server NoteModifyAck
+      if (contentHash != baseHash) {
+        plugin.pendingNoteModifies.set(file.path, contentHash)
+      }
+      plugin.websocket.SendMessage("NoteModify", data)
       dump(`Note modify send`, data.path, data.contentHash, data.mtime, data.pathHash)
     } finally {
       plugin.removeIgnoredFile(file.path)
@@ -73,6 +73,9 @@ export const noteDelete = async function (file: TAbstractFile, plugin: FastSync,
   }
 
   await plugin.lockManager.withLock(file.path, async () => {
+    // 清理可能存在的待确认上传记录，避免 pending map 内存泄漏
+    // Clean up any pending note modify record to avoid memory leak
+    plugin.pendingNoteModifies.delete(file.path)
     plugin.addIgnoredFile(file.path)
     try {
       const data = {
@@ -103,6 +106,9 @@ export const noteDeleteByPath = async function (filePath: string, plugin: FastSy
   if (plugin.lastSyncPathDeleted.has(filePath)) return
 
   await plugin.lockManager.withLock(filePath, async () => {
+    // 清理可能存在的待确认上传记录，避免 pending map 内存泄漏
+    // Clean up any pending note modify record to avoid memory leak
+    plugin.pendingNoteModifies.delete(filePath)
     plugin.addIgnoredFile(filePath)
     try {
       plugin.websocket.SendMessage("NoteDelete", {
@@ -156,11 +162,10 @@ export const noteRename = async function (file: TAbstractFile, oldfile: string, 
         oldPathHash: hashContent(oldfile),
       }
 
-      plugin.websocket.SendMessage("NoteRename", data, undefined, () => {
-        // 删除旧路径,添加新路径(使用内容哈希)
-        plugin.fileHashManager.removeFileHash(oldfile)
-        plugin.fileHashManager.setFileHash(file.path, contentHash)
-      })
+      // 将重命名信息推入 FIFO 队列，等待服务端 NoteRenameAck 后再更新 hashManager
+      // Push rename info to FIFO queue, update hashManager only after server NoteRenameAck
+      plugin.pendingNoteRenames.push({ oldPath: oldfile, newPath: file.path, contentHash })
+      plugin.websocket.SendMessage("NoteRename", data)
       dump(`Note rename send`, data.path, data.pathHash)
     } finally {
       plugin.removeIgnoredFile(file.path)
@@ -448,4 +453,36 @@ export const receiveNoteSyncRename = async function (data: any, plugin: FastSync
   }, { maxRetries: 10, retryInterval: 100 });
 
   plugin.noteSyncTasks.completed++
+}
+
+// 收到 NoteModifyAck，将 pending hash 转移到正式 hashManager 并更新 lastNoteSyncTime
+// Receive NoteModifyAck, move pending hash to formal hashManager and update lastNoteSyncTime
+export const receiveNoteModifyAck = function (data: { lastTime?: number; path?: string }, plugin: FastSync) {
+  // 服务端确认笔记写入成功，将 pending hash 转移到正式 hashManager
+  // Server confirmed note write success, move pending hash to formal hashManager
+  if (data.path) {
+    const contentHash = plugin.pendingNoteModifies.get(data.path)
+    if (contentHash !== undefined) {
+      plugin.fileHashManager.setFileHash(data.path, contentHash)
+      plugin.pendingNoteModifies.delete(data.path)
+    }
+  }
+  if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
+    plugin.localStorageManager.setMetadata("lastNoteSyncTime", data.lastTime)
+  }
+}
+
+// 收到 NoteRenameAck，从 FIFO 队列取出待确认条目并更新 hashManager
+// Receive NoteRenameAck, shift from FIFO queue and update hashManager
+export const receiveNoteRenameAck = function (data: { lastTime?: number }, plugin: FastSync) {
+  // TCP 保证有序，FIFO 匹配正确
+  // TCP guarantees ordering, FIFO matching is correct
+  const pending = plugin.pendingNoteRenames.shift()
+  if (pending) {
+    plugin.fileHashManager.removeFileHash(pending.oldPath)
+    plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash)
+  }
+  if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
+    plugin.localStorageManager.setMetadata("lastNoteSyncTime", data.lastTime)
+  }
 }

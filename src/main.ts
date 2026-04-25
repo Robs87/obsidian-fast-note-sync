@@ -56,6 +56,18 @@ export default class FastSync extends Plugin {
   // 待确认的文件上传 hash 映射，等待服务端 FileUploadAck 后再写入 hashManager
   // Pending upload hash map, update hashManager only after server FileUploadAck
   pendingUploadHashes: Map<string, string> = new Map()
+  // 待确认的笔记上传 hash 映射，等待服务端 NoteModifyAck 后再写入 hashManager
+  // Pending note upload hash map, update hashManager only after server NoteModifyAck
+  pendingNoteModifies: Map<string, string> = new Map()
+  // 待确认的笔记重命名队列，等待服务端 NoteRenameAck 后再更新 hashManager（FIFO）
+  // Pending note rename FIFO queue, update hashManager only after server NoteRenameAck
+  pendingNoteRenames: { oldPath: string; newPath: string; contentHash: string }[] = []
+  // 待服务端确认删除的路径集合，SyncEnd 到达后再从 hashManager/snapshotManager 移除
+  // Pending delete path sets, remove from hashManager/snapshotManager only after SyncEnd arrives
+  pendingDeleteNotePaths: Set<string> = new Set()
+  pendingDeleteFilePaths: Set<string> = new Set()
+  pendingDeleteFolderPaths: Set<string> = new Set()
+  pendingDeleteConfigPaths: Set<string> = new Set()
 
   syncTypeCompleteCount: number = 0 // 已完成同步的类型计数
   expectedSyncCount: number = 0 // 预期的同步类型计数
