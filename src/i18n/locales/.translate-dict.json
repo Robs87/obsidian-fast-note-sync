@@ -322,5 +322,7 @@
   "setting.shortcut.open_settings": "b20122106cc1145795a1dea12a54ab26",
   "setting.shortcut.open_settings_desc": "84cb4ec98348592b54f54ca48d6e9d57",
   "ui.button.reset": "4b9c3271dc2f299dc3aeffb369187513",
-  "setting.remote.mobile_status_dot_pos_menu": "9f7dbcc22133ccacf95ed3858b7e04d0"
+  "setting.remote.mobile_status_dot_pos_menu": "9f7dbcc22133ccacf95ed3858b7e04d0",
+  "setting.general.show_upgrade_badge": "bf5ff4a34bfd254b45cbf8616485926f",
+  "setting.general.show_upgrade_badge_desc": "ee0ebb2f71e46f60c56449f15f3544c8"
 }

@@ -51,6 +51,17 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
         plugin.localStorageManager.getMetadata("pluginVersionIsNew") ||
         plugin.localStorageManager.getMetadata("serverVersionIsNew")
     );
+    const [showUpgradeBadge, setShowUpgradeBadge] = React.useState<boolean>(plugin.settings.showUpgradeBadge);
+
+    React.useEffect(() => {
+        const handleSettingsChange = () => {
+            setShowUpgradeBadge(plugin.settings.showUpgradeBadge);
+        };
+        plugin.app.workspace.on('fns:settings-change', handleSettingsChange);
+        return () => {
+            plugin.app.workspace.off('fns:settings-change', handleSettingsChange);
+        };
+    }, [plugin]);
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const iconRef = React.useRef<HTMLSpanElement>(null);
     const settingsIconRef = React.useRef<HTMLSpanElement>(null);
@@ -147,7 +158,7 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
                                 color: isConnected ? '#4caf50' : '#f44336'
                             }}
                         />
-                        {hasUpgrade && <span className="fns-ribbon-badge" style={{ display: 'block', top: '5px', right: '3px' }} />}
+                        {hasUpgrade && showUpgradeBadge && <span className="fns-ribbon-badge" style={{ display: 'block', top: '5px', right: '3px' }} />}
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>

@@ -74,6 +74,8 @@ export interface PluginSettings {
   updateSource: 'github' | 'cnb'
   /** 手机端状态点位置 */
   mobileStatusDotPosition: 'hidden' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'menu-bar'
+  /** 是否显示更新红点提示（侧边栏及图标） */
+  showUpgradeBadge: boolean
 }
 
 /**
@@ -118,6 +120,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   showShareIcon: true,
   updateSource: "github",
   mobileStatusDotPosition: "menu-bar",
+  showUpgradeBadge: true,
 }
 
 
@@ -727,6 +730,19 @@ export class SettingTab extends PluginSettingTab {
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_share_icon_desc"))
+
+    new Setting(set).setName($("setting.general.show_upgrade_badge")).addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.showUpgradeBadge).onChange(async (value) => {
+        if (value != this.plugin.settings.showUpgradeBadge) {
+          this.plugin.settings.showUpgradeBadge = value
+          await this.plugin.saveSettings()
+          this.plugin.menuManager?.refreshUpgradeBadge()
+          // 触发设置变更事件以通知 React 视图 / Trigger settings change event to notify React views
+          this.app.workspace.trigger('fns:settings-change');
+        }
+      }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.general.show_upgrade_badge_desc"))
 
     new Setting(set).setName($("setting.debug.show_version")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.showVersionInfo).onChange(async (value) => {

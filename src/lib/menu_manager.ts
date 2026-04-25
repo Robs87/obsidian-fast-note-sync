@@ -361,13 +361,18 @@ export class MenuManager {
   refreshUpgradeBadge() {
     const pluginNew = this.plugin.localStorageManager.getMetadata("pluginVersionIsNew");
     const serverNew = this.plugin.localStorageManager.getMetadata("serverVersionIsNew");
-    const show = (pluginNew || serverNew) ? "block" : "none";
+    const hasNew = (pluginNew || serverNew);
+    const show = hasNew ? "block" : "none";
+
+    // 只有在开启了显示红点设置时才在外部图标上显示 / Only show on external icons if setting is enabled
+    const ribbonShow = (this.plugin.settings.showUpgradeBadge && hasNew) ? "block" : "none";
+
     if (this.badgeEl) {
-      this.badgeEl.style.display = show;
+      this.badgeEl.style.display = ribbonShow;
     }
     // 同步更新 view-actions 状态图标上的红点 / Sync badge on view-actions status icon
     document.querySelectorAll('.fns-status-action .fns-ribbon-badge').forEach((el) => {
-      (el as HTMLElement).style.display = show;
+      (el as HTMLElement).style.display = ribbonShow;
     });
   }
 
