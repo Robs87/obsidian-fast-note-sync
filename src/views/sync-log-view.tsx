@@ -57,9 +57,9 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
         const handleSettingsChange = () => {
             setShowUpgradeBadge(plugin.settings.showUpgradeBadge);
         };
-        plugin.app.workspace.on('fns:settings-change', handleSettingsChange);
+        (plugin.app.workspace as any).on('fns:settings-change', handleSettingsChange);
         return () => {
-            plugin.app.workspace.off('fns:settings-change', handleSettingsChange);
+            (plugin.app.workspace as any).off('fns:settings-change', handleSettingsChange);
         };
     }, [plugin]);
     const scrollRef = React.useRef<HTMLDivElement>(null);

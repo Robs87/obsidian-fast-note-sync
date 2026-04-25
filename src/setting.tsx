@@ -734,11 +734,11 @@ export class SettingTab extends PluginSettingTab {
     new Setting(set).setName($("setting.general.show_upgrade_badge")).addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.showUpgradeBadge).onChange(async (value) => {
         if (value != this.plugin.settings.showUpgradeBadge) {
-          this.plugin.settings.showUpgradeBadge = value
-          await this.plugin.saveSettings()
-          this.plugin.menuManager?.refreshUpgradeBadge()
+          this.plugin.settings.showUpgradeBadge = value;
+          await this.plugin.saveSettings();
+          this.plugin.menuManager?.refreshUpgradeBadge();
           // 触发设置变更事件以通知 React 视图 / Trigger settings change event to notify React views
-          this.app.workspace.trigger('fns:settings-change');
+          (this.app.workspace as any).trigger('fns:settings-change');
         }
       }),
     )
