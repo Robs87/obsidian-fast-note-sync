@@ -411,7 +411,11 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
 
   if (plugin.settings.syncEnabled && shouldSyncNotes) {
     const list = plugin.app.vault.getAllLoadedFiles();
+    let processedCount = 0;
     for (const file of list) {
+      // 每处理 100 个文件让出一次主线程，防止 UI 卡死
+      if (++processedCount % 100 === 0) await sleep(0);
+
       if (isPathExcluded(file.path, plugin)) continue;
       if (file instanceof TFolder) {
         if (file.path === "/") continue;
@@ -482,7 +486,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     if (plugin.settings.offlineDeleteSyncEnabled) {
       const trackedPaths = plugin.fileHashManager.getAllPaths();
       const localPathsSet = new Set(list.map(f => f.path)); // 优化：使用 Set 提高查找效率
+      let delCount = 0;
       for (const path of trackedPaths) {
+        if (++delCount % 100 === 0) await sleep(0);
         if (isPathExcluded(path, plugin)) continue;
         if (!localPathsSet.has(path)) {
           const item = { path: path, pathHash: hashContent(path) };
@@ -498,7 +504,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       if (plugin.folderSnapshotManager && plugin.folderSnapshotManager.isReady()) {
         const trackedFolderPaths = plugin.folderSnapshotManager.getAllPaths();
         const localFolderPathsSet = new Set(list.filter(f => f instanceof TFolder).map(f => f.path));
+        let folderCount = 0;
         for (const path of trackedFolderPaths) {
+          if (++folderCount % 100 === 0) await sleep(0);
           if (isPathExcluded(path, plugin)) continue;
           if (!localFolderPathsSet.has(path)) {
             delFolders.push({ path: path, pathHash: hashContent(path) });
@@ -509,7 +517,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       // 增量同步且未开启离线删除同步：检测缺失的文件（哈希表中有但本地不存在）
       const trackedPaths = plugin.fileHashManager.getAllPaths();
       const localPathsSet = new Set(list.map(f => f.path));
+      let missingCount = 0;
       for (const path of trackedPaths) {
+        if (++missingCount % 100 === 0) await sleep(0);
         if (isPathExcluded(path, plugin)) continue;
         if (!localPathsSet.has(path)) {
           const item = { path: path, pathHash: hashContent(path) };
@@ -525,7 +535,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       if (plugin.folderSnapshotManager && plugin.folderSnapshotManager.isReady()) {
         const trackedFolderPaths = plugin.folderSnapshotManager.getAllPaths();
         const localFolderPathsSet = new Set(list.filter(f => f instanceof TFolder).map(f => f.path));
+        let folderCount = 0;
         for (const path of trackedFolderPaths) {
+          if (++folderCount % 100 === 0) await sleep(0);
           if (isPathExcluded(path, plugin)) continue;
           if (!localFolderPathsSet.has(path)) {
             missingFolders.push({ path: path, pathHash: hashContent(path) });
@@ -538,8 +550,9 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   const configDirs = [plugin.app.vault.configDir, ...getConfigSyncCustomDirs(plugin)]
   const configPaths = plugin.settings.configSyncEnabled && shouldSyncConfigs ? await configAllPaths(configDirs, plugin) : [];
 
-  //测试
+  let configCount = 0;
   for (const path of configPaths) {
+    if (++configCount % 100 === 0) await sleep(0);
     if (configIsPathExcluded(path, plugin)) continue;
     const fullPath = normalizePath(path);
     const stat = await plugin.app.vault.adapter.stat(fullPath);

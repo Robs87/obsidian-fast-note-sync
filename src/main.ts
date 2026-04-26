@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf, Platform } from "obsidian";
+import { Plugin, WorkspaceLeaf, Platform, addIcon } from "obsidian";
 
 import { dump, setLogEnabled, isPathMatch, parseRules, stringifyRules, getPluginDir, showSyncNotice } from "./lib/helps";
 import { SettingTab, PluginSettings, DEFAULT_SETTINGS } from "./setting";
@@ -236,6 +236,23 @@ export default class FastSync extends Plugin {
   }
 
   async onload() {
+    // 注册自定义颜色图标 / Register custom colored icons
+    const colors = {
+      'note': '#08b94e',
+      'attachment': '#7C4DFF',
+      'folder': '#1E88E5',
+      'config': '#FF8A33',
+      'other': '#999999',
+      'send': '#FF8C00',
+      'receive': '#007BFF'
+    };
+
+    Object.entries(colors).forEach(([key, color]) => {
+      // Obsidian addIcon 默认 viewBox 是 0 0 100 100，因此居中需要 50, 50
+      // Default viewBox for addIcon is 0 0 100 100, so 50, 50 is the center
+      addIcon(`fns-dot-${key}`, `<circle cx="50" cy="50" r="30" fill="${color}" />`);
+    });
+
     this.localStorageManager = new LocalStorageManager(this)
     this.localStorageManager.startWatch()
 
@@ -368,20 +385,20 @@ export default class FastSync extends Plugin {
     const pluginSelfDir = getPluginDir(this);
     const internalExcludes = this.localStorageManager.getInternalExcludes();
     const folderRules = parseRules(this.settings.syncExcludeFolders)
-    
+
     // 迁移：如果 data.json 中包含插件目录规则，则移动到 LocalStorage
     if (data && data.syncExcludeFolders) {
-        const rawRules = parseRules(data.syncExcludeFolders);
-        const toMove = rawRules.filter(r => isPathMatch(r.pattern, pluginSelfDir));
-        if (toMove.length > 0) {
-            toMove.forEach(rule => {
-                if (!internalExcludes.some(ir => ir.pattern === rule.pattern)) {
-                    internalExcludes.push(rule);
-                }
-            });
-            this.localStorageManager.setInternalExcludes(internalExcludes);
-            hasMigration = true;
-        }
+      const rawRules = parseRules(data.syncExcludeFolders);
+      const toMove = rawRules.filter(r => isPathMatch(r.pattern, pluginSelfDir));
+      if (toMove.length > 0) {
+        toMove.forEach(rule => {
+          if (!internalExcludes.some(ir => ir.pattern === rule.pattern)) {
+            internalExcludes.push(rule);
+          }
+        });
+        this.localStorageManager.setInternalExcludes(internalExcludes);
+        hasMigration = true;
+      }
     }
 
     // 确保运行时始终包含内部排除规则
@@ -478,7 +495,7 @@ export default class FastSync extends Plugin {
     this.fileHashManager?.cleanupExcludedHashes()
     this.configHashManager?.cleanupExcludedHashes()
     // 文件夹暂未实现 cleanupExcludedHashes，但 FolderHashManager 初始化时会自动过滤
-    
+
     // 拆分规则：将匹配插件自身目录的规则存入 LocalStorage，其余存入 data.json
     const pluginSelfDir = getPluginDir(this);
     const allRules = parseRules(this.settings.syncExcludeFolders);
@@ -487,9 +504,9 @@ export default class FastSync extends Plugin {
 
     this.localStorageManager.setInternalExcludes(internalRules);
 
-    const settingsToSave = { 
-        ...this.settings, 
-        syncExcludeFolders: stringifyRules(externalRules) 
+    const settingsToSave = {
+      ...this.settings,
+      syncExcludeFolders: stringifyRules(externalRules)
     };
     await this.saveData(settingsToSave)
   }

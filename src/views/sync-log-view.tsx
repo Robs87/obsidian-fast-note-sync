@@ -211,6 +211,10 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
                     subItem.setTitle(cat.label)
                         .setChecked(categoryFilter === cat.id)
                         .onClick(() => setCategoryFilter(cat.id));
+                    
+                    if (cat.id !== 'all') {
+                        subItem.setIcon(`fns-dot-${cat.id}`);
+                    }
                 });
             });
         });
@@ -233,6 +237,10 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
                     subItem.setTitle(t.label)
                         .setChecked(typeFilter === t.id)
                         .onClick(() => setTypeFilter(t.id));
+                    
+                    if (t.id !== 'all') {
+                        subItem.setIcon(`fns-dot-${t.id}`);
+                    }
                 });
             });
         });

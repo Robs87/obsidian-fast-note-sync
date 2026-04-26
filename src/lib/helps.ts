@@ -63,6 +63,12 @@ export const getDirNameOrEmpty = function (path: string): string {
 };
 
 /**
+ * 正则表达式缓存，避免重复编译
+ * Regex cache to avoid redundant compilation
+ */
+const regexCache = new Map<string, RegExp>();
+
+/**
  * 检查路径是否命中模式
  * 支持正则 (默认忽略大小写) 或 路径前缀匹配
  * 匹配情况：
@@ -75,9 +81,16 @@ export const isPathMatch = function (path: string, pattern: string, caseSensitiv
   try {
     // 根据规则决定是否忽略大小写
     const flags = caseSensitive ? "" : "i";
-    // 检查 pattern 是否已经包含前后斜杠 (如果是纯正则模式)
-    // 这里保持原逻辑：强制从头匹配 ^
-    const regex = new RegExp("^" + pattern, flags);
+    const cacheKey = `${flags}:${pattern}`;
+    let regex = regexCache.get(cacheKey);
+
+    if (!regex) {
+      // 检查 pattern 是否已经包含前后斜杠 (如果是纯正则模式)
+      // 这里保持原逻辑：强制从头匹配 ^
+      regex = new RegExp("^" + pattern, flags);
+      regexCache.set(cacheKey, regex);
+    }
+
     if (regex.test(path)) return true;
   } catch (e) {
     // 如果正则非法，则忽略错误，继续后续的路径匹配逻辑
@@ -100,19 +113,31 @@ export const isPathMatch = function (path: string, pattern: string, caseSensitiv
 }
 
 /**
+ * 规则解析结果缓存
+ * Rule parsing result cache
+ */
+const parsedRulesCache = new Map<string, SyncRule[]>();
+
+/**
  * 将设置中的字符串解析为规则数组
  * 支持旧版 (换行分隔) 和新版 (JSON)
  */
 export const parseRules = function (setting: string): SyncRule[] {
   if (!setting || setting.trim() === "") return [];
 
+  // 尝试从缓存获取
+  const cached = parsedRulesCache.get(setting);
+  if (cached) return cached;
+
   const trimmed = setting.trim();
+  let rules: SyncRule[] = [];
+
   // 检查是否为 JSON 格式
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     try {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        return parsed.map(item => ({
+        rules = parsed.map(item => ({
           pattern: typeof item === 'string' ? item : (item.pattern || ""),
           caseSensitive: !!item.caseSensitive
         })).filter(item => item.pattern !== "");
@@ -122,11 +147,17 @@ export const parseRules = function (setting: string): SyncRule[] {
     }
   }
 
-  // 旧版逻辑：换行分隔
-  return trimmed.split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line !== "")
-    .map(line => ({ pattern: line, caseSensitive: false }));
+  // 如果 JSON 解析未产生结果，则走旧版逻辑：换行分隔
+  if (rules.length === 0) {
+    rules = trimmed.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line !== "")
+      .map(line => ({ pattern: line, caseSensitive: false }));
+  }
+
+  // 存入缓存
+  parsedRulesCache.set(setting, rules);
+  return rules;
 }
 
 /**
@@ -155,8 +186,10 @@ export const isPathExcluded = function (path: string, plugin: FastSync): boolean
   // 1. 检查扩展名排除
   if (syncExcludeExtensions) {
     const extList = parseRules(syncExcludeExtensions);
-    const ext = "." + normalizedPath.split(".").pop()?.toLowerCase();
-    if (extList.some(rule => {
+    const dotIndex = normalizedPath.lastIndexOf(".");
+    const ext = dotIndex !== -1 ? normalizedPath.substring(dotIndex).toLowerCase() : "";
+
+    if (ext && extList.some(rule => {
       const e = rule.pattern.toLowerCase();
       // 扩展名匹配目前强制不区分大小写，因为系统文件扩展名通常被视为同类
       return ext === e || (e.startsWith(".") && ext === e) || (!e.startsWith(".") && ext === "." + e);
