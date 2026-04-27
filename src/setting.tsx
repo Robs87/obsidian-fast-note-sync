@@ -2,7 +2,7 @@ import { App, PluginSettingTab, Setting, Platform, SearchComponent, MarkdownRend
 import { createRoot, Root } from "react-dom/client";
 
 import { parseRules, SyncRule, getPluginDir, debounce, showSyncNotice } from "./lib/helps";
-import { handleSync, resetSettingSyncTime, rebuildAllHashes } from "./lib/operator";
+import { handleSync, resetSettingSyncTime, rebuildAllHashes, clearAllHashes } from "./lib/operator";
 import { SettingsView, SupportView } from "./views/settings-view";
 import { RuleEditorModal } from "./views/rule-editor-modal";
 import { ConfirmModal } from "./views/confirm-modal";
@@ -563,6 +563,22 @@ export class SettingTab extends PluginSettingTab {
           $("setting.debug.clear_time_desc"),
           async () => {
             await resetSettingSyncTime(this.plugin);
+          },
+          $("ui.button.confirm"),
+          $("ui.button.cancel"),
+          false
+        ).open()
+      }
+
+      const clearOnlyHashButton = debugDiv.createEl("button")
+      clearOnlyHashButton.setText($("ui.menu.clear_hash"))
+      clearOnlyHashButton.onclick = () => {
+        new ConfirmModal(
+          this.app,
+          $("ui.title.notice"),
+          $("setting.debug.clear_hash_only_desc"),
+          async () => {
+            await clearAllHashes(this.plugin);
           },
           $("ui.button.confirm"),
           $("ui.button.cancel"),

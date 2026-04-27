@@ -179,6 +179,7 @@ export default {
   "ui.menu.disable_sync": "临时关闭同步",
   "ui.menu.disable_sync_desc": "临时关闭所有同步，下次打开 Obsidian 自动恢复",
   "ui.menu.clear_time": "清理本地同步时间",
+  "ui.menu.clear_hash": "清理文件哈希映射",
   "ui.menu.rebuild_hash": "重建文件哈希映射",
   "ui.menu.plugin": "插件版本",
   "ui.menu.plugin_desc": "Fast Note Sync 插件版本号",
@@ -186,6 +187,7 @@ export default {
   "ui.menu.server_desc": "Fast Note Sync 服务端 version 号",
   "ui.menu.settings": "插件设置",
   "setting.debug.clear_time_desc": "清理本地所有类型的同步记录时间戳，不影响远端数据。下次同步将进行全量比对。",
+  "setting.debug.clear_hash_only_desc": "仅清理本地文件哈希映射表，不触发即时重建。下次同步时将重新计算。",
   "setting.debug.clear_hash_desc": "清理本地文件哈希映射表，不影响物理文件。点击后将立即触发重建，可能产生短暂卡顿。",
   "setting.debug.clear_time_success": "本地同步時間清理完畢",
   "setting.debug.reset_all": "重置设置",
@@ -245,6 +247,7 @@ export default {
   "ui.log.category_other": "其他",
 
   // --- ui.log.action ---
+  "ui.log.action.VaultScanning": "笔记库哈希计算进度",
   "ui.log.action.FolderSync_full": "文件夹同步(全量)",
   "ui.log.action.FolderSync_incremental": "文件夹同步(增量)",
   "ui.log.action.FolderSyncEnd_full": "文件夹同步结束(全量)",

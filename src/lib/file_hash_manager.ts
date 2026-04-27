@@ -5,12 +5,21 @@ import type FastSync from "../main";
 
 
 /**
+ * 哈希缓存结构
+ */
+interface HashCache {
+  hash: string;
+  mtime: number;
+  size: number;
+}
+
+/**
  * 文件哈希管理器
  * 负责管理文件路径与哈希值的映射关系,存储在 localStorage 中
  */
 export class FileHashManager {
   private plugin: FastSync;
-  private hashMap: Map<string, string> = new Map();
+  private hashMap: Map<string, HashCache> = new Map();
   private storageKey: string;
   private isInitialized: boolean = false;
 
@@ -82,7 +91,11 @@ export class FileHashManager {
             buffer = null; // 显式释放引用 (Explicitly release reference)
           }
 
-          this.hashMap.set(file.path, contentHash);
+          this.hashMap.set(file.path, {
+            hash: contentHash,
+            mtime: file.stat.mtime,
+            size: file.stat.size
+          });
         } catch (error) {
           // 单个文件哈希计算失败不应中断整个构建过程
           dump(`FileHashManager: 计算哈希失败，跳过文件: ${file.path}`, error);
@@ -115,10 +128,22 @@ export class FileHashManager {
   }
 
   /**
+   * 获取有效的哈希值
+   * 如果缓存存在且 mtime/size 匹配，则返回缓存的哈希，否则返回 null
+   */
+  getValidHash(path: string, mtime: number, size: number): string | null {
+    const cache = this.hashMap.get(path);
+    if (cache && cache.mtime === mtime && cache.size === size) {
+      return cache.hash;
+    }
+    return null;
+  }
+
+  /**
    * 获取指定路径的哈希值
    */
   getPathHash(path: string): string | null {
-    return this.hashMap.get(path) || null;
+    return this.hashMap.get(path)?.hash || null;
   }
 
   /**
@@ -131,8 +156,8 @@ export class FileHashManager {
   /**
    * 添加或更新单个文件的哈希
    */
-  setFileHash(path: string, hash: string): void {
-    this.hashMap.set(path, hash);
+  setFileHash(path: string, hash: string, mtime: number = 0, size: number = 0): void {
+    this.hashMap.set(path, { hash, mtime, size });
     this.saveToStorage();
   }
 
@@ -157,7 +182,26 @@ export class FileHashManager {
       }
 
       const parsed = JSON.parse(data);
-      this.hashMap = new Map(Object.entries(parsed));
+      // 数据迁移逻辑：如果值是字符串，说明是旧版数据，需要重新构建或设为默认值
+      // Data migration: if value is string, it's old version data; need to migrate or default
+      const migratedMap = new Map<string, HashCache>();
+      let needsSave = false;
+
+      for (const [path, value] of Object.entries(parsed)) {
+        if (typeof value === "string") {
+          // 旧版数据：只有哈希。由于缺失 mtime/size，我们将它们设为 0，
+          // 这样下次同步时会重新触发计算并更新为新格式。
+          // Old data: hash only. Set mtime/size to 0 so next sync triggers recalculation and updates to new format.
+          migratedMap.set(path, { hash: value, mtime: 0, size: 0 });
+          needsSave = true;
+        } else {
+          migratedMap.set(path, value as HashCache);
+        }
+      }
+
+      this.hashMap = migratedMap;
+      if (needsSave) this.saveToStorage();
+
       return true;
     } catch (error) {
       dump("FileHashManager: 从 localStorage 加载失败", error);
@@ -226,3 +270,4 @@ export class FileHashManager {
     };
   }
 }
+

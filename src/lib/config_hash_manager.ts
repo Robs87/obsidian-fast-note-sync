@@ -6,12 +6,21 @@ import type FastSync from "../main";
 
 
 /**
+ * 哈希缓存结构
+ */
+interface HashCache {
+    hash: string;
+    mtime: number;
+    size: number;
+}
+
+/**
  * 配置哈希管理器
  * 负责管理配置文件路径与哈希值的映射关系,存储在 localStorage 中
  */
 export class ConfigHashManager {
     private plugin: FastSync;
-    private hashMap: Map<string, string> = new Map();
+    private hashMap: Map<string, HashCache> = new Map();
     private storageKey: string;
     private isInitialized: boolean = false;
 
@@ -75,6 +84,8 @@ export class ConfigHashManager {
                 }
 
                 let contentHash: string;
+                let mtime = 0;
+                let size = 0;
 
                 // 检查是否为 LocalStorage 虚拟路径
                 if (path.startsWith(this.plugin.localStorageManager.syncPathPrefix)) {
@@ -83,7 +94,7 @@ export class ConfigHashManager {
                         let value: string | null = this.plugin.localStorageManager.getItemValue(key);
                         if (value) {
                             contentHash = await hashContentAsync(value);
-                            this.hashMap.set(path, contentHash);
+                            this.hashMap.set(path, { hash: contentHash, mtime: 0, size: 0 });
                             value = null; // 显式释放引用 (Explicitly release reference)
                         }
                     }
@@ -92,11 +103,11 @@ export class ConfigHashManager {
                     // 注意：configAllPaths 返回的已经是相对于 Vault 的路径，无需再拼接 configDir
                     const filePath = normalizePath(path);
                     try {
-                        const exists = await this.plugin.app.vault.adapter.exists(filePath);
-                        if (exists) {
+                        const stat = await this.plugin.app.vault.adapter.stat(filePath);
+                        if (stat) {
                             let contentBuf: ArrayBuffer | null = await this.plugin.app.vault.adapter.readBinary(filePath);
                             contentHash = await hashArrayBuffer(contentBuf);
-                            this.hashMap.set(path, contentHash);
+                            this.hashMap.set(path, { hash: contentHash, mtime: stat.mtime, size: stat.size });
                             contentBuf = null; // 显式释放引用 (Explicitly release reference)
                         }
                     } catch (error) {
@@ -130,10 +141,22 @@ export class ConfigHashManager {
     }
 
     /**
+     * 获取有效的哈希值
+     */
+    getValidHash(path: string, mtime: number, size: number): string | null {
+        const cache = this.hashMap.get(path);
+        // 如果 mtime 和 size 为 0，通常是虚拟路径或旧数据，强制重新校验
+        if (cache && cache.mtime === mtime && cache.size === size && mtime !== 0) {
+            return cache.hash;
+        }
+        return null;
+    }
+
+    /**
      * 获取指定路径的哈希值
      */
     getPathHash(path: string): string | null {
-        return this.hashMap.get(path) || null;
+        return this.hashMap.get(path)?.hash || null;
     }
 
     /**
@@ -146,8 +169,8 @@ export class ConfigHashManager {
     /**
      * 添加或更新单个配置的哈希
      */
-    setFileHash(path: string, hash: string): void {
-        this.hashMap.set(path, hash);
+    setFileHash(path: string, hash: string, mtime: number = 0, size: number = 0): void {
+        this.hashMap.set(path, { hash, mtime, size });
         this.saveToStorage();
     }
 
@@ -172,7 +195,21 @@ export class ConfigHashManager {
             }
 
             const parsed = JSON.parse(data);
-            this.hashMap = new Map(Object.entries(parsed));
+            const migratedMap = new Map<string, HashCache>();
+            let needsSave = false;
+
+            for (const [path, value] of Object.entries(parsed)) {
+                if (typeof value === "string") {
+                    migratedMap.set(path, { hash: value, mtime: 0, size: 0 });
+                    needsSave = true;
+                } else {
+                    migratedMap.set(path, value as HashCache);
+                }
+            }
+
+            this.hashMap = migratedMap;
+            if (needsSave) this.saveToStorage();
+
             return true;
         } catch (error) {
             dump("ConfigHashManager: 从 localStorage 加载失败", error);
@@ -241,3 +278,4 @@ export class ConfigHashManager {
         };
     }
 }
+

@@ -45,15 +45,21 @@ export const fileModify = async function (file: TAbstractFile, plugin: FastSync,
   await plugin.lockManager.withLock(file.path, async () => {
     plugin.addIgnoredFile(file.path)
     try {
-      const content: ArrayBuffer = await plugin.app.vault.readBinary(file)
-      const contentHash = await hashArrayBuffer(content)
       const baseHash = plugin.fileHashManager.getPathHash(file.path)
       const lastSyncMtime = plugin.lastSyncMtime.get(file.path)
 
-      // --- 新增：哈希 + mtime 复合校验 ---
-      if (contentHash === baseHash && (lastSyncMtime !== undefined && lastSyncMtime === file.stat.mtime)) {
-        dump(`File modify intercepted (hash & mtime match): ${file.path}`)
-        return
+      // --- 优化：先尝试从缓存获取有效哈希 ---
+      let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+      let content: ArrayBuffer | null = null;
+
+      if (contentHash !== null) {
+        if (contentHash === baseHash && (lastSyncMtime !== undefined && lastSyncMtime === file.stat.mtime)) {
+          dump(`File modify intercepted (cache match): ${file.path}`)
+          return
+        }
+      } else {
+        content = await plugin.app.vault.readBinary(file)
+        contentHash = await hashArrayBuffer(content)
       }
 
       const data = {
@@ -206,8 +212,12 @@ export const fileRename = async function (file: TAbstractFile, oldfile: string, 
 
         let contentHash = plugin.fileHashManager.getPathHash(oldfile)
         if (contentHash == null) {
-          const content: ArrayBuffer = await plugin.app.vault.readBinary(file)
-          contentHash = await hashArrayBuffer(content)
+          // 尝试新路径哈希缓存 (Try new path cache)
+          contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+          if (contentHash == null) {
+            const content: ArrayBuffer = await plugin.app.vault.readBinary(file)
+            contentHash = await hashArrayBuffer(content)
+          }
         }
 
         const data = {
@@ -267,6 +277,8 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
       // 将 hash 暂存到 pending map，等待服务端 FileUploadAck 后再写入 hashManager
       // Temporarily store hash in pending map, update hashManager only after server FileUploadAck
       plugin.pendingUploadHashes.set(data.path, contentHash)
+      // 记录当前文件的 mtime/size 到缓存，以便后续利用
+      plugin.fileHashManager.setFileHash(data.path, contentHash, file.stat.mtime, file.stat.size)
 
       // 如果是空文件，强制设置分片数量为 1，发送一个空分片以通知服务端上传完成
       const actualTotalChunks = content.byteLength === 0 ? 1 : Math.ceil(content.byteLength / chunkSize)
@@ -805,7 +817,8 @@ export const receiveFileSyncRename = async function (data: any, plugin: FastSync
         }
 
         plugin.fileHashManager.removeFileHash(data.oldPath)
-        plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+        const renamedFile = plugin.app.vault.getFileByPath(normalizedNewPath)
+        plugin.fileHashManager.setFileHash(data.path, data.contentHash, renamedFile instanceof TFile ? renamedFile.stat.mtime : 0, renamedFile instanceof TFile ? renamedFile.stat.size : 0)
 
         // 更新同步时间
         if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) {
@@ -828,7 +841,7 @@ export const receiveFileSyncRename = async function (data: any, plugin: FastSync
           const localContentHash = await hashArrayBuffer(content)
           if (localContentHash === data.contentHash) {
             dump(`Target attachment already exists and matches hash, skipping rename: ${data.path}`)
-            plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+            plugin.fileHashManager.setFileHash(data.path, data.contentHash, targetFile.stat.mtime, targetFile.stat.size)
             plugin.fileSyncTasks.completed++
             return
           }
@@ -843,7 +856,8 @@ export const receiveFileSyncRename = async function (data: any, plugin: FastSync
       }
       plugin.websocket.SendMessage("FileRePush", rePushData)
       if (data.contentHash) {
-        plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+        const targetFile = plugin.app.vault.getFileByPath(normalizePath(data.path))
+        plugin.fileHashManager.setFileHash(data.path, data.contentHash, targetFile instanceof TFile ? targetFile.stat.mtime : 0, targetFile instanceof TFile ? targetFile.stat.size : 0)
       }
     }
   }, { maxRetries: 10, retryInterval: 100 });
@@ -914,7 +928,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
 
       // 下载完成后自动计算哈希并更新缓存
       const contentHash = await hashArrayBuffer(completeFile.buffer)
-      plugin.fileHashManager.setFileHash(session.path, contentHash)
+      plugin.fileHashManager.setFileHash(session.path, contentHash, session.mtime, session.size)
       // 记录同步后的 mtime
       plugin.lastSyncMtime.set(session.path, session.mtime)
       dump(`Download complete and hash updated for: ${session.path}`, contentHash)
@@ -940,7 +954,8 @@ export const receiveFileRenameAck = function (data: { lastTime?: number }, plugi
   // Server confirmed rename success, dequeue FIFO and update hashManager
   const pending = plugin.pendingFileRenames.shift()
   if (pending) {
-    plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash)
+    const file = plugin.app.vault.getFileByPath(normalizePath(pending.newPath))
+    plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash, file?.stat.mtime || 0, file?.stat.size || 0)
     plugin.fileHashManager.removeFileHash(pending.oldPath)
   }
   if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) {
@@ -957,7 +972,8 @@ export const receiveFileUploadAck = function (data: { lastTime?: number; path?: 
   if (data.path) {
     const contentHash = plugin.pendingUploadHashes.get(data.path)
     if (contentHash !== undefined) {
-      plugin.fileHashManager.setFileHash(data.path, contentHash)
+      const file = plugin.app.vault.getFileByPath(normalizePath(data.path))
+      plugin.fileHashManager.setFileHash(data.path, contentHash, file?.stat.mtime || 0, file?.stat.size || 0)
       plugin.pendingUploadHashes.delete(data.path)
     }
   }

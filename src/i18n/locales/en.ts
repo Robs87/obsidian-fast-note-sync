@@ -179,6 +179,7 @@ export default {
   "ui.menu.disable_sync": "Temporarily Disable Sync",
   "ui.menu.disable_sync_desc": "Temporarily disable all syncs. They will automatically resume the next time Obsidian is opened.",
   "ui.menu.clear_time": "Clear Local Sync Time",
+  "ui.menu.clear_hash": "Clear File Hash Map",
   "ui.menu.rebuild_hash": "Rebuild File Hash Map",
   "ui.menu.plugin": "Plugin Version",
   "ui.menu.plugin_desc": "Fast Note Sync plugin version number",
@@ -186,6 +187,7 @@ export default {
   "ui.menu.server_desc": "Fast Note Sync server version number",
   "ui.menu.settings": "Plugin Settings",
   "setting.debug.clear_time_desc": "Clear local sync record timestamps for all types. Remote data is unaffected. The next sync will perform a full comparison.",
+  "setting.debug.clear_hash_only_desc": "Clears the local file hash mapping table without triggering an immediate rebuild. It will be recalculated during the next sync.",
   "setting.debug.clear_hash_desc": "Clear the local file hash mapping table. Physical files are unaffected. Clicking will immediately trigger a rebuild, which may cause brief lag.",
   "setting.debug.clear_time_success": "Local sync time cleared",
   "setting.debug.reset_all": "Reset Settings",
@@ -245,6 +247,7 @@ export default {
   "ui.log.category_other": "Other",
 
   // --- ui.log.action ---
+  "ui.log.action.VaultScanning": "Vault File Hash Scan",
   "ui.log.action.FolderSync_full": "Folder Sync (Full)",
   "ui.log.action.FolderSync_incremental": "Folder Sync (Incremental)",
   "ui.log.action.FolderSyncEnd_full": "Folder Sync Ended (Full)",

@@ -79,7 +79,10 @@ export class SyncLogManager {
                 progress: targetProgress,
                 timestamp: existingLog.timestamp // Keep the original start time
             };
-            this.logs[index] = updatedLog;
+            
+            // --- 优化：将更新后的日志移到最顶部，方便用户查看当前活跃任务 ---
+            this.logs.splice(index, 1);
+            this.logs.unshift(updatedLog);
 
             // 仅在状态从 pending 变为 success/error 时记录到文件，避免进度更新刷屏
             if (statusChanged && targetStatus !== 'pending') {

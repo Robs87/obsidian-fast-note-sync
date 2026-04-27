@@ -20,16 +20,26 @@ export const noteModify = async function (file: TAbstractFile, plugin: FastSync,
     plugin.addIgnoredFile(file.path)
 
     try {
-      const content: string = await plugin.app.vault.cachedRead(file)
-      const contentHash = hashContent(content)
       const baseHash = plugin.fileHashManager.getPathHash(file.path)
       const lastSyncMtime = plugin.lastSyncMtime.get(file.path)
 
-      // --- 新增：哈希 + mtime 复合校验 ---
-      if (contentHash === baseHash && (lastSyncMtime !== undefined && lastSyncMtime === file.stat.mtime)) {
-        dump(`Note modify intercepted (hash & mtime match): ${file.path}`)
-        return
+      // --- 优化：先尝试从缓存获取有效哈希 ---
+      let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+      let content: string | null = null;
+
+      if (contentHash !== null) {
+        // 如果哈希有效，且与 baseHash 和最后同步时间一致，则拦截
+        if (contentHash === baseHash && (lastSyncMtime !== undefined && lastSyncMtime === file.stat.mtime)) {
+          dump(`Note modify intercepted (cache match): ${file.path}`)
+          return
+        }
+      } else {
+        // 缓存失效或不存在，计算新哈希
+        content = await plugin.app.vault.cachedRead(file)
+        contentHash = hashContent(content)
       }
+
+      if (content === null) content = await plugin.app.vault.cachedRead(file)
 
       const data = {
         vault: plugin.settings.vault,
@@ -217,7 +227,9 @@ export const receiveNoteSyncModify = async function (data: ReceiveMessage, plugi
       }
 
       // 服务端推送笔记更新,更新哈希表(使用内容哈希)
-      plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+      // 注意：由于是服务端推送，我们信任服务端返回的 mtime，并尝试获取本地文件大小
+      const updatedFile = plugin.app.vault.getFileByPath(normalizedPath);
+      plugin.fileHashManager.setFileHash(data.path, data.contentHash, data.mtime, updatedFile?.stat.size || 0)
       // 记录同步后的 mtime 用于拦截
       plugin.lastSyncMtime.set(data.path, data.mtime)
       // 服务端版本已覆盖本地，清理 pending 避免增量过滤器旁路导致该笔记无限重传
@@ -263,9 +275,11 @@ export const receiveNoteUpload = async function (data: ReceivePathMessage, plugi
 
   plugin.addIgnoredFile(file.path)
 
-  const content: string = await plugin.app.vault.cachedRead(file)
-  const contentHash = hashContent(content)
   const baseHash = plugin.fileHashManager.getPathHash(file.path)
+  // 尝试从缓存获取 (Try to get from cache)
+  let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+  const content = await plugin.app.vault.cachedRead(file);
+  if (contentHash === null) contentHash = hashContent(content);
 
   if (content.length === 0) {
     dump(`Empty note upload: ${data.path}`);
@@ -320,7 +334,7 @@ export const receiveNoteSyncMtime = async function (data: ReceiveMtimeMessage, p
         // Server UpdateMtime means content hash matches what client sent; commit pending hash to hashManager
         const pendingHash = plugin.pendingNoteModifies.get(data.path)
         if (pendingHash !== undefined) {
-          plugin.fileHashManager.setFileHash(data.path, pendingHash)
+          plugin.fileHashManager.setFileHash(data.path, pendingHash, data.mtime, file.stat.size)
           plugin.pendingNoteModifies.delete(data.path)
         }
         // 更新同步时间
@@ -439,7 +453,8 @@ export const receiveNoteSyncRename = async function (data: any, plugin: FastSync
 
         // 更新哈希表：移除旧路径，添加新路径
         plugin.fileHashManager.removeFileHash(data.oldPath)
-        plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+        const renamedFile = plugin.app.vault.getFileByPath(normalizedNewPath)
+        plugin.fileHashManager.setFileHash(data.path, data.contentHash, data.mtime || (renamedFile instanceof TFile ? renamedFile.stat.mtime : 0), renamedFile instanceof TFile ? renamedFile.stat.size : 0)
 
         // 更新同步时间
         if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
@@ -472,7 +487,11 @@ export const receiveNoteSyncRename = async function (data: any, plugin: FastSync
         pathHash: data.pathHash,
       }
       plugin.websocket.SendMessage("NoteRePush", rePushData)
-      plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+      if (targetFile instanceof TFile) {
+        plugin.fileHashManager.setFileHash(data.path, data.contentHash, targetFile.stat.mtime, targetFile.stat.size)
+      } else {
+        plugin.fileHashManager.setFileHash(data.path, data.contentHash)
+      }
     }
   }, { maxRetries: 10, retryInterval: 100 });
 
@@ -487,7 +506,9 @@ export const receiveNoteModifyAck = function (data: { lastTime?: number; path?: 
   if (data.path) {
     const contentHash = plugin.pendingNoteModifies.get(data.path)
     if (contentHash !== undefined) {
-      plugin.fileHashManager.setFileHash(data.path, contentHash)
+      // 尝试获取本地文件信息以存入缓存
+      const file = plugin.app.vault.getFileByPath(normalizePath(data.path))
+      plugin.fileHashManager.setFileHash(data.path, contentHash, file?.stat.mtime || 0, file?.stat.size || 0)
       plugin.pendingNoteModifies.delete(data.path)
     } else {
       dump(`NoteModifyAck received for non-pending path: ${data.path}`)
@@ -506,7 +527,9 @@ export const receiveNoteRenameAck = function (data: { lastTime?: number }, plugi
   const pending = plugin.pendingNoteRenames.shift()
   if (pending) {
     plugin.fileHashManager.removeFileHash(pending.oldPath)
-    plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash)
+    // 重命名 Ack 时，内容哈希未变，尝试获取新路径的文件信息
+    const file = plugin.app.vault.getFileByPath(normalizePath(pending.newPath))
+    plugin.fileHashManager.setFileHash(pending.newPath, pending.contentHash, file?.stat.mtime || 0, file?.stat.size || 0)
   }
   if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))) {
     plugin.localStorageManager.setMetadata("lastNoteSyncTime", data.lastTime)

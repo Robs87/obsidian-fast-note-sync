@@ -7,6 +7,7 @@ import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData
 import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
 import { hashContent, hashArrayBuffer, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice } from "./helps";
 import { FileCloudPreview } from "./file_cloud_preview";
+import { SyncLogManager } from "./sync_log_manager";
 import type FastSync from "../main";
 import { $ } from "../i18n/lang";
 
@@ -26,6 +27,11 @@ export const resetSettingSyncTime = async (plugin: FastSync) => {
 export const rebuildAllHashes = async (plugin: FastSync) => {
   await plugin.fileHashManager.rebuildHashMap();
   await plugin.configHashManager.rebuildHashMap();
+};
+
+export const clearAllHashes = async (plugin: FastSync) => {
+  plugin.fileHashManager.clearAll();
+  plugin.configHashManager.clearAll();
 };
 
 
@@ -374,6 +380,19 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   }
   plugin.updateStatusBar($("ui.status.syncing"), 0, 1);
 
+  // --- 新增：初始化哈希扫描日志 ---
+  const hashingLogId = `hashing-${context}`;
+  if (plugin.settings.syncEnabled || plugin.settings.configSyncEnabled) {
+    SyncLogManager.getInstance().addOrUpdateLog({
+      id: hashingLogId,
+      type: 'info',
+      action: 'VaultScanning',
+      status: 'pending',
+      progress: 0,
+      message: `正在扫描库文件并校验哈希...`
+    });
+  }
+
   const notes: SnapFile[] = [], files: SnapFile[] = [], configs: SnapFile[] = [], folders: SnapFolder[] = [];
   const delNotes: PathHashFile[] = [], delFiles: PathHashFile[] = [], delConfigs: PathHashFile[] = [], delFolders: PathHashFile[] = [];
   const missingNotes: PathHashFile[] = [], missingFiles: PathHashFile[] = [], missingConfigs: PathHashFile[] = [], missingFolders: PathHashFile[] = [];
@@ -412,9 +431,25 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   if (plugin.settings.syncEnabled && shouldSyncNotes) {
     const list = plugin.app.vault.getAllLoadedFiles();
     let processedCount = 0;
+    const totalFiles = list.length;
+    // 简单预估配置数量，用于合并进度条
+    const estimatedConfigCount = plugin.settings.configSyncEnabled ? 100 : 0;
+    const totalToProcess = totalFiles + estimatedConfigCount;
+
     for (const file of list) {
       // 每处理 100 个文件让出一次主线程，防止 UI 卡死
-      if (++processedCount % 100 === 0) await sleep(0);
+      if (++processedCount % 100 === 0) {
+        await sleep(0);
+        // 更新扫描进度
+        SyncLogManager.getInstance().addOrUpdateLog({
+          id: hashingLogId,
+          type: 'info',
+          action: 'VaultScanning',
+          status: 'pending',
+          progress: Math.floor((processedCount / totalToProcess) * 100),
+          message: `🔍 正在扫描库文件并校验哈希... (${processedCount}/${totalFiles})`
+        });
+      }
 
       if (isPathExcluded(file.path, plugin)) continue;
       if (file instanceof TFolder) {
@@ -441,8 +476,16 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
             && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))
             && plugin.fileHashManager.getPathHash(file.path) !== null
             && !plugin.pendingNoteModifies.has(file.path)) continue;
-          const contentHash = hashContent(await plugin.app.vault.cachedRead(file));
           const baseHash = plugin.fileHashManager.getPathHash(file.path);
+          // 尝试从缓存获取有效的哈希，避免重复计算 (Try to get valid hash from cache)
+          let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+          if (contentHash === null) {
+            contentHash = hashContent(await plugin.app.vault.cachedRead(file));
+            // 只有在计算出新哈希后才更新缓存，但注意：正式写入 hashManager 建议在 Ack 之后
+            // 这里我们先不更新 hashManager，保持现有的 Ack 后写入逻辑以确保一致性
+            // 不过为了让 Full Sync 能利用缓存，我们需要在 initialize 时或者之前同步过
+          }
+
           let item = {
             path: file.path,
             pathHash: hashContent(file.path),
@@ -465,8 +508,13 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
             && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))
             && plugin.fileHashManager.getPathHash(file.path) !== null
             && !plugin.pendingUploadHashes.has(file.path)) continue;
-          const contentHash = await hashArrayBuffer(await plugin.app.vault.readBinary(file));
           const baseHash = plugin.fileHashManager.getPathHash(file.path);
+          // 尝试从缓存获取有效的哈希，避免重复计算 (Try to get valid hash from cache)
+          let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+          if (contentHash === null) {
+            contentHash = await hashArrayBuffer(await plugin.app.vault.readBinary(file));
+          }
+
           let item = {
             path: file.path,
             pathHash: hashContent(file.path),
@@ -551,17 +599,38 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   const configPaths = plugin.settings.configSyncEnabled && shouldSyncConfigs ? await configAllPaths(configDirs, plugin) : [];
 
   let configCount = 0;
+  const totalConfigs = configPaths.length;
+  // 获取已处理的基础文件数，用于连续进度条
+  const baseProcessedCount = plugin.settings.syncEnabled ? plugin.app.vault.getAllLoadedFiles().length : 0;
+  const overallTotal = baseProcessedCount + totalConfigs;
+
   for (const path of configPaths) {
-    if (++configCount % 100 === 0) await sleep(0);
+    if (++configCount % 50 === 0) {
+      await sleep(0);
+      SyncLogManager.getInstance().addOrUpdateLog({
+        id: hashingLogId,
+        type: 'info',
+        action: 'VaultScanning',
+        status: 'pending',
+        progress: overallTotal > 0 ? Math.floor(((baseProcessedCount + configCount) / overallTotal) * 100) : 100,
+        message: `⚙️ 正在扫描配置文件... (${configCount}/${totalConfigs})`
+      });
+    }
     if (configIsPathExcluded(path, plugin)) continue;
     const fullPath = normalizePath(path);
     const stat = await plugin.app.vault.adapter.stat(fullPath);
     if (!stat) continue;
     if (isLoadLastTime && stat.mtime < Number(plugin.localStorageManager.getMetadata("lastConfigSyncTime"))) continue;
+    // 尝试从缓存获取有效的哈希 (Try to get valid hash from cache)
+    let contentHash = plugin.configHashManager.getValidHash(path, stat.mtime, stat.size);
+    if (contentHash === null) {
+      contentHash = await hashArrayBuffer(await plugin.app.vault.adapter.readBinary(fullPath));
+    }
+
     configs.push({
       path: path,
       pathHash: hashContent(path),
-      contentHash: await hashArrayBuffer(await plugin.app.vault.adapter.readBinary(fullPath)),
+      contentHash: contentHash,
       mtime: stat.mtime,
       ctime: stat.ctime,
       size: stat.size
@@ -633,6 +702,18 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   fileData.context = context;
   configData.context = context;
   folderData.context = context;
+
+  // --- 结束哈希扫描日志 ---
+  if (plugin.settings.syncEnabled || plugin.settings.configSyncEnabled) {
+    SyncLogManager.getInstance().addOrUpdateLog({
+      id: hashingLogId,
+      type: 'info',
+      action: 'VaultScanning',
+      status: 'success',
+      progress: 100,
+      message: `✅ 扫描完成 | 笔记: ${notes.length} | 附件: ${files.length} | 配置: ${configs.length}`
+    });
+  }
 
   // 设置发起请求状态位，防止 checkSyncCompletion 过早判定结束 (Set requesting flag to prevent premature completion detection)
   plugin.isSyncRequesting = true;

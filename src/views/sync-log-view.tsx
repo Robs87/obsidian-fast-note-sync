@@ -184,6 +184,7 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
 
     const clearLogs = () => {
         SyncLogManager.getInstance().clearLogs();
+        setCurrentPage(1);
     };
 
     const showFilterMenu = (e: React.MouseEvent) => {
