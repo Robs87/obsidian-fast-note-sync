@@ -75,6 +75,8 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
     const filterIconRef = React.useRef<HTMLSpanElement>(null);
     const prevPageIconRef = React.useRef<HTMLSpanElement>(null);
     const nextPageIconRef = React.useRef<HTMLSpanElement>(null);
+    const firstPageIconRef = React.useRef<HTMLSpanElement>(null);
+    const lastPageIconRef = React.useRef<HTMLSpanElement>(null);
     const throttleTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingLogsRef = React.useRef<SyncLog[] | null>(null);
 
@@ -151,6 +153,14 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
         if (nextPageIconRef.current) {
             nextPageIconRef.current.empty();
             setIcon(nextPageIconRef.current, "chevron-right");
+        }
+        if (firstPageIconRef.current) {
+            firstPageIconRef.current.empty();
+            setIcon(firstPageIconRef.current, "chevrons-left");
+        }
+        if (lastPageIconRef.current) {
+            lastPageIconRef.current.empty();
+            setIcon(lastPageIconRef.current, "chevrons-right");
         }
     }, [logs]); // Re-render when logs change to ensure icons are there if the pagination bar appears
 
@@ -336,6 +346,14 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
                     <button
                         className="pagination-btn clickable-icon"
                         disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(1)}
+                        title={$("ui.history.page_first")}
+                    >
+                        <span ref={firstPageIconRef} style={{ display: 'flex', alignItems: 'center' }}></span>
+                    </button>
+                    <button
+                        className="pagination-btn clickable-icon"
+                        disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         title={$("ui.history.page_prev")}
                     >
@@ -353,6 +371,14 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
                         title={$("ui.history.page_next")}
                     >
                         <span ref={nextPageIconRef} style={{ display: 'flex', alignItems: 'center' }}></span>
+                    </button>
+                    <button
+                        className="pagination-btn clickable-icon"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                        title={$("ui.history.page_last")}
+                    >
+                        <span ref={lastPageIconRef} style={{ display: 'flex', alignItems: 'center' }}></span>
                     </button>
                 </div>
             )}

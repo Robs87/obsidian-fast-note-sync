@@ -158,6 +158,8 @@ export default {
   "ui.history.content_pre": "修改前内容",
   "ui.history.page_prev": "上一页",
   "ui.history.page_next": "下一页",
+  "ui.history.page_first": "第一页",
+  "ui.history.page_last": "最后一页",
   "ui.history.page_info": "第 {page} 页 / 共 {total} 页",
   "ui.history.copy": "复制",
   "ui.history.no_history": "暂无历史记录",
@@ -247,7 +249,8 @@ export default {
   "ui.log.category_other": "其他",
 
   // --- ui.log.action ---
-  "ui.log.action.VaultScanning": "笔记库哈希计算进度",
+  "ui.log.action.VaultScanning_full": "笔记库哈希计算进度(全量)",
+  "ui.log.action.VaultScanning_incremental": "笔记库哈希计算进度(增量)",
   "ui.log.action.FolderSync_full": "文件夹同步(全量)",
   "ui.log.action.FolderSync_incremental": "文件夹同步(增量)",
   "ui.log.action.FolderSyncEnd_full": "文件夹同步结束(全量)",

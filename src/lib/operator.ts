@@ -386,10 +386,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     SyncLogManager.getInstance().addOrUpdateLog({
       id: hashingLogId,
       type: 'info',
-      action: 'VaultScanning',
+      action: `VaultScanning_${plugin.currentSyncType}`,
       status: 'pending',
       progress: 0,
-      message: `正在扫描库文件并校验哈希...`
+      message: plugin.currentSyncType === 'full' ? '正在进行全量哈希计算...' : '正在进行增量哈希计算...'
     });
   }
 
@@ -444,10 +444,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
         SyncLogManager.getInstance().addOrUpdateLog({
           id: hashingLogId,
           type: 'info',
-          action: 'VaultScanning',
+          action: `VaultScanning_${plugin.currentSyncType}`,
           status: 'pending',
           progress: Math.floor((processedCount / totalToProcess) * 100),
-          message: `🔍 正在扫描库文件并校验哈希... (${processedCount}/${totalFiles})`
+          message: `${plugin.currentSyncType === 'full' ? '🔍 正在全量扫描' : '🔍 正在增量扫描'}... (${processedCount}/${totalFiles})`
         });
       }
 
@@ -610,10 +610,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       SyncLogManager.getInstance().addOrUpdateLog({
         id: hashingLogId,
         type: 'info',
-        action: 'VaultScanning',
+        action: `VaultScanning_${plugin.currentSyncType}`,
         status: 'pending',
         progress: overallTotal > 0 ? Math.floor(((baseProcessedCount + configCount) / overallTotal) * 100) : 100,
-        message: `⚙️ 正在扫描配置文件... (${configCount}/${totalConfigs})`
+        message: `${plugin.currentSyncType === 'full' ? '⚙️ 正在全量扫描配置' : '⚙️ 正在增量扫描配置'}... (${configCount}/${totalConfigs})`
       });
     }
     if (configIsPathExcluded(path, plugin)) continue;
@@ -708,10 +708,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     SyncLogManager.getInstance().addOrUpdateLog({
       id: hashingLogId,
       type: 'info',
-      action: 'VaultScanning',
+      action: `VaultScanning_${plugin.currentSyncType}`,
       status: 'success',
       progress: 100,
-      message: `✅ 扫描完成 | 笔记: ${notes.length} | 附件: ${files.length} | 配置: ${configs.length}`
+      message: `✅ ${plugin.currentSyncType === 'full' ? '全量' : '增量'}扫描完成 | 笔记: ${notes.length} | 附件: ${files.length} | 配置: ${configs.length}`
     });
   }
 

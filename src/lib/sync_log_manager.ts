@@ -23,7 +23,7 @@ export interface SyncLog {
 export class SyncLogManager {
     private static instance: SyncLogManager;
     private logs: SyncLog[] = [];
-    private readonly MAX_LOGS = 500;
+    private readonly MAX_LOGS = 5000;
     private listeners: Set<(logs: SyncLog[]) => void> = new Set();
     private plugin: FastSync | null = null;
     private logFilePath: string = "";
@@ -79,10 +79,10 @@ export class SyncLogManager {
                 progress: targetProgress,
                 timestamp: existingLog.timestamp // Keep the original start time
             };
-            
-            // --- 优化：将更新后的日志移到最顶部，方便用户查看当前活跃任务 ---
-            this.logs.splice(index, 1);
-            this.logs.unshift(updatedLog);
+
+            // --- 保持原有顺序，避免分页时由于状态更新导致记录在页面间跳变 ---
+            // --- Keep original order to prevent items jumping between pages during status updates ---
+            this.logs[index] = updatedLog;
 
             // 仅在状态从 pending 变为 success/error 时记录到文件，避免进度更新刷屏
             if (statusChanged && targetStatus !== 'pending') {

@@ -158,6 +158,8 @@ export default {
   "ui.history.content_pre": "Content Before Modification",
   "ui.history.page_prev": "Previous Page",
   "ui.history.page_next": "Next Page",
+  "ui.history.page_first": "First Page",
+  "ui.history.page_last": "Last Page",
   "ui.history.page_info": "Page {page} / Total {total} Pages",
   "ui.history.copy": "Copy",
   "ui.history.no_history": "No history available",
@@ -247,7 +249,8 @@ export default {
   "ui.log.category_other": "Other",
 
   // --- ui.log.action ---
-  "ui.log.action.VaultScanning": "Vault File Hash Scan",
+  "ui.log.action.VaultScanning_full": "Vault File Hash Scan (Full)",
+  "ui.log.action.VaultScanning_incremental": "Vault File Hash Scan (Incremental)",
   "ui.log.action.FolderSync_full": "Folder Sync (Full)",
   "ui.log.action.FolderSync_incremental": "Folder Sync (Incremental)",
   "ui.log.action.FolderSyncEnd_full": "Folder Sync Ended (Full)",
