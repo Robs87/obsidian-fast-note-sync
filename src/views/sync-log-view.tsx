@@ -256,6 +256,16 @@ const SyncLogComponent = ({ plugin }: { plugin: FastSync }) => {
             });
         });
 
+        menu.addSeparator();
+        menu.addItem((item: any) => {
+            item.setTitle($("ui.button.reset"))
+                .setIcon("rotate-ccw")
+                .onClick(() => {
+                    setCategoryFilter('all');
+                    setTypeFilter('all');
+                });
+        });
+
         menu.showAtMouseEvent(e.nativeEvent as MouseEvent);
     };
 
