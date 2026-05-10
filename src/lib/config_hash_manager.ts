@@ -67,7 +67,7 @@ export class ConfigHashManager {
             const customDirs = getConfigSyncCustomDirs(this.plugin);
             const configPaths = await configAllPaths([configDir, ...customDirs], this.plugin);
 
-he'a            // 添加 LocalStorage 虚拟路径
+            // 添加 LocalStorage 虚拟路径
             const localStorageConfigs = await this.plugin.localStorageManager.getStorageConfigs();
             const allPaths = [...configPaths, ...localStorageConfigs.map(c => c.path)];
 
