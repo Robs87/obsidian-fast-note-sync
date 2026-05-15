@@ -312,19 +312,22 @@ const SupportList = ({ plugin }: { plugin: FastSync }) => {
           </div>
 
           <div className="fns-support-pager">
-            <button 
-              disabled={pager.page <= 1 || loading} 
-              onClick={() => fetchRecords(pager.page - 1)}
-            >
-              <LucideIcon icon="chevron-left" size={14} />
-            </button>
-            <span>{pager.page}</span>
-            <button 
-              disabled={pager.page * pager.pageSize >= pager.totalRows || loading} 
-              onClick={() => fetchRecords(pager.page + 1)}
-            >
-              <LucideIcon icon="chevron-right" size={14} />
-            </button>
+            <div className="fns-support-thanks">{$("setting.support.thanks")}</div>
+            <div className="fns-support-pager-controls">
+              <button 
+                disabled={pager.page <= 1 || loading} 
+                onClick={() => fetchRecords(pager.page - 1)}
+              >
+                <LucideIcon icon="chevron-left" size={14} />
+              </button>
+              <span>{pager.page}</span>
+              <button 
+                disabled={pager.page * pager.pageSize >= pager.totalRows || loading} 
+                onClick={() => fetchRecords(pager.page + 1)}
+              >
+                <LucideIcon icon="chevron-right" size={14} />
+              </button>
+            </div>
           </div>
         </>
       )}

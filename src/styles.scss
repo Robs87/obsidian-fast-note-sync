@@ -3345,7 +3345,8 @@ body .suggestion-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 4px;
+    padding: 5px 0;
+    margin-bottom: 8px;
 
     .fns-supporters-title-group {
       display: flex;
@@ -3377,40 +3378,48 @@ body .suggestion-container {
 
   .fns-support-controls {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    margin-bottom: 8px;
   }
 
   .fns-support-sort-group {
-    display: inline-flex;
-    background-color: var(--background-secondary);
-    border-radius: 6px;
-    padding: 2px;
-    border: 1px solid var(--background-modifier-border-faint);
-
+    display: flex;
+    gap: 16px;
     button {
-      padding: 4px 10px;
-      height: 24px;
-      min-height: 24px;
+      padding: 4px 4px;
+      height: auto;
+      min-height: 0;
       font-size: 11px;
-      border-radius: 4px;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
       color: var(--text-muted) !important;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       margin: 0 !important;
+      font-weight: 500 !important;
+      position: relative;
 
       &.is-active {
-        background-color: var(--background-primary) !important;
         color: var(--interactive-accent) !important;
-        box-shadow: 0 1px 3px rgb(0 0 0 / 10%) !important;
         font-weight: 600 !important;
       }
 
       &:hover:not(.is-active) {
-        background-color: var(--background-modifier-hover) !important;
+        color: var(--text-normal) !important;
+      }
+
+      &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        right: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 10px;
+        background-color: var(--background-modifier-border);
+        opacity: 0.6;
+        pointer-events: none;
       }
     }
   }
@@ -3518,7 +3527,7 @@ body .suggestion-container {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 6px;
     font-size: 10px;
     color: var(--text-faint);
     opacity: 0.8;

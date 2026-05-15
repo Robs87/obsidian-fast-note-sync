@@ -3250,7 +3250,8 @@ body .suggestion-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  padding: 5px 0;
+  margin-bottom: 8px;
 }
 .fns-supporters-list-card .fns-supporters-list-header .fns-supporters-title-group {
   display: flex;
@@ -3277,38 +3278,46 @@ body .suggestion-container {
 }
 .fns-supporters-list-card .fns-support-controls {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  margin-bottom: 8px;
 }
 .fns-supporters-list-card .fns-support-sort-group {
-  display: inline-flex;
-  background-color: var(--background-secondary);
-  border-radius: 6px;
-  padding: 2px;
-  border: 1px solid var(--background-modifier-border-faint);
+  display: flex;
+  gap: 16px;
 }
 .fns-supporters-list-card .fns-support-sort-group button {
-  padding: 4px 10px;
-  height: 24px;
-  min-height: 24px;
+  padding: 4px 4px;
+  height: auto;
+  min-height: 0;
   font-size: 11px;
-  border-radius: 4px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   color: var(--text-muted) !important;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   margin: 0 !important;
+  font-weight: 500 !important;
+  position: relative;
 }
 .fns-supporters-list-card .fns-support-sort-group button.is-active {
-  background-color: var(--background-primary) !important;
   color: var(--interactive-accent) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   font-weight: 600 !important;
 }
 .fns-supporters-list-card .fns-support-sort-group button:hover:not(.is-active) {
-  background-color: var(--background-modifier-hover) !important;
+  color: var(--text-normal) !important;
+}
+.fns-supporters-list-card .fns-support-sort-group button:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 10px;
+  background-color: var(--background-modifier-border);
+  opacity: 0.6;
+  pointer-events: none;
 }
 .fns-supporters-list-card .fns-supporters-container {
   display: flex;
@@ -3400,14 +3409,29 @@ body .suggestion-container {
 .fns-supporters-list-card .fns-support-pager {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 6px;
+  padding: 0 4px;
+}
+.fns-supporters-list-card .fns-support-thanks {
+  font-size: 10px;
+  color: var(--text-faint);
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+.fns-supporters-list-card .fns-support-pager-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 10px;
   color: var(--text-faint);
   opacity: 0.8;
 }
-.fns-supporters-list-card .fns-support-pager button {
+.fns-supporters-list-card .fns-support-pager-controls button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3423,16 +3447,16 @@ body .suggestion-container {
   margin: 0 !important;
   transition: all 0.2s;
 }
-.fns-supporters-list-card .fns-support-pager button:disabled {
+.fns-supporters-list-card .fns-support-pager-controls button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
-.fns-supporters-list-card .fns-support-pager button:hover:not(:disabled) {
+.fns-supporters-list-card .fns-support-pager-controls button:hover:not(:disabled) {
   background-color: var(--background-modifier-hover) !important;
   border-color: var(--background-modifier-border) !important;
   color: var(--text-normal);
 }
-.fns-supporters-list-card .fns-support-pager span {
+.fns-supporters-list-card .fns-support-pager-controls span {
   min-width: 20px;
   text-align: center;
   font-weight: 600;
