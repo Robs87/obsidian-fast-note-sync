@@ -36,6 +36,96 @@ export const clearTempChunksDir = async (plugin: FastSync, sessionId: string) =>
   }
 }
 
+const shouldUseMemoryDownload = (size: number) => Platform.isMobile && size <= MAX_DOWNLOAD_BUFFER_BYTES
+
+const createDownloadStorage = (plugin: FastSync, sessionId: string, size: number): Pick<FileDownloadSession, "chunks" | "downloadedChunks" | "tempDir"> => {
+  if (shouldUseMemoryDownload(size)) {
+    return { chunks: new Map<number, ArrayBuffer>() }
+  }
+  return {
+    downloadedChunks: new Set<number>(),
+    tempDir: getTempChunksDir(plugin, sessionId),
+  }
+}
+
+const getCompletedDownloadChunks = (session: FileDownloadSession) => {
+  return session.tempDir ? session.downloadedChunks?.size || 0 : session.chunks?.size || 0
+}
+
+const getSessionMemoryBytes = (session: FileDownloadSession) => {
+  if (session.tempDir) return 0
+  return Array.from(session.chunks?.values() || []).reduce((sum, c) => sum + c.byteLength, 0)
+}
+
+const releaseSessionMemory = (session: FileDownloadSession) => {
+  const sessionSize = getSessionMemoryBytes(session)
+  if (sessionSize > 0) {
+    currentDownloadBufferBytes = Math.max(0, currentDownloadBufferBytes - sessionSize)
+  }
+}
+
+const formatDownloadError = (e: unknown) => {
+  return e instanceof Error ? e.message : String(e)
+}
+
+const cleanupFileDownloadSession = async (plugin: FastSync, session: FileDownloadSession) => {
+  releaseSessionMemory(session)
+  plugin.fileDownloadSessions.delete(session.sessionId)
+  if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
+}
+
+const failFileDownloadSession = async (plugin: FastSync, session: FileDownloadSession, message: string, releaseSlot = true) => {
+  dumpError(`File download failed: ${session.path} (${session.sessionId}) - ${message}`)
+  const completedCount = getCompletedDownloadChunks(session)
+  SyncLogManager.getInstance().addOrUpdateLog({
+    id: session.sessionId,
+    type: 'receive',
+    action: 'FileDownload',
+    path: session.path,
+    status: 'error',
+    progress: session.totalChunks === 0 ? 0 : Math.floor((completedCount / session.totalChunks) * 100),
+    message
+  });
+  await cleanupFileDownloadSession(plugin, session)
+  if (releaseSlot) {
+    plugin.concurrencyManager.releaseSlot(`download_${session.path}`)
+  }
+}
+
+const storeMemoryChunk = (session: FileDownloadSession, chunkIndex: number, chunkData: ArrayBuffer) => {
+  if (!session.chunks) session.chunks = new Map<number, ArrayBuffer>()
+  const existingChunk = session.chunks.get(chunkIndex)
+  session.chunks.set(chunkIndex, chunkData)
+  if (existingChunk) {
+    currentDownloadBufferBytes = Math.max(0, currentDownloadBufferBytes - existingChunk.byteLength + chunkData.byteLength)
+    return false
+  }
+  currentDownloadBufferBytes += chunkData.byteLength
+  return true
+}
+
+const fallbackFileDownloadSessionToMemory = async (plugin: FastSync, session: FileDownloadSession, chunkIndex: number, chunkData: ArrayBuffer) => {
+  const oldTempDir = session.tempDir
+  const downloadedChunks = Array.from(session.downloadedChunks || [])
+  session.chunks = new Map<number, ArrayBuffer>()
+
+  if (oldTempDir) {
+    for (const index of downloadedChunks) {
+      const chunkPath = normalizePath(`${oldTempDir}/${index}.bin`)
+      if (await plugin.app.vault.adapter.exists(chunkPath)) {
+        const chunk = await plugin.app.vault.adapter.readBinary(chunkPath)
+        storeMemoryChunk(session, index, chunk)
+      }
+    }
+  }
+
+  const wasNewChunk = storeMemoryChunk(session, chunkIndex, chunkData)
+  session.tempDir = undefined
+  session.downloadedChunks = undefined
+  if (oldTempDir) await clearTempChunksDir(plugin, session.sessionId)
+  return wasNewChunk
+}
+
 /**
  * 清理所有残留的临时目录
  */
@@ -594,7 +684,7 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
 
     dump(`Receive file sync update(download): `, data.path)
     const tempKey = `temp_${data.path}`
-    const tempSession = {
+    const tempSession: FileDownloadSession = {
       path: data.path,
       contentHash: data.contentHash,
       ctime: data.ctime,
@@ -603,8 +693,7 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
       sessionId: "",
       totalChunks: 0,
       size: data.size,
-      downloadedChunks: new Set<number>(),
-      tempDir: getTempChunksDir(plugin, `init_${data.pathHash}`),
+      ...createDownloadStorage(plugin, `init_${data.pathHash}`, data.size),
     }
     plugin.fileDownloadSessions.set(tempKey, tempSession)
 
@@ -763,23 +852,24 @@ export const receiveFileSyncChunkDownload = async function (data: FileSyncChunkD
 
   dump(`Receive file chunk download: `, data.path, data.sessionId, `totalChunks: ${data.totalChunks}`)
 
-  // 打印下载信息表格
-  dump([
+  // 打印下载信息 (Print download info)
+  dump(
+    "文件下载",
     {
-      操作: "文件下载",
       路径: data.path,
       文件大小: `${(data.size / 1024 / 1024).toFixed(2)} MB`,
       分片大小: `${(data.chunkSize / 1024).toFixed(0)} KB`,
       分片数量: data.totalChunks,
       SessionID: data.sessionId.substring(0, 8) + "...",
-    },
-  ])
+    }
+  )
 
   const tempKey = `temp_${data.path}`
   const tempSession = plugin.fileDownloadSessions.get(tempKey)
+  let session: FileDownloadSession
 
   if (tempSession) {
-    const session: FileDownloadSession = {
+    session = {
       path: data.path,
       contentHash: data.contentHash,
       ctime: data.ctime,
@@ -788,13 +878,12 @@ export const receiveFileSyncChunkDownload = async function (data: FileSyncChunkD
       sessionId: data.sessionId,
       totalChunks: data.totalChunks,
       size: data.size,
-      downloadedChunks: new Set<number>(),
-      tempDir: getTempChunksDir(plugin, data.sessionId),
+      ...createDownloadStorage(plugin, data.sessionId, data.size),
     }
     plugin.fileDownloadSessions.set(data.sessionId, session)
     plugin.fileDownloadSessions.delete(tempKey)
   } else {
-    const session: FileDownloadSession = {
+    session = {
       path: data.path,
       contentHash: data.contentHash,
       ctime: data.ctime,
@@ -803,21 +892,19 @@ export const receiveFileSyncChunkDownload = async function (data: FileSyncChunkD
       sessionId: data.sessionId,
       totalChunks: data.totalChunks,
       size: data.size,
-      downloadedChunks: new Set<number>(),
-      tempDir: getTempChunksDir(plugin, data.sessionId),
+      ...createDownloadStorage(plugin, data.sessionId, data.size),
     }
     plugin.fileDownloadSessions.set(data.sessionId, session)
   }
 
   // 确保临时目录存在 (Ensure temp directory exists)
-  if (data.totalChunks > 0) {
+  if (data.totalChunks > 0 && session.tempDir) {
     const baseDir = getTempChunksDir(plugin)
     if (!(await plugin.app.vault.adapter.exists(baseDir))) {
       await plugin.app.vault.adapter.mkdir(baseDir)
     }
-    const tempPath = getTempChunksDir(plugin, data.sessionId)
-    if (!(await plugin.app.vault.adapter.exists(tempPath))) {
-      await plugin.app.vault.adapter.mkdir(tempPath)
+    if (!(await plugin.app.vault.adapter.exists(session.tempDir))) {
+      await plugin.app.vault.adapter.mkdir(session.tempDir)
     }
   }
 
@@ -914,9 +1001,12 @@ export const checkAndUploadAttachments = async function (plugin: FastSync) {
  */
 export const handleFileChunkDownload = async function (buf: ArrayBuffer | Blob, plugin: FastSync) {
   if (plugin.settings.syncEnabled == false || isPluginUnloading) return
-  
+
   const binaryData = buf instanceof Blob ? await buf.arrayBuffer() : buf
-  if (binaryData.byteLength < 40 || isPluginUnloading) return
+  if (binaryData.byteLength < 40 || isPluginUnloading) {
+    dump(`File chunk download dropped: invalid payload length ${binaryData.byteLength}`)
+    return
+  }
 
   const sessionIdBytes = new Uint8Array(binaryData, 0, 36)
   const sessionId = new TextDecoder().decode(sessionIdBytes)
@@ -926,43 +1016,75 @@ export const handleFileChunkDownload = async function (buf: ArrayBuffer | Blob, 
   const chunkData = binaryData.slice(40)
 
   const session = plugin.fileDownloadSessions.get(sessionId)
-  if (!session) return
-
-  // 写入磁盘
-  if (session.tempDir) {
-    if (!(await plugin.app.vault.adapter.exists(session.tempDir))) {
-      const baseDir = getTempChunksDir(plugin)
-      if (!(await plugin.app.vault.adapter.exists(baseDir))) {
-        await plugin.app.vault.adapter.mkdir(baseDir)
-      }
-      await plugin.app.vault.adapter.mkdir(session.tempDir)
-    }
-    const chunkPath = normalizePath(`${session.tempDir}/${chunkIndex}.bin`)
-    await plugin.app.vault.adapter.writeBinary(chunkPath, chunkData)
-    session.downloadedChunks?.add(chunkIndex)
-  } else {
-    // 降级使用内存 (Fallback to memory)
-    if (!session.chunks) session.chunks = new Map<number, ArrayBuffer>()
-    session.chunks.set(chunkIndex, chunkData)
+  if (!session) {
+    const message = `File download chunk dropped: session not found (${sessionId}), chunk ${chunkIndex}`
+    dumpError(message)
+    SyncLogManager.getInstance().addOrUpdateLog({
+      id: sessionId,
+      type: 'receive',
+      action: 'FileDownload',
+      status: 'error',
+      progress: 0,
+      message
+    });
+    return
   }
 
-  currentDownloadBufferBytes += chunkData.byteLength // 增加内存缓冲区计数
-  plugin.downloadedChunksCount++
+  try {
+    if (chunkIndex >= session.totalChunks) {
+      await failFileDownloadSession(plugin, session, `Invalid chunk index ${chunkIndex}, total chunks ${session.totalChunks}`)
+      return
+    }
 
-  // 更新日志进度
-  const completedCount = session.tempDir ? session.downloadedChunks?.size || 0 : session.chunks?.size || 0
-  SyncLogManager.getInstance().addOrUpdateLog({
-    id: sessionId,
-    type: 'receive',
-    action: 'FileDownload',
-    path: session.path,
-    status: completedCount === session.totalChunks ? 'success' : 'pending',
-    progress: session.totalChunks === 0 ? 100 : Math.floor((completedCount / session.totalChunks) * 100)
-  });
+    let isNewChunk = false
+
+    if (session.tempDir) {
+      try {
+        if (!(await plugin.app.vault.adapter.exists(session.tempDir))) {
+          const baseDir = getTempChunksDir(plugin)
+          if (!(await plugin.app.vault.adapter.exists(baseDir))) {
+            await plugin.app.vault.adapter.mkdir(baseDir)
+          }
+          await plugin.app.vault.adapter.mkdir(session.tempDir)
+        }
+        const chunkPath = normalizePath(`${session.tempDir}/${chunkIndex}.bin`)
+        isNewChunk = !session.downloadedChunks?.has(chunkIndex)
+        await plugin.app.vault.adapter.writeBinary(chunkPath, chunkData)
+        session.downloadedChunks?.add(chunkIndex)
+      } catch (e) {
+        if (session.size <= MAX_DOWNLOAD_BUFFER_BYTES) {
+          dumpError(`File chunk temp write failed, fallback to memory: ${session.path} chunk ${chunkIndex}`, e)
+          isNewChunk = await fallbackFileDownloadSessionToMemory(plugin, session, chunkIndex, chunkData)
+        } else {
+          await failFileDownloadSession(plugin, session, `Failed to write temp chunk ${chunkIndex}: ${formatDownloadError(e)}`)
+          return
+        }
+      }
+    } else {
+      isNewChunk = storeMemoryChunk(session, chunkIndex, chunkData)
+    }
+
+    if (isNewChunk) {
+      plugin.downloadedChunksCount++
+    }
+
+    // 更新日志进度
+    const completedCount = getCompletedDownloadChunks(session)
+    SyncLogManager.getInstance().addOrUpdateLog({
+      id: sessionId,
+      type: 'receive',
+      action: 'FileDownload',
+      path: session.path,
+      status: completedCount === session.totalChunks ? 'success' : 'pending',
+      progress: session.totalChunks === 0 ? 100 : Math.floor((completedCount / session.totalChunks) * 100)
+    });
 
 
-  if (completedCount === session.totalChunks) {
-    await handleFileChunkDownloadComplete(session, plugin)
+    if (completedCount === session.totalChunks) {
+      await handleFileChunkDownloadComplete(session, plugin)
+    }
+  } catch (e) {
+    await failFileDownloadSession(plugin, session, `Failed to receive chunk ${chunkIndex}: ${formatDownloadError(e)}`)
   }
 }
 
@@ -1077,8 +1199,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
   try {
     if (isLargeBinarySyncRisk(session.size, plugin)) {
       dump(`Skip assembling large downloaded attachment (${describeBinarySyncLimit()} limit): ${session.path}`, session.size)
-      plugin.fileDownloadSessions.delete(session.sessionId)
-      if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
+      await cleanupFileDownloadSession(plugin, session)
       return
     }
     const chunks: ArrayBuffer[] = []
@@ -1094,8 +1215,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
       }
 
       if (!chunk) {
-        plugin.fileDownloadSessions.delete(session.sessionId)
-        if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
+        await failFileDownloadSession(plugin, session, `Missing downloaded chunk ${i}`, false)
         return
       }
       chunks.push(chunk)
@@ -1110,7 +1230,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
     }
 
     if (completeFile.byteLength !== session.size) {
-      plugin.fileDownloadSessions.delete(session.sessionId)
+      await failFileDownloadSession(plugin, session, `Downloaded file size mismatch: got ${completeFile.byteLength}, expected ${session.size}`, false)
       return
     }
 
@@ -1162,25 +1282,25 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
     }, { maxRetries: 5, retryInterval: 100 });
 
     // 释放内存计数
-    const sessionSize = session.tempDir
-      ? session.size // 如果是磁盘模式，使用会话记录的总大小
-      : Array.from(session.chunks?.values() || []).reduce((sum, c) => sum + c.byteLength, 0)
-    currentDownloadBufferBytes -= sessionSize
+    releaseSessionMemory(session)
 
     plugin.fileDownloadSessions.delete(session.sessionId)
     if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
     plugin.downloadedFilesCount++
   } catch (e) {
-    dump(`Error completing file download for ${session.path}`, e)
+    dumpError(`Error completing file download for ${session.path}`, e)
     if (!checkAndNotifyCaseConflict(e, session.path, plugin, 'FileDownload')) {
-      SyncLogManager.getInstance().addLog('receive', 'FileDownload', e instanceof Error ? e.message : String(e), 'error', session.path);
+      SyncLogManager.getInstance().addOrUpdateLog({
+        id: session.sessionId,
+        type: 'receive',
+        action: 'FileDownload',
+        path: session.path,
+        status: 'error',
+        progress: session.totalChunks === 0 ? 0 : Math.floor((getCompletedDownloadChunks(session) / session.totalChunks) * 100),
+        message: `Failed to complete download: ${formatDownloadError(e)}`
+      });
     }
-    const sessionSize = session.tempDir
-      ? session.size
-      : Array.from(session.chunks?.values() || []).reduce((sum, c) => sum + c.byteLength, 0)
-    currentDownloadBufferBytes -= sessionSize
-    plugin.fileDownloadSessions.delete(session.sessionId)
-    if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
+    await cleanupFileDownloadSession(plugin, session)
   } finally {
     plugin.concurrencyManager.releaseSlot(slotKey)
   }

@@ -390,10 +390,10 @@ export default class FastSync extends Plugin {
       this.websocket.addStatusListener((status: boolean) => this.updateRibbonIcon(status))
 
       // 注册 WebSocket 数据传输活动监听 — 任何数据收发时显示同步指示器 / Register data transfer activity listener
-      let activityTimer: ReturnType<typeof setTimeout> | null = null;
+      let activityTimer: number | null = null;
       const scheduleTurnOff = () => {
-        if (activityTimer) clearTimeout(activityTimer);
-        activityTimer = setTimeout(() => {
+        if (activityTimer) window.clearTimeout(activityTimer);
+        activityTimer = window.setTimeout(() => {
           if (this.concurrencyManager.hasPending()) {
             scheduleTurnOff(); // 还有未确认操作，200ms 后再检查 / Still pending ACKs, recheck
           } else {

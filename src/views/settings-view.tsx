@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { dump, showSyncNotice } from "src/lib/helps";
 import { KofiImage, WXImage } from "src/lib/images";
 import { createPortal } from "react-dom";
+import { dump } from "src/lib/helps";
 import { setIcon } from "obsidian";
 import FastSync from "src/main";
 

@@ -217,6 +217,7 @@ export class WebSocketClient {
       const clientVersion = this.plugin.manifest.version || "";
       const wsUrl = addRandomParam(this.plugin.runWsApi + "/api/user/sync?lang=" + moment.locale() + "&count=" + this.count + "&client=" + client + "&clientName=" + clientName + "&clientVersion=" + clientVersion);
       this.ws = new WebSocket(wsUrl)
+      this.ws.binaryType = "arraybuffer"
       this.count++
       this.plugin.app.saveLocalStorage(getWsCountStorageKey(this.plugin), this.count.toString())
 
@@ -328,10 +329,10 @@ export class WebSocketClient {
           msgData = fullMsg.slice(index + 1)
           msgAction = fullMsg.slice(0, index)
         }
-        const data = JSON.parse(msgData) as { 
-          code: number; 
-          message?: string; 
-          details?: string; 
+        const data = JSON.parse(msgData) as {
+          code: number;
+          message?: string;
+          details?: string;
           data?: Record<string, unknown>; // data 内部仍可能有多变结构
           vault?: string;
         }
