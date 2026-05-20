@@ -151,6 +151,17 @@ export class WebSocketClient {
     this.statusListeners.forEach(listener => listener(status));
   }
 
+  /** 数据传输活动监听器 / Data transfer activity listeners */
+  private activityListeners: Set<() => void> = new Set();
+
+  public addActivityListener(listener: () => void) {
+    this.activityListeners.add(listener);
+  }
+
+  private notifyActivity() {
+    this.activityListeners.forEach(fn => fn());
+  }
+
   public isConnected(): boolean {
     return this.isOpen
   }
@@ -298,6 +309,7 @@ export class WebSocketClient {
               // Pass the rest of the data
               const rest = buf.slice(2);
               handler(rest, this.plugin);
+              this.notifyActivity();
             } else {
               dump("No handler for binary prefix:", prefixStr);
             }
@@ -400,6 +412,7 @@ export class WebSocketClient {
           const handler = receiveOperators.get(msgAction)
           if (handler) {
             void handler(data.data, this.plugin)
+            this.notifyActivity()
           }
         }
       }
@@ -607,6 +620,7 @@ export class WebSocketClient {
     this.Send(action, data, () => {
       SyncLogManager.getInstance().logSentMessage(action, data, this.plugin.currentSyncType);
       after?.()
+      this.notifyActivity()
     })
 
   }
@@ -662,6 +676,7 @@ export class WebSocketClient {
 
     this.ws.send(dataToSend)
     after?.()
+    this.notifyActivity()
     return false; // 返回 false 表示正常发送
   }
 

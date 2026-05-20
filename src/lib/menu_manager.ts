@@ -406,6 +406,25 @@ export class MenuManager {
     });
   }
 
+  /**
+   * 设置同步状态 → 切换颜色动画
+   * Set sync status → toggle color animation
+   */
+  setSyncStatus(syncing: boolean) {
+    // 同步处理 ribbon 图标和 view-actions 按钮 / Handle both ribbon icon and view-actions buttons
+    [this.ribbonIcon, ...Array.from(activeDocument.querySelectorAll('.fns-status-action'))].forEach(el => {
+      if (!el) return;
+      if (syncing) {
+        if (!el.querySelector('.fns-sync-spinner')) {
+          const spinner = el.createDiv('fns-sync-spinner');
+          setIcon(spinner, 'refresh-cw');
+        }
+      } else {
+        el.querySelector('.fns-sync-spinner')?.remove();
+      }
+    });
+  }
+
   updateStatusBar(text: string, current?: number, total?: number) {
     if (!this.statusBarText) {
       this.statusBarItem.addClass("fast-note-sync-status-bar-progress");

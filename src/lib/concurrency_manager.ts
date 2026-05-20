@@ -120,4 +120,9 @@ export class ConcurrencyManager {
         // 拒绝所有正在等待的 Promise（可选，这里简单清空队列）
         this.queue = [];
     }
+
+    /** 是否有待确认的操作（等待服务端 ACK）/ Whether there are pending operations awaiting ACK */
+    public hasPending(): boolean {
+        return this.activeKeys.size > 0 || this.queue.length > 0;
+    }
 }

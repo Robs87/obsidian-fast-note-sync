@@ -60,6 +60,25 @@
   }
 }
 
+/* 同步中：wifi 图标上叠加旋转 refresh-cw 图标 / Syncing: spinning refresh-cw icon overlay */
+.fns-sync-spinner {
+  position: absolute;
+  top: calc(50% + 3px);
+  left: calc(50% + 6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    stroke-width: 3;
+    animation: rotate 1.2s linear infinite;
+    color: inherit;
+  }
+}
+
 .fns-modal-warning-message {
   color: var(--text-error);
   margin-bottom: 20px;
