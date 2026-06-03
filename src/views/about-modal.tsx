@@ -3,8 +3,8 @@ import { createRoot, Root } from "react-dom/client";
 import * as React from "react";
 
 import type FastSync from "../main";
-import { dumpError } from "../lib/helps";
-import { showSyncNotice } from "../lib/helps";
+import { dumpError } from "../lib/utils/helpers";
+import { showSyncNotice } from "../lib/utils/helpers";
 import { $ } from "../i18n/lang";
 import { LucideIcon } from "./note-history/lucide-icon";
 

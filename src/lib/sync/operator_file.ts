@@ -1,11 +1,11 @@
 import { TFile, TAbstractFile, normalizePath, Platform } from "obsidian";
 
-import { ReceiveFileSyncUpdateMessage, FileUploadMessage, FileSyncChunkDownloadMessage, FileDownloadSession, ReceiveMtimeMessage, ReceivePathMessage, SyncEndData } from "./types";
-import { hashContent, hashArrayBuffer, getPluginDir, dump, dumpError, sleep, isPathExcluded, getSafeCtime, isLargeBinarySyncRisk, describeBinarySyncLimit, showSyncNotice, checkAndNotifyCaseConflict, logMemorySnapshot, hashFileAsync, vaultDelete } from "./helps";
-import { FileCloudPreview } from "./file_cloud_preview";
+import { ReceiveFileSyncUpdateMessage, FileUploadMessage, FileSyncChunkDownloadMessage, FileDownloadSession, ReceiveMtimeMessage, ReceivePathMessage, SyncEndData } from "../utils/types";
+import { hashContent, hashArrayBuffer, getPluginDir, dump, dumpError, sleep, isPathExcluded, getSafeCtime, isLargeBinarySyncRisk, describeBinarySyncLimit, showSyncNotice, checkAndNotifyCaseConflict, logMemorySnapshot, hashFileAsync, vaultDelete } from "../utils/helpers";
+import { FileCloudPreview } from "../storage/file_cloud_preview";
 import { SyncLogManager } from "./sync_log_manager";
-import { HttpApiService } from "./api";
-import type FastSync from "../main";
+import { HttpApiService } from "../api/http_api_service";
+import type FastSync from "../../main";
 
 
 // 下载内存缓冲控制 (20MB 阈值防止 OOM)
@@ -88,7 +88,7 @@ const failFileDownloadSession = async (plugin: FastSync, session: FileDownloadSe
   });
   await cleanupFileDownloadSession(plugin, session)
   if (releaseSlot) {
-    plugin.concurrencyManager.releaseSlot(`download_${session.path}`)
+    plugin.concurrencyLimiter.releaseSlot(`download_${session.path}`)
   }
 }
 
@@ -171,7 +171,6 @@ export const fileModify = async function (file: TAbstractFile, plugin: FastSync,
   if (plugin.settings.syncEnabled == false || plugin.settings.readonlySyncEnabled) return
   if (!(file instanceof TFile)) return
   if (file.path.endsWith(".md")) return
-  if (eventEnter && !plugin.getWatchEnabled()) return
   if (eventEnter && plugin.isIgnoredFile(file.path)) return
   if (isPathExcluded(file.path, plugin)) return
 
@@ -218,7 +217,7 @@ export const fileModify = async function (file: TAbstractFile, plugin: FastSync,
       plugin.pendingFileDeleteAcks.delete(file.path)
       plugin.pendingUploadHashes.set(file.path, contentHash)
       plugin.localStorageManager.savePending('pendingUploadHashes', plugin.pendingUploadHashes)
-      await plugin.concurrencyManager.waitForSlot(file.path)
+      await plugin.concurrencyLimiter.waitForSlot(file.path)
       void plugin.websocket.SendMessage("FileUploadCheck", data)
       dump(`File modify check sent`, data.path, data.contentHash)
     } finally {
@@ -234,7 +233,6 @@ export const fileDelete = async function (file: TAbstractFile, plugin: FastSync,
   if (plugin.settings.syncEnabled == false || plugin.settings.readonlySyncEnabled) return
   if (!(file instanceof TFile)) return
   if (file.path.endsWith(".md")) return
-  if (eventEnter && !plugin.getWatchEnabled()) return
   if (eventEnter && plugin.isIgnoredFile(file.path)) return
   if (isPathExcluded(file.path, plugin)) return
 
@@ -269,7 +267,7 @@ export const fileDelete = async function (file: TAbstractFile, plugin: FastSync,
         path: file.path,
         pathHash: hashContent(file.path),
       }
-      await plugin.concurrencyManager.waitForSlot(file.path)
+      await plugin.concurrencyLimiter.waitForSlot(file.path)
       void plugin.websocket.SendMessage("FileDelete", data, undefined, () => {
         // 消息真正写入 TCP 缓冲区后加入 pending set，等待 FileDeleteAck 再删 hash
         // Add to pending set only after message is actually buffered; remove hash only on FileDeleteAck
@@ -311,7 +309,7 @@ export const fileDeleteByPath = async function (filePath: string, plugin: FastSy
 
     plugin.addIgnoredFile(filePath)
     try {
-      await plugin.concurrencyManager.waitForSlot(filePath)
+      await plugin.concurrencyLimiter.waitForSlot(filePath)
       void plugin.websocket.SendMessage("FileDelete", {
         vault: plugin.settings.vault,
         path: filePath,
@@ -334,7 +332,6 @@ export const fileDeleteByPath = async function (filePath: string, plugin: FastSy
 export const fileRename = async function (file: TAbstractFile, oldfile: string, plugin: FastSync, eventEnter: boolean = false) {
   if (plugin.settings.syncEnabled == false || plugin.settings.readonlySyncEnabled) return
   if (file.path.endsWith(".md")) return
-  if (!plugin.getWatchEnabled() && eventEnter) return
   if (plugin.isIgnoredFile(file.path) && eventEnter) return
   if (isPathExcluded(file.path, plugin)) return
 
@@ -382,7 +379,7 @@ export const fileRename = async function (file: TAbstractFile, oldfile: string, 
         // 将重命名推入待确认队列，等待服务端 FileRenameAck 后再更新 hashManager
         // Push rename to pending queue; hashManager will be updated after server FileRenameAck
         plugin.pendingFileRenames.push({ oldPath: oldfile, newPath: file.path, contentHash })
-        await plugin.concurrencyManager.waitForSlot(file.path, true)
+        await plugin.concurrencyLimiter.waitForSlot(file.path, true)
         void plugin.websocket.SendMessage("FileRename", data)
       }
     } finally {
@@ -427,7 +424,7 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
   const runUpload = async () => {
     // 标记该路径进入活跃上传状态
     activeUploadsMap.set(data.path, { cancelled: false });
-    await plugin.concurrencyManager.waitForSlot(data.path, false, 10) // 优先级设为 10，优先处理上传
+    await plugin.concurrencyLimiter.waitForSlot(data.path, false, 10) // 优先级设为 10，优先处理上传
 
     // 断点续传 checkpoint key，提升到 try 外以便 catch 块中也能清除
     // Resume checkpoint key hoisted outside try so the catch block can also remove it
@@ -444,7 +441,7 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
         dump(`Failed to read file for upload: ${data.path}`, e)
       }
       if (!content) {
-        plugin.concurrencyManager.releaseSlot(data.path)
+        plugin.concurrencyLimiter.releaseSlot(data.path)
         return;
       }
 
@@ -567,7 +564,7 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
           // 取消时清除 checkpoint，避免使用已失效的会话
           // Clear checkpoint on cancel to avoid stale session reuse
           try { plugin.app.saveLocalStorage(checkpointKey, null) } catch { /* ignore */ }
-          plugin.concurrencyManager.releaseSlot(data.path)
+          plugin.concurrencyLimiter.releaseSlot(data.path)
           return;
         }
 
@@ -623,14 +620,14 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
       // 异常退出时清除 checkpoint，避免下次用无效的 sessionId 继续
       // Clear checkpoint on exception to avoid resuming with an invalid session
       try { plugin.app.saveLocalStorage(checkpointKey, null) } catch { /* ignore */ }
-      plugin.concurrencyManager.releaseSlot(data.path);
+      plugin.concurrencyLimiter.releaseSlot(data.path);
     } finally {
       // 任务结束（完成或取消/失败），移除活跃标记
       activeUploadsMap.delete(data.path);
     }
   }
 
-  // 任务立即执行，受外部 ConcurrencyManager 控制
+  // 任务立即执行，受外部 ConcurrencyLimiter 控制
   void runUpload()
 }
 
@@ -674,7 +671,7 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
 
   // 等待并发槽位，防止大量并发下载导致内存耗尽
   const slotKey = `download_${data.path}`
-  await plugin.concurrencyManager.waitForSlot(slotKey, false, -10) // 优先级设为 -10，延后处理下载
+  await plugin.concurrencyLimiter.waitForSlot(slotKey, false, -10) // 优先级设为 -10，延后处理下载
 
   try {
     // 下载内存缓冲控制：如果当前内存中待写盘的分块过多，由于下载是异步触发的，此处等待
@@ -713,7 +710,7 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
 
     plugin.fileSyncTasks.completed++
   } catch (e) {
-    plugin.concurrencyManager.releaseSlot(slotKey)
+    plugin.concurrencyLimiter.releaseSlot(slotKey)
     throw e;
   }
 }
@@ -1302,7 +1299,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
     }
     await cleanupFileDownloadSession(plugin, session)
   } finally {
-    plugin.concurrencyManager.releaseSlot(slotKey)
+    plugin.concurrencyLimiter.releaseSlot(slotKey)
   }
 }
 
@@ -1321,7 +1318,7 @@ export const receiveFileRenameAck = function (data: { lastTime?: number }, plugi
     plugin.localStorageManager.setMetadata("lastFileSyncTime", data.lastTime)
     dump(`FileRenameAck: lastFileSyncTime updated to`, data.lastTime)
   }
-  plugin.concurrencyManager.releaseFifoSlot()
+  plugin.concurrencyLimiter.releaseFifoSlot()
 }
 
 // 收到 FileUploadAck，将 pending hash 转移到正式 hashManager 并更新 lastFileSyncTime
@@ -1349,7 +1346,7 @@ export const receiveFileUploadAck = function (data: { lastTime?: number; path?: 
     dump(`FileUploadAck: lastFileSyncTime updated to`, data.lastTime)
   }
   if (data.path) {
-    plugin.concurrencyManager.releaseSlot(data.path)
+    plugin.concurrencyLimiter.releaseSlot(data.path)
   }
 }
 
@@ -1364,6 +1361,6 @@ export const receiveFileDeleteAck = function (data: { lastTime?: number; path?: 
     plugin.localStorageManager.setMetadata("lastFileSyncTime", data.lastTime)
   }
   if (data.path) {
-    plugin.concurrencyManager.releaseSlot(data.path)
+    plugin.concurrencyLimiter.releaseSlot(data.path)
   }
 }

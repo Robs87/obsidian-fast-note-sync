@@ -1,10 +1,10 @@
 import { requestUrl } from "obsidian";
 import { unzipSync } from "fflate";
 
-import { dump, getPluginDir, isVersionNew, showSyncNotice } from "./helps";
+import { dump, getPluginDir, isVersionNew, showSyncNotice } from "./helpers";
 import { AppWithInternal } from "./types";
-import type FastSync from "../main";
-import { $ } from "../i18n/lang";
+import type FastSync from "../../main";
+import { $ } from "../../i18n/lang";
 
 
 /**

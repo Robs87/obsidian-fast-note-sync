@@ -1,6 +1,6 @@
-import { hashContent, dump, SyncRule } from "./helps";
-import { configModify } from "./config_operator";
-import type FastSync from "../main";
+import { hashContent, dump, SyncRule } from "../utils/helpers";
+import { configModify } from "../sync/operator_config";
+import type FastSync from "../../main";
 
 
 /**

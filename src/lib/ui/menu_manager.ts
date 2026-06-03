@@ -1,14 +1,14 @@
 import { Menu, MenuItem, setIcon, Platform, WorkspaceLeaf } from 'obsidian';
 
-import { startupSync, startupFullSync, resetSettingSyncTime, rebuildAllHashes } from './operator';
-import { AppWithInternal, MenuItemWithDom, MenuWithHide, MenuItemWithInternal } from "./types";
-import { NoteHistoryModal } from '../views/note-history/history-modal';
-import { RecycleBinModal } from '../views/recycle-bin-modal';
-import { showSyncNotice } from './helps';
-import { ShareModal } from '../views/share-modal';
-import { AboutModal } from '../views/about-modal';
-import { $ } from "../i18n/lang";
-import FastSync from "../main";
+import { startupSync, startupFullSync, resetSettingSyncTime, rebuildAllHashes } from '../sync/operator';
+import { AppWithInternal, MenuItemWithDom, MenuWithHide, MenuItemWithInternal } from "../utils/types";
+import { NoteHistoryModal } from '../../views/note-history/history-modal';
+import { RecycleBinModal } from '../../views/recycle-bin-modal';
+import { showSyncNotice } from '../utils/helpers';
+import { ShareModal } from '../../views/share-modal';
+import { AboutModal } from '../../views/about-modal';
+import { $ } from "../../i18n/lang";
+import FastSync from "../../main";
 
 
 export class MenuManager {
@@ -625,7 +625,7 @@ export class MenuManager {
         .setIcon("monitor")
         .setTitle($("ui.system.websocketClients"))
         .onClick(async () => {
-          const { WSClientsModal } = await import("../views/ws-clients-modal");
+          const { WSClientsModal } = await import("../../views/ws-clients-modal");
           new WSClientsModal(this.plugin.app, this.plugin).open();
         });
       (item as unknown as MenuItemWithDom).dom.setAttribute("aria-label", $("ui.system.websocketClients"));

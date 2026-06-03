@@ -1,29 +1,31 @@
 import { Plugin, Platform, addIcon } from "obsidian";
 
-import { dump, dumpError, checkAndNotifyCaseConflict, setLogEnabled, isPathMatch, parseRules, stringifyRules, getPluginDir, showSyncNotice, loadApiToken, saveApiToken, loadApiUrl, saveApiUrl, loadVault, saveVault, loadAutoRedirect, saveAutoRedirect, loadWsPreProbe, saveWsPreProbe } from "./lib/helps";
-import { clearAllTempChunks, abortAllFileOperations, resetFileOperations } from "./lib/file_operator";
+import { dump, dumpError, checkAndNotifyCaseConflict, setLogEnabled, isPathMatch, parseRules, stringifyRules, getPluginDir, showSyncNotice, loadApiToken, saveApiToken, loadApiUrl, saveApiUrl, loadVault, saveVault, loadAutoRedirect, saveAutoRedirect, loadWsPreProbe, saveWsPreProbe } from "./lib/utils/helpers";
+import { clearAllTempChunks, abortAllFileOperations, resetFileOperations } from "./lib/sync/operator_file";
 import { SettingTab, PluginSettings, DEFAULT_SETTINGS } from "./setting";
 import { SyncLogView, SYNC_LOG_VIEW_TYPE } from "./views/sync-log-view";
-import { ShareIndicatorManager } from "./lib/share_indicator_manager";
-import { FolderSnapshotManager } from "./lib/folder_snapshot_manager";
-import { FileDownloadSession, AppWithInternal } from "./lib/types";
-import { LocalStorageManager } from "./lib/local_storage_manager";
-import { ConcurrencyManager } from "./lib/concurrency_manager";
-import { ConfigHashManager } from "./lib/config_hash_manager";
+import { ShareIndicatorManager } from "./lib/ui/share_indicator_manager";
+import { FolderSnapshotManager } from "./lib/storage/folder_snapshot_manager";
+import { AppWithInternal } from "./lib/utils/types";
+import { LocalStorageManager } from "./lib/storage/local_storage_manager";
+import { ConcurrencyLimiter } from "./lib/sync/concurrency_limiter";
+import { ConfigHashManager } from "./lib/storage/config_hash_manager";
 import { RecycleBinModal } from "./views/recycle-bin-modal";
-import { FileCloudPreview } from "./lib/file_cloud_preview";
-import { FileHashManager } from "./lib/file_hash_manager";
-import { DebugLogManager } from "./lib/debug_log_manager";
-import { SyncLogManager } from "./lib/sync_log_manager";
+import { FileCloudPreview } from "./lib/storage/file_cloud_preview";
+import { FileHashManager } from "./lib/storage/file_hash_manager";
+import { DebugLogManager } from "./lib/utils/debug_log_manager";
+import { SyncLogManager } from "./lib/sync/sync_log_manager";
 import { DebugLogModal } from "./views/debug-log-modal";
-import { VersionManager } from "./lib/version_manager";
-import { ConfigManager } from "./lib/config_manager";
-import { EventManager } from "./lib/events_manager";
-import { WebSocketClient } from "./lib/websocket";
-import { MenuManager } from "./lib/menu_manager";
-import { LockManager } from "./lib/lock_manager";
-import { handleSync } from "./lib/operator";
-import { HttpApiService } from "./lib/api";
+import { VersionManager } from "./lib/utils/version_manager";
+import { ConfigManager } from "./lib/sync/config_manager";
+import { EventManager } from "./lib/utils/events_manager";
+import { WebSocketManager } from "./lib/sync/websocket_manager";
+import { MenuManager } from "./lib/ui/menu_manager";
+import { LockManager } from "./lib/sync/lock_manager";
+import { handleSync } from "./lib/sync/operator";
+import { HttpApiService } from "./lib/api/http_api_service";
+import { SyncState } from "./lib/sync/sync_state";
+import { RuntimeConfig } from "./lib/sync/runtime_config";
 import { $ } from "./i18n/lang";
 
 
@@ -41,159 +43,162 @@ interface LegacySettings extends Partial<PluginSettings> {
 
 
 export default class FastSync extends Plugin {
-  settingTab: SettingTab // 设置面板
-  wsSettingChange: boolean // WebSocket 配置变更标志
-  settings: PluginSettings // 插件设置
-  runApi: string // 运行时 API 地址
-  runWsApi: string // 运行时 WebSocket API 地址
-  api: HttpApiService // HTTP API 服务
-  websocket: WebSocketClient // WebSocket 客户端
-  versionManager: VersionManager // 版本提示与自动升级管理器
-  configManager: ConfigManager // 配置管理器
-  lockManager: LockManager // 锁管理器
-  concurrencyManager: ConcurrencyManager // 并发管理器
-  eventManager: EventManager // 事件管理器
-  menuManager: MenuManager // 菜单管理器
-  private menuManagerInitialized: boolean = false // 防止 onLayoutReady 重复初始化 / Guard against duplicate onLayoutReady init
-  shareIndicatorManager: ShareIndicatorManager // 分享指示器管理器 / Share indicator manager
-  fileHashManager: FileHashManager // 文件哈希管理器
-  configHashManager: ConfigHashManager // 配置哈希管理器
-  localStorageManager: LocalStorageManager // 本地存储管理器
-  fileCloudPreview: FileCloudPreview // 云端文件预览管理器
-  folderSnapshotManager: FolderSnapshotManager // 文件夹快照管理器
+  // ─── Obsidian Plugin lifecycle + Manager instances ───────────────────────────
+  settingTab: SettingTab                           // 设置面板
+  settings: PluginSettings                        // 插件设置
+  api: HttpApiService                             // HTTP API 服务
+  websocket: WebSocketManager                     // WebSocket 客户端
+  versionManager: VersionManager                  // 版本提示与自动升级管理器
+  configManager: ConfigManager                    // 配置管理器
+  lockManager: LockManager                        // 锁管理器
+  concurrencyLimiter: ConcurrencyLimiter          // 并发管理器
+  eventManager: EventManager                      // 事件管理器
+  menuManager: MenuManager                        // 菜单管理器
+  shareIndicatorManager: ShareIndicatorManager    // 分享指示器管理器 / Share indicator manager
+  fileHashManager: FileHashManager                // 文件哈希管理器
+  configHashManager: ConfigHashManager            // 配置哈希管理器
+  localStorageManager: LocalStorageManager        // 本地存储管理器
+  fileCloudPreview: FileCloudPreview              // 云端文件预览管理器
+  folderSnapshotManager: FolderSnapshotManager    // 文件夹快照管理器
+  private menuManagerInitialized = false          // 防止 onLayoutReady 重复初始化 / Guard against duplicate onLayoutReady init
 
-  clipboardReadTip: string = "" // 剪贴板读取提示信息
+  // ─── Aggregated state objects (replaces 30+ scattered fields) ────────────────
+  /** 同步会话运行时状态 / Sync-session runtime state */
+  readonly syncState = new SyncState()
+  /** 运行时 API 配置 / Runtime API configuration */
+  readonly runtimeConfig = new RuntimeConfig()
 
-  isFirstSync: boolean = false // 是否为首次同步
-  isWatchEnabled: boolean = true // 是否启用文件监听
-  ignoredFiles: Set<string> = new Set() // 忽略的文件集合
-  ignoredConfigFiles: Set<string> = new Set() // 忽略的配置文件集合
-  lastSyncMtime: Map<string, number> = new Map() // 最后同步的修改时间
-  lastSyncPathDeleted: Set<string> = new Set() // 通过同步删除的路径
-  lastSyncPathRenamed: Set<string> = new Set() // 通过同步重命名的路径
-  // 待确认的文件重命名队列，等待服务端 FileRenameAck 后再更新 hashManager
-  // Pending file rename queue, wait for server FileRenameAck before updating hashManager
-  pendingFileRenames: { oldPath: string; newPath: string; contentHash: string }[] = []
-  // 待确认的文件上传 hash 映射，等待服务端 FileUploadAck 后再写入 hashManager
-  // Pending upload hash map, update hashManager only after server FileUploadAck
-  pendingUploadHashes: Map<string, string> = new Map()
-  // 待确认的笔记上传 hash 映射，等待服务端 NoteModifyAck 后再写入 hashManager
-  // Pending note upload hash map, update hashManager only after server NoteModifyAck
-  pendingNoteModifies: Map<string, string> = new Map()
-  // 待确认的笔记重命名队列，等待服务端 NoteRenameAck 后再更新 hashManager（FIFO）
-  // Pending note rename FIFO queue, update hashManager only after server NoteRenameAck
-  pendingNoteRenames: { oldPath: string; newPath: string; contentHash: string }[] = []
-  // 待服务端确认删除的路径集合，SyncEnd 到达后再从 hashManager/snapshotManager 移除
-  // Pending delete path sets, remove from hashManager/snapshotManager only after SyncEnd arrives
-  pendingDeleteNotePaths: Set<string> = new Set()
-  pendingDeleteFilePaths: Set<string> = new Set()
-  pendingDeleteFolderPaths: Set<string> = new Set()
-  pendingDeleteConfigPaths: Set<string> = new Set()
-  // 待服务端 NoteDeleteAck 确认的路径集合，Ack 到达后才从 hashManager 移除
-  // Paths pending NoteDeleteAck; remove from hashManager only after server confirms deletion
-  pendingNoteDeleteAcks: Set<string> = new Set()
-  // 待服务端 FileDeleteAck 确认的路径集合，Ack 到达后才从 hashManager 移除
-  // Paths pending FileDeleteAck; remove from hashManager only after server confirms deletion
-  pendingFileDeleteAcks: Set<string> = new Set()
-  // 待服务端 SettingDeleteAck 确认的路径集合，Ack 到达后才从 hashManager 移除
-  // Paths pending SettingDeleteAck; remove from hashManager only after server confirms deletion
-  pendingConfigDeleteAcks: Set<string> = new Set()
-  // 待确认的配置上传 hash 映射，等待服务端 SettingModifyAck 后再写入 configHashManager
-  // Pending config upload hash map, update configHashManager only after server SettingModifyAck
-  pendingConfigModifies: Map<string, string> = new Map()
+  // ─── Misc plugin-level fields ────────────────────────────────────────────────
+  clipboardReadTip = "" // 剪贴板读取提示信息
 
-  // 暂存本轮同步扫描过程中新计算出的哈希，待同步结束（SyncEnd）时统一持久化到 HashManager
-  // Temporarily store newly calculated hashes during scan, commit to HashManager on SyncEnd
-  scannedNoteHashes: Map<string, { hash: string; mtime: number; size: number }> = new Map()
-  scannedFileHashes: Map<string, { hash: string; mtime: number; size: number }> = new Map()
-  scannedConfigHashes: Map<string, { hash: string; mtime: number; size: number }> = new Map()
+  // ─── Compatibility getters/setters ───────────────────────────────────────────
+  // All sub-modules continue to use `plugin.xxx` without any modification.
+  // 所有子模块继续使用 `plugin.xxx`，无需任何修改。
 
-  syncTypeCompleteCount: number = 0 // 已完成同步的类型计数
-  expectedSyncCount: number = 0 // 预期的同步类型计数
+  // RuntimeConfig proxies
+  get runApi() { return this.runtimeConfig.runApi }
+  set runApi(v: string) { this.runtimeConfig.runApi = v }
+  get runWsApi() { return this.runtimeConfig.runWsApi }
+  set runWsApi(v: string) { this.runtimeConfig.runWsApi = v }
+  get wsSettingChange() { return this.runtimeConfig.wsSettingChange }
+  set wsSettingChange(v: boolean) { this.runtimeConfig.wsSettingChange = v }
 
-  totalFilesToDownload: number = 0 // 待下载文件总数
-  downloadedFilesCount: number = 0 // 已下载文件计数
-  totalChunksToDownload: number = 0 // 待下载分片总数
-  downloadedChunksCount: number = 0 // 已下载分片计数
+  // SyncState — control flags
+  get isSyncing() { return this.syncState.isSyncing }
+  set isSyncing(v: boolean) { this.syncState.isSyncing = v }
+  get isSyncRequesting() { return this.syncState.isSyncRequesting }
+  set isSyncRequesting(v: boolean) { this.syncState.isSyncRequesting = v }
+  get isFirstSync() { return this.syncState.isFirstSync }
+  set isFirstSync(v: boolean) { this.syncState.isFirstSync = v }
+  get isWatchEnabled() { return this.syncState.isWatchEnabled }
+  set isWatchEnabled(v: boolean) { this.syncState.isWatchEnabled = v }
+  get isWaitClearSync() { return this.syncState.isWaitClearSync }
+  set isWaitClearSync(v: boolean) { this.syncState.isWaitClearSync = v }
+  get currentSyncType() { return this.syncState.currentSyncType }
+  set currentSyncType(v: "full" | "incremental") { this.syncState.currentSyncType = v }
 
-  totalChunksToUpload: number = 0 // 待上传分片总数
-  uploadedChunksCount: number = 0 // 已上传分片计数
+  // SyncState — task stats
+  get noteSyncTasks() { return this.syncState.noteSyncTasks }
+  set noteSyncTasks(v: SyncState["noteSyncTasks"]) { this.syncState.noteSyncTasks = v }
+  get fileSyncTasks() { return this.syncState.fileSyncTasks }
+  set fileSyncTasks(v: SyncState["fileSyncTasks"]) { this.syncState.fileSyncTasks = v }
+  get configSyncTasks() { return this.syncState.configSyncTasks }
+  set configSyncTasks(v: SyncState["configSyncTasks"]) { this.syncState.configSyncTasks = v }
+  get folderSyncTasks() { return this.syncState.folderSyncTasks }
+  set folderSyncTasks(v: SyncState["folderSyncTasks"]) { this.syncState.folderSyncTasks = v }
 
-  // 文件下载会话管理
-  fileDownloadSessions: Map<string, FileDownloadSession> = new Map()
-  syncTimer: number | null = null // 自动同步定时器
+  // SyncState — progress counters
+  get syncTypeCompleteCount() { return this.syncState.syncTypeCompleteCount }
+  set syncTypeCompleteCount(v: number) { this.syncState.syncTypeCompleteCount = v }
+  get expectedSyncCount() { return this.syncState.expectedSyncCount }
+  set expectedSyncCount(v: number) { this.syncState.expectedSyncCount = v }
+  get totalFilesToDownload() { return this.syncState.totalFilesToDownload }
+  set totalFilesToDownload(v: number) { this.syncState.totalFilesToDownload = v }
+  get downloadedFilesCount() { return this.syncState.downloadedFilesCount }
+  set downloadedFilesCount(v: number) { this.syncState.downloadedFilesCount = v }
+  get totalChunksToDownload() { return this.syncState.totalChunksToDownload }
+  set totalChunksToDownload(v: number) { this.syncState.totalChunksToDownload = v }
+  get downloadedChunksCount() { return this.syncState.downloadedChunksCount }
+  set downloadedChunksCount(v: number) { this.syncState.downloadedChunksCount = v }
+  get totalChunksToUpload() { return this.syncState.totalChunksToUpload }
+  set totalChunksToUpload(v: number) { this.syncState.totalChunksToUpload = v }
+  get uploadedChunksCount() { return this.syncState.uploadedChunksCount }
+  set uploadedChunksCount(v: number) { this.syncState.uploadedChunksCount = v }
+  get lastStatusBarPercentage() { return this.syncState.lastStatusBarPercentage }
+  set lastStatusBarPercentage(v: number) { this.syncState.lastStatusBarPercentage = v }
 
-  public lastStatusBarPercentage: number = 0
-  public currentSyncType: "full" | "incremental" = "incremental"
-  noteSyncEnd: boolean = false // 笔记同步是否完成
-  fileSyncEnd: boolean = false // 文件同步是否完成
-  configSyncEnd: boolean = false // 配置同步是否完成
-  folderSyncEnd: boolean = false // 文件夹同步是否完成
-  isWaitClearSync: boolean = false // 是否正在等待清理确认以便后续同步
-  isSyncing: boolean = false // 是否正在执行同步流程 (Whether sync process is running)
-  isSyncRequesting: boolean = false // 是否正在发起同步请求 (Whether sync request is being initiated)
+  // SyncState — sync-end flags
+  get noteSyncEnd() { return this.syncState.noteSyncEnd }
+  set noteSyncEnd(v: boolean) { this.syncState.noteSyncEnd = v }
+  get fileSyncEnd() { return this.syncState.fileSyncEnd }
+  set fileSyncEnd(v: boolean) { this.syncState.fileSyncEnd = v }
+  get configSyncEnd() { return this.syncState.configSyncEnd }
+  set configSyncEnd(v: boolean) { this.syncState.configSyncEnd = v }
+  get folderSyncEnd() { return this.syncState.folderSyncEnd }
+  set folderSyncEnd(v: boolean) { this.syncState.folderSyncEnd = v }
 
-  // 任务统计
-  noteSyncTasks = {
-    needUpload: 0, // 需要上传
-    needModify: 0, // 需要修改
-    needSyncMtime: 0, // 需要同步时间戳
-    needDelete: 0, // 需要删除
-    completed: 0, // 已完成数量
-  }
+  // SyncState — pending queues
+  get pendingFileRenames() { return this.syncState.pendingFileRenames }
+  set pendingFileRenames(v: SyncState["pendingFileRenames"]) { this.syncState.pendingFileRenames = v }
+  get pendingNoteRenames() { return this.syncState.pendingNoteRenames }
+  set pendingNoteRenames(v: SyncState["pendingNoteRenames"]) { this.syncState.pendingNoteRenames = v }
+  get pendingUploadHashes() { return this.syncState.pendingUploadHashes }
+  set pendingUploadHashes(v: Map<string, string>) { this.syncState.pendingUploadHashes = v }
+  get pendingNoteModifies() { return this.syncState.pendingNoteModifies }
+  set pendingNoteModifies(v: Map<string, string>) { this.syncState.pendingNoteModifies = v }
+  get pendingNoteDeleteAcks() { return this.syncState.pendingNoteDeleteAcks }
+  set pendingNoteDeleteAcks(v: Set<string>) { this.syncState.pendingNoteDeleteAcks = v }
+  get pendingFileDeleteAcks() { return this.syncState.pendingFileDeleteAcks }
+  set pendingFileDeleteAcks(v: Set<string>) { this.syncState.pendingFileDeleteAcks = v }
+  get pendingConfigDeleteAcks() { return this.syncState.pendingConfigDeleteAcks }
+  set pendingConfigDeleteAcks(v: Set<string>) { this.syncState.pendingConfigDeleteAcks = v }
+  get pendingConfigModifies() { return this.syncState.pendingConfigModifies }
+  set pendingConfigModifies(v: Map<string, string>) { this.syncState.pendingConfigModifies = v }
+  get pendingDeleteNotePaths() { return this.syncState.pendingDeleteNotePaths }
+  set pendingDeleteNotePaths(v: Set<string>) { this.syncState.pendingDeleteNotePaths = v }
+  get pendingDeleteFilePaths() { return this.syncState.pendingDeleteFilePaths }
+  set pendingDeleteFilePaths(v: Set<string>) { this.syncState.pendingDeleteFilePaths = v }
+  get pendingDeleteFolderPaths() { return this.syncState.pendingDeleteFolderPaths }
+  set pendingDeleteFolderPaths(v: Set<string>) { this.syncState.pendingDeleteFolderPaths = v }
+  get pendingDeleteConfigPaths() { return this.syncState.pendingDeleteConfigPaths }
+  set pendingDeleteConfigPaths(v: Set<string>) { this.syncState.pendingDeleteConfigPaths = v }
 
-  fileSyncTasks = {
-    needUpload: 0, // 需要上传
-    needModify: 0, // 需要修改
-    needSyncMtime: 0, // 需要同步时间戳
-    needDelete: 0, // 需要删除
-    completed: 0, // 已完成数量
-  }
+  // SyncState — scanned hash caches
+  get scannedNoteHashes() { return this.syncState.scannedNoteHashes }
+  get scannedFileHashes() { return this.syncState.scannedFileHashes }
+  get scannedConfigHashes() { return this.syncState.scannedConfigHashes }
 
-  configSyncTasks = {
-    needUpload: 0, // 需要上传
-    needModify: 0, // 需要修改
-    needSyncMtime: 0, // 需要同步时间戳
-    needDelete: 0, // 需要删除
-    completed: 0, // 已完成数量
-  }
+  // SyncState — watch / tracking sets
+  get ignoredFiles() { return this.syncState.ignoredFiles }
+  set ignoredFiles(v: Set<string>) { this.syncState.ignoredFiles = v }
+  get ignoredConfigFiles() { return this.syncState.ignoredConfigFiles }
+  set ignoredConfigFiles(v: Set<string>) { this.syncState.ignoredConfigFiles = v }
+  get lastSyncMtime() { return this.syncState.lastSyncMtime }
+  set lastSyncMtime(v: Map<string, number>) { this.syncState.lastSyncMtime = v }
+  get lastSyncPathDeleted() { return this.syncState.lastSyncPathDeleted }
+  set lastSyncPathDeleted(v: Set<string>) { this.syncState.lastSyncPathDeleted = v }
+  get lastSyncPathRenamed() { return this.syncState.lastSyncPathRenamed }
+  set lastSyncPathRenamed(v: Set<string>) { this.syncState.lastSyncPathRenamed = v }
+  get syncTimer() { return this.syncState.syncTimer }
+  set syncTimer(v: number | null) { this.syncState.syncTimer = v }
+  get fileDownloadSessions() { return this.syncState.fileDownloadSessions }
+  set fileDownloadSessions(v: SyncState["fileDownloadSessions"]) { this.syncState.fileDownloadSessions = v }
 
-  folderSyncTasks = {
-    needUpload: 0, // 需要上传
-    needModify: 0, // 需要修改
-    needSyncMtime: 0, // 需要同步时间戳
-    needDelete: 0, // 需要删除
-    completed: 0, // 已完成数量
-  }
+  // ─── Delegated helpers (keep API surface unchanged) ──────────────────────────
 
-  // 重置所有任务统计
+  /** 重置所有任务统计 / Reset all per-session task statistics */
   resetSyncTasks() {
-    this.noteSyncTasks = { needUpload: 0, needModify: 0, needSyncMtime: 0, needDelete: 0, completed: 0 }
-    this.fileSyncTasks = { needUpload: 0, needModify: 0, needSyncMtime: 0, needDelete: 0, completed: 0 }
-    this.configSyncTasks = { needUpload: 0, needModify: 0, needSyncMtime: 0, needDelete: 0, completed: 0 }
-    this.folderSyncTasks = { needUpload: 0, needModify: 0, needSyncMtime: 0, needDelete: 0, completed: 0 }
-    this.lastStatusBarPercentage = 0
-    this.noteSyncEnd = false
-    this.fileSyncEnd = false
-    this.configSyncEnd = false
-    this.folderSyncEnd = false
-    this.scannedNoteHashes.clear()
-    this.scannedFileHashes.clear()
-    this.scannedConfigHashes.clear()
+    this.syncState.resetSession()
   }
 
-  // 计算总任务数
+  /** 计算总任务数 / Calculate total task count */
   getTotalTasks() {
-    const noteTotal = this.noteSyncTasks.needUpload + this.noteSyncTasks.needModify + this.noteSyncTasks.needSyncMtime + this.noteSyncTasks.needDelete
-    const fileTotal = this.fileSyncTasks.needUpload + this.fileSyncTasks.needModify + this.fileSyncTasks.needSyncMtime + this.fileSyncTasks.needDelete
-    const configTotal = this.configSyncTasks.needUpload + this.configSyncTasks.needModify + this.configSyncTasks.needSyncMtime + this.configSyncTasks.needDelete
-    const folderTotal = this.folderSyncTasks.needUpload + this.folderSyncTasks.needModify + this.folderSyncTasks.needSyncMtime + this.folderSyncTasks.needDelete
-    return noteTotal + fileTotal + configTotal + folderTotal
+    return this.syncState.getTotalTasks()
   }
 
-  // 计算已完成任务数
+  /** 计算已完成任务数 / Calculate completed task count */
   getCompletedTasks() {
-    return this.noteSyncTasks.completed + this.fileSyncTasks.completed + this.configSyncTasks.completed + this.folderSyncTasks.completed
+    return this.syncState.getCompletedTasks()
   }
 
   getWatchEnabled(): boolean {
@@ -297,7 +302,7 @@ export default class FastSync extends Plugin {
       'attachment': '#7C4DFF',
       'folder': '#1E88E5',
       'config': '#FF8A33',
-      'other': '#999999',
+      'other': '#6367FF',
       'send': '#FF8C00',
       'receive': '#007BFF'
     };
@@ -310,7 +315,7 @@ export default class FastSync extends Plugin {
 
     this.localStorageManager = new LocalStorageManager(this)
     this.api = new HttpApiService(this)
-    this.websocket = new WebSocketClient(this)
+    this.websocket = new WebSocketManager(this)
 
     await this.loadSettings()
 
@@ -329,7 +334,7 @@ export default class FastSync extends Plugin {
     this.lockManager = new LockManager()
 
     // 初始化并发管理器
-    this.concurrencyManager = new ConcurrencyManager(this)
+    this.concurrencyLimiter = new ConcurrencyLimiter(this)
 
 
     // 注册协议处理器 (核心功能)
@@ -404,7 +409,7 @@ export default class FastSync extends Plugin {
       const scheduleTurnOff = () => {
         if (activityTimer) window.clearTimeout(activityTimer);
         activityTimer = window.setTimeout(() => {
-          if (this.concurrencyManager.hasPending()) {
+          if (this.concurrencyLimiter.hasPending()) {
             scheduleTurnOff(); // 还有未确认操作，200ms 后再检查 / Still pending ACKs, recheck
           } else {
             this.menuManager.setSyncStatus(false);
@@ -766,7 +771,7 @@ export default class FastSync extends Plugin {
       this.lastSyncMtime = new Map()
       this.lastSyncPathDeleted = new Set()
       this.lastSyncPathRenamed = new Set()
-      this.fileDownloadSessions = new Map<string, FileDownloadSession>()
+      this.fileDownloadSessions = new Map()
     } else {
       this.websocket?.unRegister()
       this.isWatchEnabled = false

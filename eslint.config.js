@@ -4,7 +4,13 @@ import obsidianmd from "eslint-plugin-obsidianmd";
 
 export default defineConfig([
   {
-    ignores: ["src/lib/helps_obsidian_bypass.ts"],
+    ignores: [
+      "src/lib/utils/helpers_obsidian_bypass.ts",
+      "src/pb/**",
+      "main.js",
+      "styles.css",
+      "dist/**"
+    ],
   },
   ...obsidianmd.configs.recommended,
   {

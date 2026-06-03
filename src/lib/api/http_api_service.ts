@@ -1,9 +1,9 @@
 import { requestUrl } from "obsidian";
 
-import { hashContent, addRandomParam, showSyncNotice, dump, dumpError, nativeFetch } from "./helps";
-import { getLocale } from "../i18n/lang";
-import { CLIENT_TYPE } from "./types";
-import type FastSync from "../main";
+import { hashContent, addRandomParam, showSyncNotice, dump, dumpError, nativeFetch } from "../utils/helpers";
+import { getLocale } from "../../i18n/lang";
+import { CLIENT_TYPE } from "../utils/types";
+import type FastSync from "../../main";
 
 
 export interface NoteHistoryItem {

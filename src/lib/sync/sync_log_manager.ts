@@ -1,13 +1,13 @@
 import { moment } from "obsidian";
 
-import FastSync from "../main";
-import { dumpError } from "./helps";
+import FastSync from "../../main";
+import { dumpError } from "../utils/helpers";
 
 
 export type LogType = 'send' | 'receive' | 'info' | 'error';
 export type LogStatus = 'success' | 'error' | 'pending';
 
-export type LogCategory = 'note' | 'attachment' | 'config' | 'folder' | 'other';
+export type LogCategory = 'note' | 'attachment' | 'config' | 'folder' | 'summary' | 'other';
 
 export interface SyncLog {
     id: string;
@@ -20,6 +20,13 @@ export interface SyncLog {
     progress?: number;
     message?: string;
     vault?: string;
+}
+
+interface SyncSummaryStats {
+    syncType?: string;
+    note?: { upload: number; modify: number; delete: number };
+    file?: { upload: number; modify: number; delete: number };
+    config?: { upload: number; modify: number; delete: number };
 }
 
 export class SyncLogManager {
@@ -44,6 +51,7 @@ export class SyncLogManager {
     }
 
     private getCategory(action: string): LogCategory {
+        if (action === 'SyncSummary') return 'summary';
         if (action.startsWith('Note')) return 'note';
         if (action.startsWith('File')) return 'attachment';
         if (action.startsWith('Setting') || action.startsWith('Config')) return 'config';
@@ -286,7 +294,23 @@ export class SyncLogManager {
             const statusStr = log.status.toUpperCase().padEnd(8);
             const actionStr = log.action.padEnd(25);
             const pathStr = log.path ? ` [Path: ${log.path}]` : "";
-            const msgStr = log.message ? ` [Msg: ${log.message.replace(/\n/g, ' ')}]` : "";
+            
+            let msgStr = log.message ? ` [Msg: ${log.message.replace(/\n/g, ' ')}]` : "";
+            // 如果是同步小结，将 JSON 格式化为易读的文本字符串写入文件
+            // If it is a sync summary, format the JSON into an easy-to-read text string for the log file
+            if (log.category === 'summary' && log.message) {
+                try {
+                    const stats = JSON.parse(log.message) as SyncSummaryStats;
+                    const parts: string[] = [];
+                    if (stats.note) parts.push(`Note(up:${stats.note.upload},recv:${stats.note.modify},del:${stats.note.delete})`);
+                    if (stats.file) parts.push(`Attachment(up:${stats.file.upload},recv:${stats.file.modify},del:${stats.file.delete})`);
+                    if (stats.config) parts.push(`Config(up:${stats.config.upload},recv:${stats.config.modify},del:${stats.config.delete})`);
+                    msgStr = ` [Msg: Sync completed (${stats.syncType === 'full' ? 'Full' : 'Incremental'}): ${parts.join(', ')}]`;
+                } catch {
+                    // 解析失败时使用默认逻辑
+                    // Fall back to default logic if parsing fails
+                }
+            }
 
             const line = `[${timeStr}] [${typeStr}] [${categoryStr}] [${statusStr}] ${actionStr}${pathStr}${msgStr}\n`;
 

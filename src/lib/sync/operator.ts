@@ -1,15 +1,16 @@
 import { TFolder, TFile, normalizePath } from "obsidian";
 
-import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename, receiveFileRenameAck, receiveFileUploadAck, receiveFileDeleteAck, isPluginUnloading } from "./file_operator";
-import { hashContent, hashContentAsync, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, logMemorySnapshot, hashFileAsync, formatFileSize } from "./helps";
-import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, receiveConfigSyncDelete, receiveConfigSyncEnd, configAllPaths, receiveConfigSyncClear, receiveConfigModifyAck, receiveConfigDeleteAck } from "./config_operator";
-import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename, receiveNoteModifyAck, receiveNoteRenameAck, receiveNoteDeleteAck } from "./note_operator";
-import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "./types";
-import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./folder_operator";
-import { FileCloudPreview } from "./file_cloud_preview";
+import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename, receiveFileRenameAck, receiveFileUploadAck, receiveFileDeleteAck, isPluginUnloading } from "./operator_file";
+import { hashContent, hashContentAsync, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, logMemorySnapshot, hashFileAsync, formatFileSize } from "../utils/helpers";
+import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, receiveConfigSyncDelete, receiveConfigSyncEnd, configAllPaths, receiveConfigSyncClear, receiveConfigModifyAck, receiveConfigDeleteAck } from "./operator_config";
+import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename, receiveNoteModifyAck, receiveNoteRenameAck, receiveNoteDeleteAck } from "./operator_note";
+import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "../utils/types";
+import { receiveFolderSyncModify, receiveFolderSyncDelete, receiveFolderSyncRename, receiveFolderSyncEnd } from "./operator_folder";
+import { FileCloudPreview } from "../storage/file_cloud_preview";
 import { SyncLogManager } from "./sync_log_manager";
-import type FastSync from "../main";
-import { $ } from "../i18n/lang";
+import * as WSAction from "./websocket_action";
+import type FastSync from "../../main";
+import { $ } from "../../i18n/lang";
 
 
 export const startupSync = (plugin: FastSync): void => {
@@ -46,6 +47,7 @@ export function checkSyncCompletion(plugin: FastSync, intervalId?: number, syncS
   if (syncStartTime && Date.now() - syncStartTime > SYNC_TIMEOUT_MS) {
     if (intervalId) window.clearInterval(intervalId);
     dump(`Sync completion timeout after ${SYNC_TIMEOUT_MS}ms, force enabling watch. Tasks: note=${JSON.stringify(plugin.noteSyncTasks)}, file=${JSON.stringify(plugin.fileSyncTasks)}, folder=${JSON.stringify(plugin.folderSyncTasks)}, config=${JSON.stringify(plugin.configSyncTasks)}`)
+    plugin.syncState.activeSyncContext = null; // 同步超时，清空活跃的上下文 / Sync timeout, reset the active context
     plugin.enableWatch();
     plugin.syncTypeCompleteCount = 0;
     plugin.resetSyncTasks();
@@ -146,6 +148,49 @@ export function checkSyncCompletion(plugin: FastSync, intervalId?: number, syncS
   if (((allSyncDone && allChunksCompleted && allDownloadsComplete && bufferCleared) || isProgressComplete) && !plugin.isSyncRequesting) {
     if (intervalId) window.clearInterval(intervalId);
 
+    // 收集本轮同步的统计数据并生成小结日志
+    // Collect stats of the current sync round and generate summary log
+    const syncType = plugin.syncState.currentSyncType;
+    const noteStats = {
+      upload: plugin.noteSyncTasks.needUpload,
+      modify: plugin.noteSyncTasks.needModify + plugin.noteSyncTasks.needSyncMtime,
+      delete: plugin.noteSyncTasks.needDelete
+    };
+    const fileStats = {
+      upload: plugin.fileSyncTasks.needUpload,
+      modify: plugin.fileSyncTasks.needModify + plugin.fileSyncTasks.needSyncMtime,
+      delete: plugin.fileSyncTasks.needDelete
+    };
+    const configStats = {
+      upload: plugin.configSyncTasks.needUpload,
+      modify: plugin.configSyncTasks.needModify + plugin.configSyncTasks.needSyncMtime,
+      delete: plugin.configSyncTasks.needDelete
+    };
+
+    const hasChanges = (
+      Object.values(noteStats).some(v => v > 0) ||
+      Object.values(fileStats).some(v => v > 0) ||
+      Object.values(configStats).some(v => v > 0)
+    );
+
+    const summaryMessage = JSON.stringify({
+      syncType,
+      hasChanges,
+      note: noteStats,
+      file: fileStats,
+      config: configStats
+    });
+
+    SyncLogManager.getInstance().addOrUpdateLog({
+      id: `summary-${Date.now()}`,
+      type: 'info',
+      action: 'SyncSummary',
+      status: 'success',
+      message: summaryMessage,
+      timestamp: Date.now()
+    });
+
+    plugin.syncState.activeSyncContext = null; // 同步完成，清空活跃的上下文 / Sync completed, reset the active context
     plugin.enableWatch();
     plugin.syncTypeCompleteCount = 0;
     plugin.resetSyncTasks();
@@ -209,40 +254,40 @@ export function checkSyncCompletion(plugin: FastSync, intervalId?: number, syncS
  */
 
 export type OperatorHandler = (data: unknown, plugin: FastSync) => Promise<void> | void;
-export const receiveOperators: Map<string, OperatorHandler> = new Map([
-  ["NoteSyncModify", receiveNoteSyncModify],
-  ["NoteSyncNeedPush", receiveNoteUpload],
-  ["NoteSyncMtime", receiveNoteSyncMtime],
-  ["NoteSyncDelete", receiveNoteSyncDelete],
-  ["NoteSyncRename", receiveNoteSyncRename],
-  ["NoteModifyAck", (data, plugin) => receiveNoteModifyAck(data as { lastTime?: number; path?: string }, plugin)],
-  ["NoteRenameAck", (data, plugin) => receiveNoteRenameAck(data as { lastTime?: number }, plugin)],
-  ["NoteDeleteAck", (data, plugin) => receiveNoteDeleteAck(data as { lastTime?: number; path?: string }, plugin)],
-  ["NoteSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "note")],
-  ["FileUpload", receiveFileUpload],
-  ["FileSyncUpdate", receiveFileSyncUpdate],
-  ["FileSyncChunkDownload", receiveFileSyncChunkDownload],
-  ["FileSyncDelete", receiveFileSyncDelete],
-  ["FileSyncRename", receiveFileSyncRename],
-  ["FileSyncMtime", receiveFileSyncMtime],
-  ["FileSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "file")],
-  ["FileRenameAck", receiveFileRenameAck],
-  ["FileUploadAck", receiveFileUploadAck],
-  ["FileDeleteAck", (data, plugin) => receiveFileDeleteAck(data as { lastTime?: number; path?: string }, plugin)],
-  ["SettingSyncModify", receiveConfigSyncModify],
-  ["SettingSyncNeedUpload", receiveConfigUpload],
-  ["SettingSyncMtime", receiveConfigSyncMtime],
-  ["SettingSyncDelete", receiveConfigSyncDelete],
-  ["SettingSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "config")],
-  ["SettingSyncClear", receiveConfigSyncClear],
-  ["SettingModifyAck", receiveConfigModifyAck],
-  ["SettingDeleteAck", receiveConfigDeleteAck],
-  ["FolderSyncModify", receiveFolderSyncModify],
-  ["FolderSyncDelete", receiveFolderSyncDelete],
-  ["FolderSyncRename", receiveFolderSyncRename],
-  ["FolderSyncEnd", (data, plugin) => receiveSyncEndWrapper(data, plugin, "folder")],
-  ["ShareSyncRefresh", receiveShareSyncRefresh],
-] as [string, OperatorHandler][]);
+export const receiveOperators: Map<WSAction.WSReceiveAction, OperatorHandler> = new Map([
+  [WSAction.NoteSyncModify, receiveNoteSyncModify],
+  [WSAction.NoteSyncNeedPush, receiveNoteUpload],
+  [WSAction.NoteSyncMtime, receiveNoteSyncMtime],
+  [WSAction.NoteSyncDelete, receiveNoteSyncDelete],
+  [WSAction.NoteSyncRename, receiveNoteSyncRename],
+  [WSAction.NoteModifyAck, (data, plugin) => receiveNoteModifyAck(data as { lastTime?: number; path?: string }, plugin)],
+  [WSAction.NoteRenameAck, (data, plugin) => receiveNoteRenameAck(data as { lastTime?: number }, plugin)],
+  [WSAction.NoteDeleteAck, (data, plugin) => receiveNoteDeleteAck(data as { lastTime?: number; path?: string }, plugin)],
+  [WSAction.NoteSyncEnd, (data, plugin) => receiveSyncEndWrapper(data, plugin, "note")],
+  [WSAction.FileUpload, receiveFileUpload],
+  [WSAction.FileSyncUpdate, receiveFileSyncUpdate],
+  [WSAction.FileSyncChunkDownload, receiveFileSyncChunkDownload],
+  [WSAction.FileSyncDelete, receiveFileSyncDelete],
+  [WSAction.FileSyncRename, receiveFileSyncRename],
+  [WSAction.FileSyncMtime, receiveFileSyncMtime],
+  [WSAction.FileSyncEnd, (data, plugin) => receiveSyncEndWrapper(data, plugin, "file")],
+  [WSAction.FileRenameAck, receiveFileRenameAck],
+  [WSAction.FileUploadAck, receiveFileUploadAck],
+  [WSAction.FileDeleteAck, (data, plugin) => receiveFileDeleteAck(data as { lastTime?: number; path?: string }, plugin)],
+  [WSAction.SettingSyncModify, receiveConfigSyncModify],
+  [WSAction.SettingSyncNeedUpload, receiveConfigUpload],
+  [WSAction.SettingSyncMtime, receiveConfigSyncMtime],
+  [WSAction.SettingSyncDelete, receiveConfigSyncDelete],
+  [WSAction.SettingSyncEnd, (data, plugin) => receiveSyncEndWrapper(data, plugin, "config")],
+  [WSAction.SettingSyncClear, receiveConfigSyncClear],
+  [WSAction.SettingModifyAck, receiveConfigModifyAck],
+  [WSAction.SettingDeleteAck, receiveConfigDeleteAck],
+  [WSAction.FolderSyncModify, receiveFolderSyncModify],
+  [WSAction.FolderSyncDelete, receiveFolderSyncDelete],
+  [WSAction.FolderSyncRename, receiveFolderSyncRename],
+  [WSAction.FolderSyncEnd, (data, plugin) => receiveSyncEndWrapper(data, plugin, "folder")],
+  [WSAction.ShareSyncRefresh, receiveShareSyncRefresh],
+] as [WSAction.WSReceiveAction, OperatorHandler][]);
 
 /**
  * 收到分享状态变更通知，全量刷新分享路径
@@ -370,13 +415,16 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
   plugin.isSyncing = true;
   try {
     const context = generateUUID();
+    plugin.syncState.activeSyncContext = context; // 记录活跃的同步上下文 / Record the active sync context
     dump(`Sync context generated: ${context}`);
     if (!plugin.menuManager.ribbonIconStatus) {
       showSyncNotice($("setting.remote.disconnected"));
+      plugin.syncState.activeSyncContext = null; // 早期退出，清空上下文 / Early return, reset the context
       return;
     }
     if (!plugin.getWatchEnabled()) {
       showSyncNotice($("ui.status.last_sync_not_completed"), 4000);
+      plugin.syncState.activeSyncContext = null; // 早期退出，清空上下文 / Early return, reset the context
       return;
     }
 
@@ -430,6 +478,7 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     if (expectedCount === 0) {
       plugin.enableWatch();
       plugin.updateStatusBar("");
+      plugin.syncState.activeSyncContext = null; // 无同步任务，清空上下文 / No tasks, reset the context
       return;
     }
 
@@ -480,7 +529,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
         // 每处理 20 个文件让出一次主线程，防止 UI 卡死 (已将 100 优化为 20)
         if (++processedCount % 20 === 0) {
           await sleep(0);
-          if (isPluginUnloading) return;
+          if (isPluginUnloading) {
+            plugin.syncState.activeSyncContext = null; // 插件卸载中，清空上下文 / Plugin unloading, reset the context
+            return;
+          }
           // 更新扫描进度
           SyncLogManager.getInstance().addOrUpdateLog({
             id: hashingLogId,
@@ -691,7 +743,10 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     for (const path of configPaths) {
       if (++configCount % 20 === 0) { // 已将 50 优化为 20
         await sleep(0);
-        if (isPluginUnloading) return;
+        if (isPluginUnloading) {
+          plugin.syncState.activeSyncContext = null; // 插件卸载中，清空上下文 / Plugin unloading, reset the context
+          return;
+        }
         SyncLogManager.getInstance().addOrUpdateLog({
           id: hashingLogId,
           type: 'info',
@@ -849,6 +904,7 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
     }, 100);
   } catch (error) {
     dump("Sync failed with error: " + error);
+    plugin.syncState.activeSyncContext = null; // 同步失败，清空上下文 / Sync failed, reset the context
     plugin.enableWatch();
     plugin.updateStatusBar($("ui.status.failed") || "Sync Failed");
     window.setTimeout(() => plugin.updateStatusBar(""), 3000);

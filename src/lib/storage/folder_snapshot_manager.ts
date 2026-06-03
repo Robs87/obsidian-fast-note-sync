@@ -1,7 +1,7 @@
 import { TFolder } from "obsidian";
 
-import { dump, isPathExcluded } from "./helps";
-import type FastSync from "../main";
+import { dump, isPathExcluded } from "../utils/helpers";
+import type FastSync from "../../main";
 
 
 /**

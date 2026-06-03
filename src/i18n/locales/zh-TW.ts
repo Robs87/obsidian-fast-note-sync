@@ -16,6 +16,8 @@ export default {
   "setting.debug.show_version_desc": "開啟後，版本資訊將常駐顯示在同步選單中；關閉後，僅在有更新時顯示。",
   "setting.debug.update_source": "外掛更新來源",
   "setting.debug.update_source_desc": "選擇外掛手動升級時的下載來源，建議優先選擇 CNB 以獲得更快的下載速度。",
+  "setting.debug.protobuf": "啟用 Protobuf 協議",
+  "setting.debug.protobuf_desc": "在 WebSocket 訊息傳輸中啟用 Protobuf 二進位協議。關閉後將預設使用原本的 JSON 文字訊息協議。修改後需重新連線生效。",
 
   // --- setting.remote ---
   "setting.remote.title": "遠端",
@@ -276,6 +278,7 @@ export default {
   "ui.log.clear": "清空日誌",
   "ui.log.copy_all": "複製全部",
   "ui.log.empty": "暫無日誌",
+  "ui.log.file_not_found": "檔案不存在或已被刪除",
   "ui.log.type_send": "發送",
   "ui.log.type_receive": "接收",
   "ui.log.type_info": "信息",
@@ -290,10 +293,15 @@ export default {
   "ui.log.category_folder": "目錄",
   "ui.log.category_config": "設定",
   "ui.log.category_other": "其他",
+  "ui.log.summary.title_full": "同步完成（全量）",
+  "ui.log.summary.title_inc": "同步完成（增量）",
+  "ui.log.summary.no_changes": "無變更",
 
   // --- ui.log.action ---
   "ui.log.action.VaultScanning_full": "筆記庫雜湊計算進度(全量)",
   "ui.log.action.VaultScanning_incremental": "筆記庫雜湊計算進度(增量)",
+  "ui.log.action.VaultScanningSummary_full": "同步開始（全量）- 雜湊計算",
+  "ui.log.action.VaultScanningSummary_incremental": "同步開始（增量）- 雜湊計算",
   "ui.log.action.FolderSync_full": "文件夾同步(全量)",
   "ui.log.action.FolderSync_incremental": "文件夾同步(增量)",
   "ui.log.action.FolderSyncEnd_full": "文件夾同步結束(全量)",

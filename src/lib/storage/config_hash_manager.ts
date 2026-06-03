@@ -1,8 +1,8 @@
 import { normalizePath } from "obsidian";
 
-import { hashContentAsync, dump, dumpError, configIsPathExcluded, getConfigSyncCustomDirs, showSyncNotice, hashFileAsync } from "./helps";
-import { configAllPaths } from "./config_operator";
-import type FastSync from "../main";
+import { hashContentAsync, dump, dumpError, configIsPathExcluded, getConfigSyncCustomDirs, showSyncNotice, hashFileAsync } from "../utils/helpers";
+import { configAllPaths } from "../sync/operator_config";
+import type FastSync from "../../main";
 
 
 /**

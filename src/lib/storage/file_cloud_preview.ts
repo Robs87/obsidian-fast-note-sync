@@ -1,9 +1,9 @@
 import { MarkdownPostProcessorContext, parseLinktext, loadPdfJs, MarkdownView, requestUrl, setIcon, Platform } from "obsidian";
 import { ViewPlugin, ViewUpdate, EditorView } from "@codemirror/view";
 
-import { hashContent, showSyncNotice, dumpError } from "./helps";
-import { CLIENT_TYPE } from "./types";
-import type FastSync from "../main";
+import { hashContent, showSyncNotice, dumpError } from "../utils/helpers";
+import { CLIENT_TYPE } from "../utils/types";
+import type FastSync from "../../main";
 
 
 /**

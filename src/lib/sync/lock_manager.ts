@@ -1,4 +1,4 @@
-import { dump, sleep } from "./helps";
+import { dump, sleep } from "../utils/helpers";
 
 
 export class LockManager {

@@ -1,4 +1,4 @@
-import { safeStringify } from "./helps";
+import { safeStringify } from "./helpers";
 
 export class DebugLogManager {
     private static instance: DebugLogManager;

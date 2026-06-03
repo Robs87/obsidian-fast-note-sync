@@ -1,4 +1,4 @@
-import type FastSync from "../main";
+import type FastSync from "../../main";
 
 export class ShareIndicatorManager {
     // 内存中的分享路径集合 / In-memory set of shared paths

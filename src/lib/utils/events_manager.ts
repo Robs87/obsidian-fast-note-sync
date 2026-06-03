@@ -1,13 +1,13 @@
 import { TAbstractFile, Platform, TFile, TFolder, Menu, MenuItem, normalizePath } from "obsidian";
 
-import { noteModify, noteDelete, noteRename, noteDeleteByPath } from "./note_operator";
-import { fileModify, fileDelete, fileRename, fileDeleteByPath } from "./file_operator";
-import { folderModify, folderDelete, folderRename } from "./folder_operator";
-import { NoteHistoryModal } from "../views/note-history/history-modal";
-import { dump, isPathInConfigSyncDirs } from "./helps";
-import { ShareModal } from "../views/share-modal";
-import type FastSync from "../main";
-import { $ } from "../i18n/lang";
+import { noteModify, noteDelete, noteRename, noteDeleteByPath } from "../sync/operator_note";
+import { fileModify, fileDelete, fileRename, fileDeleteByPath } from "../sync/operator_file";
+import { folderModify, folderDelete, folderRename } from "../sync/operator_folder";
+import { NoteHistoryModal } from "../../views/note-history/history-modal";
+import { dump, isPathInConfigSyncDirs } from "./helpers";
+import { ShareModal } from "../../views/share-modal";
+import type FastSync from "../../main";
+import { $ } from "../../i18n/lang";
 
 
 export class EventManager {

@@ -1,11 +1,11 @@
-import type FastSync from "../main";
-import { dump } from "./helps";
+import type FastSync from "../../main";
+import { dump } from "../utils/helpers";
 
 /**
  * 并发管理器
  * 用于精确控制基于 ACK 的上行同步任务并发
  */
-export class ConcurrencyManager {
+export class ConcurrencyLimiter {
     private plugin: FastSync;
     private queue: { key: string; priority: number; resolve: () => void }[] = [];
     private activeKeys: Set<string> = new Set();

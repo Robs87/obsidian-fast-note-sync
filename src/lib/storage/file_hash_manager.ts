@@ -1,5 +1,5 @@
-import { hashContentAsync, dump, isPathExcluded, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, logMemorySnapshot, hashFileAsync } from "./helps";
-import type FastSync from "../main";
+import { hashContentAsync, dump, isPathExcluded, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, logMemorySnapshot, hashFileAsync } from "../utils/helpers";
+import type FastSync from "../../main";
 
 
 /**

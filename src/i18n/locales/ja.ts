@@ -16,6 +16,8 @@ export default {
   "setting.debug.show_version_desc": "有効にすると、バージョン情報は同期メニューに常に表示されます。無効にすると、更新がある場合のみ表示されます。",
   "setting.debug.update_source": "プラグイン更新元",
   "setting.debug.update_source_desc": "プラグインを手動でアップグレードする際のダウンロード元を選択してください。より高速なダウンロード速度を得るため、CNB を優先して選択することを推奨します。",
+  "setting.debug.protobuf": "Protobuf プロトコルを有効にする",
+  "setting.debug.protobuf_desc": "WebSocket メッセージ伝送で Protobuf バイナリプロトコルを有効にします。無効にした場合、従来の JSON テキストメッセージプロトコルがデフォルトで使用されます。変更を有効にするには再接続が必要です。",
 
   // --- setting.remote ---
   "setting.remote.title": "リモート",
@@ -276,6 +278,7 @@ export default {
   "ui.log.clear": "ログをクリア",
   "ui.log.copy_all": "すべてコピー",
   "ui.log.empty": "ログはありません",
+  "ui.log.file_not_found": "ファイルが存在しないか、削除されました",
   "ui.log.type_send": "送信",
   "ui.log.type_receive": "受信",
   "ui.log.type_info": "情報",
@@ -290,10 +293,15 @@ export default {
   "ui.log.category_folder": "フォルダ",
   "ui.log.category_config": "設定",
   "ui.log.category_other": "その他",
+  "ui.log.summary.title_full": "同期完了（フル）",
+  "ui.log.summary.title_inc": "同期完了（増分）",
+  "ui.log.summary.no_changes": "変更なし",
 
   // --- ui.log.action ---
   "ui.log.action.VaultScanning_full": "Vaultハッシュ計算進捗(全量)",
   "ui.log.action.VaultScanning_incremental": "Vaultハッシュ計算進捗(増分)",
+  "ui.log.action.VaultScanningSummary_full": "同期開始（フル）- ハッシュ計算",
+  "ui.log.action.VaultScanningSummary_incremental": "同期開始（増分）- ハッシュ計算",
   "ui.log.action.FolderSync_full": "フォルダ同期（完全）",
   "ui.log.action.FolderSync_incremental": "フォルダ同期（増分）",
   "ui.log.action.FolderSyncEnd_full": "フォルダ同期終了（完全）",

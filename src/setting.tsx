@@ -2,15 +2,15 @@ import { App, PluginSettingTab, Setting, Platform, SearchComponent, MarkdownRend
 import { createRoot, Root } from "react-dom/client";
 import { unzipSync } from "fflate";
 
-import { parseRules, SyncRule, getPluginDir, debounce, showSyncNotice, dump, dumpError } from "./lib/helps";
-import { resetSettingSyncTime, rebuildAllHashes, clearAllHashes } from "./lib/operator";
+import { parseRules, SyncRule, getPluginDir, debounce, showSyncNotice, dump, dumpError } from "./lib/utils/helpers";
+import { resetSettingSyncTime, rebuildAllHashes, clearAllHashes } from "./lib/sync/operator";
 import { SettingsView, SupportView } from "./views/settings-view";
 import { RuleEditorModal } from "./views/rule-editor-modal";
 import { PathSuggestOptions } from "./views/path-suggest";
 import { DebugLogModal } from "./views/debug-log-modal";
 import { ConfirmModal } from "./views/confirm-modal";
 import { RuleEditor } from "./views/rule-editor";
-import { AppWithInternal } from "./lib/types";
+import { AppWithInternal } from "./lib/utils/types";
 import { $ } from "./i18n/lang";
 import FastSync from "./main";
 
@@ -98,6 +98,8 @@ export interface PluginSettings {
   mobileBlurPauseEnabled: boolean
   /** 是否启用 128MB 二进制文件同步限制 / Enable 128MB binary sync limit */
   binarySyncLimitEnabled: boolean
+  /** 是否启用 Protobuf 协议进行消息同步 */
+  protobufEnabled: boolean
 }
 
 /**
@@ -153,6 +155,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   mobileToastTop: Platform.isTablet ? 126 : 110,
   mobileBlurPauseEnabled: true,
   binarySyncLimitEnabled: true,
+  protobufEnabled: true,
 }
 
 export type TabId = "GENERAL" | "DISPLAY" | "SHORTCUT" | "REMOTE" | "SYNC" | "CLOUD" | "DEBUG"
@@ -881,6 +884,17 @@ export class SettingTab extends PluginSettingTab {
         }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.support.debug_url_desc"))
+
+    new Setting(set).setName($("setting.debug.protobuf")).setClass("fns-setting-item-checkbox").addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.protobufEnabled !== false).onChange(async (value) => {
+        this.plugin.settings.protobufEnabled = value
+        await this.plugin.saveAndReloadServices()
+        // Send updated ClientInfo immediately to sync protocol change to the server
+        // 立即发送更新后的 ClientInfo 以便向服务端同步协议变更
+        this.plugin.websocket?.sendClientInfo()
+      }),
+    )
+    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.protobuf_desc"))
 
     this.renderDebugTools(set, false)
   }

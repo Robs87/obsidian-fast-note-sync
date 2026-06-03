@@ -16,6 +16,8 @@ export default {
   "setting.debug.show_version_desc": "When enabled, version info will be permanently displayed in the sync menu; when disabled, it will only appear when an update is available.",
   "setting.debug.update_source": "Plugin Update Source",
   "setting.debug.update_source_desc": "Select the download source for manual plugin upgrades. It is recommended to choose CNB first for faster download speeds.",
+  "setting.debug.protobuf": "Enable Protobuf Protocol",
+  "setting.debug.protobuf_desc": "Enable Protobuf binary protocol for WebSocket message transmission. If disabled, the original JSON text message protocol will be used by default. A reconnection is required for changes to take effect.",
 
   // --- setting.remote ---
   "setting.remote.title": "Remote",
@@ -276,6 +278,7 @@ export default {
   "ui.log.clear": "Clear Log",
   "ui.log.copy_all": "Copy All",
   "ui.log.empty": "No logs yet",
+  "ui.log.file_not_found": "File does not exist or has been deleted",
   "ui.log.type_send": "Send",
   "ui.log.type_receive": "Receive",
   "ui.log.type_info": "Info",
@@ -290,10 +293,15 @@ export default {
   "ui.log.category_folder": "Folder",
   "ui.log.category_config": "Config",
   "ui.log.category_other": "Other",
+  "ui.log.summary.title_full": "Sync Complete (Full)",
+  "ui.log.summary.title_inc": "Sync Complete (Incremental)",
+  "ui.log.summary.no_changes": "No changes",
 
   // --- ui.log.action ---
   "ui.log.action.VaultScanning_full": "Vault Hash Calculation Progress (Full)",
   "ui.log.action.VaultScanning_incremental": "Vault Hash Calculation Progress (Incremental)",
+  "ui.log.action.VaultScanningSummary_full": "Sync Started (Full) - Hash Calculation",
+  "ui.log.action.VaultScanningSummary_incremental": "Sync Started (Incremental) - Hash Calculation",
   "ui.log.action.FolderSync_full": "Folder Sync (Full)",
   "ui.log.action.FolderSync_incremental": "Folder Sync (Incremental)",
   "ui.log.action.FolderSyncEnd_full": "Folder Sync Ended (Full)",

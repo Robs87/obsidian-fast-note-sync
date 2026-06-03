@@ -1,8 +1,8 @@
 import { normalizePath } from "obsidian";
 
-import { dump, dumpError, getFileName, getDirNameOrEmpty, configAddPathExcluded, isPathInConfigSyncDirs, getConfigSyncCustomDirs, isInWhitelist, getPluginDir } from "./helps";
-import { CONFIG_PLUGIN_EXTS_TO_WATCH, CONFIG_ROOT_FILES_EXCLUDE, CONFIG_THEME_EXTS_TO_WATCH, configModify, configDelete, configAllPaths } from "./config_operator";
-import type FastSync from "../main";
+import { dump, dumpError, getFileName, getDirNameOrEmpty, configAddPathExcluded, isPathInConfigSyncDirs, getConfigSyncCustomDirs, isInWhitelist, getPluginDir } from "../utils/helpers";
+import { CONFIG_PLUGIN_EXTS_TO_WATCH, CONFIG_ROOT_FILES_EXCLUDE, CONFIG_THEME_EXTS_TO_WATCH, configModify, configDelete, configAllPaths } from "./operator_config";
+import type FastSync from "../../main";
 
 
 export class ConfigManager {

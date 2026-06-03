@@ -16,6 +16,8 @@ export default {
   "setting.debug.show_version_desc": "开启后，版本信息将常驻显示在同步菜单中；关闭后，仅在有更新时显示。",
   "setting.debug.update_source": "插件更新源",
   "setting.debug.update_source_desc": "选择插件手动升级时的下载源，建议优先选择 CNB 以获得更快的下载速度。",
+  "setting.debug.protobuf": "启用 Protobuf 协议",
+  "setting.debug.protobuf_desc": "在 WebSocket 消息传输中启用 Protobuf 二进制协议。关闭后将默认使用原来的 JSON 文本消息协议。修改后需重新连接生效。",
 
   // --- setting.remote ---
   "setting.remote.title": "远端",
@@ -276,6 +278,7 @@ export default {
   "ui.log.clear": "清空日志",
   "ui.log.copy_all": "复制全部",
   "ui.log.empty": "暂无日志",
+  "ui.log.file_not_found": "文件不存在或已被删除",
   "ui.log.type_send": "发送",
   "ui.log.type_receive": "接收",
   "ui.log.type_info": "信息",
@@ -290,10 +293,15 @@ export default {
   "ui.log.category_folder": "目录",
   "ui.log.category_config": "配置",
   "ui.log.category_other": "其他",
+  "ui.log.summary.title_full": "同步完成 (全量)",
+  "ui.log.summary.title_inc": "同步完成 (增量)",
+  "ui.log.summary.no_changes": "无变更",
 
   // --- ui.log.action ---
   "ui.log.action.VaultScanning_full": "笔记库哈希计算进度(全量)",
   "ui.log.action.VaultScanning_incremental": "笔记库哈希计算进度(增量)",
+  "ui.log.action.VaultScanningSummary_full": "同步开始(全量) - 哈希计算",
+  "ui.log.action.VaultScanningSummary_incremental": "同步开始(增量) - 哈希计算",
   "ui.log.action.FolderSync_full": "文件夹同步(全量)",
   "ui.log.action.FolderSync_incremental": "文件夹同步(增量)",
   "ui.log.action.FolderSyncEnd_full": "文件夹同步结束(全量)",
