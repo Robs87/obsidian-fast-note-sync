@@ -896,6 +896,34 @@ export class SettingTab extends PluginSettingTab {
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.debug.protobuf_desc"))
 
+    new Setting(set)
+      .setName($("setting.sync.clear_remote"))
+      .setDesc($("setting.sync.clear_remote_desc"))
+      .setClass("fns-setting-item-vertical")
+      .addButton((btn) => {
+        btn
+          .setWarning()
+          .setButtonText($("setting.sync.clear_remote"))
+          .onClick(async () => {
+            new ConfirmModal(this.app, $("setting.sync.clear_remote"), $("setting.sync.clear_remote_confirm"), () => {
+              if (this.plugin.settings.configSyncEnabled) {
+                this.plugin.isWaitClearSync = true
+              }
+              void this.plugin.websocket.SendMessage("SettingClear", {
+                vault: this.plugin.settings.vault,
+              })
+
+              btn.setDisabled(true)
+              btn.setIcon("check")
+              window.setTimeout(() => {
+                btn.setDisabled(false)
+                btn.setIcon("")
+                btn.setButtonText($("setting.sync.clear_remote"))
+              }, 5000)
+            }).open()
+          })
+      })
+
     this.renderDebugTools(set, false)
   }
 
@@ -1457,34 +1485,6 @@ export class SettingTab extends PluginSettingTab {
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.sync.auto_config_desc"))
-
-    new Setting(set)
-      .setName($("setting.sync.clear_remote"))
-      .setDesc($("setting.sync.clear_remote_desc"))
-      .setClass("fns-setting-item-vertical")
-      .addButton((btn) => {
-        btn
-          .setWarning()
-          .setButtonText($("setting.sync.clear_remote"))
-          .onClick(async () => {
-            new ConfirmModal(this.app, $("setting.sync.clear_remote"), $("setting.sync.clear_remote_confirm"), () => {
-              if (this.plugin.settings.configSyncEnabled) {
-                this.plugin.isWaitClearSync = true
-              }
-              void this.plugin.websocket.SendMessage("SettingClear", {
-                vault: this.plugin.settings.vault,
-              })
-
-              btn.setDisabled(true)
-              btn.setIcon("check")
-              window.setTimeout(() => {
-                btn.setDisabled(false)
-                btn.setIcon("")
-                btn.setButtonText($("setting.sync.clear_remote"))
-              }, 5000)
-            }).open()
-          })
-      })
 
     new Setting(set).setName($("setting.sync.binary_limit")).setClass("fns-setting-item-checkbox").addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.binarySyncLimitEnabled).onChange(async (value) => {
