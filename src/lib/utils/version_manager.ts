@@ -227,7 +227,7 @@ export class VersionManager {
                 }
             }
 
-            await plugin.app.vault.adapter.writeBinary(path, content.buffer as ArrayBuffer);
+            await plugin.app.vault.adapter.writeBinary(path, content.buffer);
         }
 
         dump("Plugin upgrade completed successfully, starting hot reload...");

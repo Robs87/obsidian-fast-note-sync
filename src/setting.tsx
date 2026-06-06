@@ -1042,7 +1042,7 @@ export class SettingTab extends PluginSettingTab {
             }
 
             dump(`[fast-note-sync] writing binary data to: ${path}`);
-            await this.plugin.app.vault.adapter.writeBinary(path, content.buffer as ArrayBuffer);
+            await this.plugin.app.vault.adapter.writeBinary(path, content.buffer);
           }
           dump("[fast-note-sync] all files successfully extracted and written to filesystem.");
 
