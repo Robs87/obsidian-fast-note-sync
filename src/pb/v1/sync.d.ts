@@ -1,5 +1,5 @@
 import * as $protobuf from "protobufjs";
-import Long = require("long");
+import Long from "long";
 
 /** Namespace proto. */
 export namespace proto {
@@ -11,8 +11,7 @@ export namespace proto {
          * Properties of a WSMessage.
          * @deprecated Use proto.v1.WSMessage.$Properties instead.
          */
-        interface IWSMessage extends proto.v1.WSMessage.$Properties {
-        }
+        type IWSMessage = proto.v1.WSMessage.$Properties;
 
         /** Represents a WSMessage. */
         class WSMessage {
@@ -80,14 +79,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a WSMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns WSMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.WSMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.WSMessage;
 
             /**
              * Creates a plain object from a WSMessage message. Also converts values to other types if specified.
@@ -95,13 +94,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.WSMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.WSMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this WSMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for WSMessage
@@ -134,8 +133,7 @@ export namespace proto {
          * Properties of a WSResponse.
          * @deprecated Use proto.v1.WSResponse.$Properties instead.
          */
-        interface IWSResponse extends proto.v1.WSResponse.$Properties {
-        }
+        type IWSResponse = proto.v1.WSResponse.$Properties;
 
         /** Represents a WSResponse. */
         class WSResponse {
@@ -218,14 +216,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a WSResponse message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns WSResponse
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.WSResponse;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.WSResponse;
 
             /**
              * Creates a plain object from a WSResponse message. Also converts values to other types if specified.
@@ -233,13 +231,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.WSResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.WSResponse, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this WSResponse to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for WSResponse
@@ -287,8 +285,7 @@ export namespace proto {
          * Properties of a ClientInfoMessage.
          * @deprecated Use proto.v1.ClientInfoMessage.$Properties instead.
          */
-        interface IClientInfoMessage extends proto.v1.ClientInfoMessage.$Properties {
-        }
+        type IClientInfoMessage = proto.v1.ClientInfoMessage.$Properties;
 
         /** Represents a ClientInfoMessage. */
         class ClientInfoMessage {
@@ -386,14 +383,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a ClientInfoMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns ClientInfoMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.ClientInfoMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.ClientInfoMessage;
 
             /**
              * Creates a plain object from a ClientInfoMessage message. Also converts values to other types if specified.
@@ -401,13 +398,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.ClientInfoMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.ClientInfoMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this ClientInfoMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for ClientInfoMessage
@@ -470,8 +467,7 @@ export namespace proto {
          * Properties of a HistoricalVersion.
          * @deprecated Use proto.v1.HistoricalVersion.$Properties instead.
          */
-        interface IHistoricalVersion extends proto.v1.HistoricalVersion.$Properties {
-        }
+        type IHistoricalVersion = proto.v1.HistoricalVersion.$Properties;
 
         /** Represents a HistoricalVersion. */
         class HistoricalVersion {
@@ -539,14 +535,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a HistoricalVersion message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns HistoricalVersion
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.HistoricalVersion;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.HistoricalVersion;
 
             /**
              * Creates a plain object from a HistoricalVersion message. Also converts values to other types if specified.
@@ -554,13 +550,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.HistoricalVersion, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.HistoricalVersion, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this HistoricalVersion to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for HistoricalVersion
@@ -593,8 +589,7 @@ export namespace proto {
          * Properties of a CheckVersionInfo.
          * @deprecated Use proto.v1.CheckVersionInfo.$Properties instead.
          */
-        interface ICheckVersionInfo extends proto.v1.CheckVersionInfo.$Properties {
-        }
+        type ICheckVersionInfo = proto.v1.CheckVersionInfo.$Properties;
 
         /** Represents a CheckVersionInfo. */
         class CheckVersionInfo {
@@ -695,14 +690,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a CheckVersionInfo message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns CheckVersionInfo
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.CheckVersionInfo;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.CheckVersionInfo;
 
             /**
              * Creates a plain object from a CheckVersionInfo message. Also converts values to other types if specified.
@@ -710,13 +705,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.CheckVersionInfo, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.CheckVersionInfo, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this CheckVersionInfo to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for CheckVersionInfo
@@ -782,8 +777,7 @@ export namespace proto {
          * Properties of a NoteSyncCheckRequest.
          * @deprecated Use proto.v1.NoteSyncCheckRequest.$Properties instead.
          */
-        interface INoteSyncCheckRequest extends proto.v1.NoteSyncCheckRequest.$Properties {
-        }
+        type INoteSyncCheckRequest = proto.v1.NoteSyncCheckRequest.$Properties;
 
         /** Represents a NoteSyncCheckRequest. */
         class NoteSyncCheckRequest {
@@ -860,14 +854,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncCheckRequest;
 
             /**
              * Creates a plain object from a NoteSyncCheckRequest message. Also converts values to other types if specified.
@@ -875,13 +869,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncCheckRequest
@@ -923,8 +917,7 @@ export namespace proto {
          * Properties of a NoteSyncDelNote.
          * @deprecated Use proto.v1.NoteSyncDelNote.$Properties instead.
          */
-        interface INoteSyncDelNote extends proto.v1.NoteSyncDelNote.$Properties {
-        }
+        type INoteSyncDelNote = proto.v1.NoteSyncDelNote.$Properties;
 
         /** Represents a NoteSyncDelNote. */
         class NoteSyncDelNote {
@@ -992,14 +985,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncDelNote message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncDelNote
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncDelNote;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncDelNote;
 
             /**
              * Creates a plain object from a NoteSyncDelNote message. Also converts values to other types if specified.
@@ -1007,13 +1000,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncDelNote, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncDelNote, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncDelNote to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncDelNote
@@ -1046,8 +1039,7 @@ export namespace proto {
          * Properties of a NoteSyncRequest.
          * @deprecated Use proto.v1.NoteSyncRequest.$Properties instead.
          */
-        interface INoteSyncRequest extends proto.v1.NoteSyncRequest.$Properties {
-        }
+        type INoteSyncRequest = proto.v1.NoteSyncRequest.$Properties;
 
         /** Represents a NoteSyncRequest. */
         class NoteSyncRequest {
@@ -1127,14 +1119,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncRequest;
 
             /**
              * Creates a plain object from a NoteSyncRequest message. Also converts values to other types if specified.
@@ -1142,13 +1134,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncRequest
@@ -1193,8 +1185,7 @@ export namespace proto {
          * Properties of a NoteModifyOrCreateRequest.
          * @deprecated Use proto.v1.NoteModifyOrCreateRequest.$Properties instead.
          */
-        interface INoteModifyOrCreateRequest extends proto.v1.NoteModifyOrCreateRequest.$Properties {
-        }
+        type INoteModifyOrCreateRequest = proto.v1.NoteModifyOrCreateRequest.$Properties;
 
         /** Represents a NoteModifyOrCreateRequest. */
         class NoteModifyOrCreateRequest {
@@ -1286,14 +1277,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteModifyOrCreateRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteModifyOrCreateRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteModifyOrCreateRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteModifyOrCreateRequest;
 
             /**
              * Creates a plain object from a NoteModifyOrCreateRequest message. Also converts values to other types if specified.
@@ -1301,13 +1292,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteModifyOrCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteModifyOrCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteModifyOrCreateRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteModifyOrCreateRequest
@@ -1364,8 +1355,7 @@ export namespace proto {
          * Properties of a NoteUpdateCheckRequest.
          * @deprecated Use proto.v1.NoteUpdateCheckRequest.$Properties instead.
          */
-        interface INoteUpdateCheckRequest extends proto.v1.NoteUpdateCheckRequest.$Properties {
-        }
+        type INoteUpdateCheckRequest = proto.v1.NoteUpdateCheckRequest.$Properties;
 
         /** Represents a NoteUpdateCheckRequest. */
         class NoteUpdateCheckRequest {
@@ -1445,14 +1435,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteUpdateCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteUpdateCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteUpdateCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteUpdateCheckRequest;
 
             /**
              * Creates a plain object from a NoteUpdateCheckRequest message. Also converts values to other types if specified.
@@ -1460,13 +1450,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteUpdateCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteUpdateCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteUpdateCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteUpdateCheckRequest
@@ -1511,8 +1501,7 @@ export namespace proto {
          * Properties of a NoteDeleteRequest.
          * @deprecated Use proto.v1.NoteDeleteRequest.$Properties instead.
          */
-        interface INoteDeleteRequest extends proto.v1.NoteDeleteRequest.$Properties {
-        }
+        type INoteDeleteRequest = proto.v1.NoteDeleteRequest.$Properties;
 
         /** Represents a NoteDeleteRequest. */
         class NoteDeleteRequest {
@@ -1583,14 +1572,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteDeleteRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteDeleteRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteDeleteRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteDeleteRequest;
 
             /**
              * Creates a plain object from a NoteDeleteRequest message. Also converts values to other types if specified.
@@ -1598,13 +1587,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteDeleteRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteDeleteRequest
@@ -1640,8 +1629,7 @@ export namespace proto {
          * Properties of a NoteRenameRequest.
          * @deprecated Use proto.v1.NoteRenameRequest.$Properties instead.
          */
-        interface INoteRenameRequest extends proto.v1.NoteRenameRequest.$Properties {
-        }
+        type INoteRenameRequest = proto.v1.NoteRenameRequest.$Properties;
 
         /** Represents a NoteRenameRequest. */
         class NoteRenameRequest {
@@ -1718,14 +1706,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteRenameRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteRenameRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteRenameRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteRenameRequest;
 
             /**
              * Creates a plain object from a NoteRenameRequest message. Also converts values to other types if specified.
@@ -1733,13 +1721,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteRenameRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteRenameRequest
@@ -1781,8 +1769,7 @@ export namespace proto {
          * Properties of a NoteGetRequest.
          * @deprecated Use proto.v1.NoteGetRequest.$Properties instead.
          */
-        interface INoteGetRequest extends proto.v1.NoteGetRequest.$Properties {
-        }
+        type INoteGetRequest = proto.v1.NoteGetRequest.$Properties;
 
         /** Represents a NoteGetRequest. */
         class NoteGetRequest {
@@ -1856,14 +1843,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteGetRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteGetRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteGetRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteGetRequest;
 
             /**
              * Creates a plain object from a NoteGetRequest message. Also converts values to other types if specified.
@@ -1871,13 +1858,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteGetRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteGetRequest
@@ -1916,8 +1903,7 @@ export namespace proto {
          * Properties of a NoteSyncModifyMessage.
          * @deprecated Use proto.v1.NoteSyncModifyMessage.$Properties instead.
          */
-        interface INoteSyncModifyMessage extends proto.v1.NoteSyncModifyMessage.$Properties {
-        }
+        type INoteSyncModifyMessage = proto.v1.NoteSyncModifyMessage.$Properties;
 
         /** Represents a NoteSyncModifyMessage. */
         class NoteSyncModifyMessage {
@@ -2000,14 +1986,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncModifyMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncModifyMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncModifyMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncModifyMessage;
 
             /**
              * Creates a plain object from a NoteSyncModifyMessage message. Also converts values to other types if specified.
@@ -2015,13 +2001,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncModifyMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncModifyMessage
@@ -2069,8 +2055,7 @@ export namespace proto {
          * Properties of a NoteSyncDeleteMessage.
          * @deprecated Use proto.v1.NoteSyncDeleteMessage.$Properties instead.
          */
-        interface INoteSyncDeleteMessage extends proto.v1.NoteSyncDeleteMessage.$Properties {
-        }
+        type INoteSyncDeleteMessage = proto.v1.NoteSyncDeleteMessage.$Properties;
 
         /** Represents a NoteSyncDeleteMessage. */
         class NoteSyncDeleteMessage {
@@ -2150,14 +2135,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncDeleteMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncDeleteMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncDeleteMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncDeleteMessage;
 
             /**
              * Creates a plain object from a NoteSyncDeleteMessage message. Also converts values to other types if specified.
@@ -2165,13 +2150,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncDeleteMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncDeleteMessage
@@ -2216,8 +2201,7 @@ export namespace proto {
          * Properties of a NoteSyncRenameMessage.
          * @deprecated Use proto.v1.NoteSyncRenameMessage.$Properties instead.
          */
-        interface INoteSyncRenameMessage extends proto.v1.NoteSyncRenameMessage.$Properties {
-        }
+        type INoteSyncRenameMessage = proto.v1.NoteSyncRenameMessage.$Properties;
 
         /** Represents a NoteSyncRenameMessage. */
         class NoteSyncRenameMessage {
@@ -2306,14 +2290,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncRenameMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncRenameMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncRenameMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncRenameMessage;
 
             /**
              * Creates a plain object from a NoteSyncRenameMessage message. Also converts values to other types if specified.
@@ -2321,13 +2305,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncRenameMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncRenameMessage
@@ -2381,8 +2365,7 @@ export namespace proto {
          * Properties of a NoteSyncMtimeMessage.
          * @deprecated Use proto.v1.NoteSyncMtimeMessage.$Properties instead.
          */
-        interface INoteSyncMtimeMessage extends proto.v1.NoteSyncMtimeMessage.$Properties {
-        }
+        type INoteSyncMtimeMessage = proto.v1.NoteSyncMtimeMessage.$Properties;
 
         /** Represents a NoteSyncMtimeMessage. */
         class NoteSyncMtimeMessage {
@@ -2456,14 +2439,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncMtimeMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncMtimeMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncMtimeMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncMtimeMessage;
 
             /**
              * Creates a plain object from a NoteSyncMtimeMessage message. Also converts values to other types if specified.
@@ -2471,13 +2454,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncMtimeMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncMtimeMessage
@@ -2516,8 +2499,7 @@ export namespace proto {
          * Properties of a NoteSyncEndMessage.
          * @deprecated Use proto.v1.NoteSyncEndMessage.$Properties instead.
          */
-        interface INoteSyncEndMessage extends proto.v1.NoteSyncEndMessage.$Properties {
-        }
+        type INoteSyncEndMessage = proto.v1.NoteSyncEndMessage.$Properties;
 
         /** Represents a NoteSyncEndMessage. */
         class NoteSyncEndMessage {
@@ -2594,14 +2576,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncEndMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncEndMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncEndMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncEndMessage;
 
             /**
              * Creates a plain object from a NoteSyncEndMessage message. Also converts values to other types if specified.
@@ -2609,13 +2591,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncEndMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncEndMessage
@@ -2657,8 +2639,7 @@ export namespace proto {
          * Properties of a NoteSyncNeedPushMessage.
          * @deprecated Use proto.v1.NoteSyncNeedPushMessage.$Properties instead.
          */
-        interface INoteSyncNeedPushMessage extends proto.v1.NoteSyncNeedPushMessage.$Properties {
-        }
+        type INoteSyncNeedPushMessage = proto.v1.NoteSyncNeedPushMessage.$Properties;
 
         /** Represents a NoteSyncNeedPushMessage. */
         class NoteSyncNeedPushMessage {
@@ -2726,14 +2707,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteSyncNeedPushMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteSyncNeedPushMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteSyncNeedPushMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteSyncNeedPushMessage;
 
             /**
              * Creates a plain object from a NoteSyncNeedPushMessage message. Also converts values to other types if specified.
@@ -2741,13 +2722,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteSyncNeedPushMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteSyncNeedPushMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteSyncNeedPushMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteSyncNeedPushMessage
@@ -2780,8 +2761,7 @@ export namespace proto {
          * Properties of a NoteModifyAckMessage.
          * @deprecated Use proto.v1.NoteModifyAckMessage.$Properties instead.
          */
-        interface INoteModifyAckMessage extends proto.v1.NoteModifyAckMessage.$Properties {
-        }
+        type INoteModifyAckMessage = proto.v1.NoteModifyAckMessage.$Properties;
 
         /** Represents a NoteModifyAckMessage. */
         class NoteModifyAckMessage {
@@ -2852,14 +2832,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteModifyAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteModifyAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteModifyAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteModifyAckMessage;
 
             /**
              * Creates a plain object from a NoteModifyAckMessage message. Also converts values to other types if specified.
@@ -2867,13 +2847,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteModifyAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteModifyAckMessage
@@ -2909,8 +2889,7 @@ export namespace proto {
          * Properties of a NoteRenameAckMessage.
          * @deprecated Use proto.v1.NoteRenameAckMessage.$Properties instead.
          */
-        interface INoteRenameAckMessage extends proto.v1.NoteRenameAckMessage.$Properties {
-        }
+        type INoteRenameAckMessage = proto.v1.NoteRenameAckMessage.$Properties;
 
         /** Represents a NoteRenameAckMessage. */
         class NoteRenameAckMessage {
@@ -2981,14 +2960,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteRenameAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteRenameAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteRenameAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteRenameAckMessage;
 
             /**
              * Creates a plain object from a NoteRenameAckMessage message. Also converts values to other types if specified.
@@ -2996,13 +2975,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteRenameAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteRenameAckMessage
@@ -3038,8 +3017,7 @@ export namespace proto {
          * Properties of a NoteDeleteAckMessage.
          * @deprecated Use proto.v1.NoteDeleteAckMessage.$Properties instead.
          */
-        interface INoteDeleteAckMessage extends proto.v1.NoteDeleteAckMessage.$Properties {
-        }
+        type INoteDeleteAckMessage = proto.v1.NoteDeleteAckMessage.$Properties;
 
         /** Represents a NoteDeleteAckMessage. */
         class NoteDeleteAckMessage {
@@ -3110,14 +3088,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a NoteDeleteAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns NoteDeleteAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.NoteDeleteAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.NoteDeleteAckMessage;
 
             /**
              * Creates a plain object from a NoteDeleteAckMessage message. Also converts values to other types if specified.
@@ -3125,13 +3103,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.NoteDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.NoteDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this NoteDeleteAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for NoteDeleteAckMessage
@@ -3167,8 +3145,7 @@ export namespace proto {
          * Properties of a FileSyncRequest.
          * @deprecated Use proto.v1.FileSyncRequest.$Properties instead.
          */
-        interface IFileSyncRequest extends proto.v1.FileSyncRequest.$Properties {
-        }
+        type IFileSyncRequest = proto.v1.FileSyncRequest.$Properties;
 
         /** Represents a FileSyncRequest. */
         class FileSyncRequest {
@@ -3248,14 +3225,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncRequest;
 
             /**
              * Creates a plain object from a FileSyncRequest message. Also converts values to other types if specified.
@@ -3263,13 +3240,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncRequest
@@ -3314,8 +3291,7 @@ export namespace proto {
          * Properties of a FileSyncCheckRequest.
          * @deprecated Use proto.v1.FileSyncCheckRequest.$Properties instead.
          */
-        interface IFileSyncCheckRequest extends proto.v1.FileSyncCheckRequest.$Properties {
-        }
+        type IFileSyncCheckRequest = proto.v1.FileSyncCheckRequest.$Properties;
 
         /** Represents a FileSyncCheckRequest. */
         class FileSyncCheckRequest {
@@ -3395,14 +3371,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncCheckRequest;
 
             /**
              * Creates a plain object from a FileSyncCheckRequest message. Also converts values to other types if specified.
@@ -3410,13 +3386,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncCheckRequest
@@ -3461,8 +3437,7 @@ export namespace proto {
          * Properties of a FileSyncDelFile.
          * @deprecated Use proto.v1.FileSyncDelFile.$Properties instead.
          */
-        interface IFileSyncDelFile extends proto.v1.FileSyncDelFile.$Properties {
-        }
+        type IFileSyncDelFile = proto.v1.FileSyncDelFile.$Properties;
 
         /** Represents a FileSyncDelFile. */
         class FileSyncDelFile {
@@ -3530,14 +3505,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncDelFile message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncDelFile
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncDelFile;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncDelFile;
 
             /**
              * Creates a plain object from a FileSyncDelFile message. Also converts values to other types if specified.
@@ -3545,13 +3520,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncDelFile, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncDelFile, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncDelFile to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncDelFile
@@ -3584,8 +3559,7 @@ export namespace proto {
          * Properties of a FileUploadCheckRequest.
          * @deprecated Use proto.v1.FileUploadCheckRequest.$Properties instead.
          */
-        interface IFileUploadCheckRequest extends proto.v1.FileUploadCheckRequest.$Properties {
-        }
+        type IFileUploadCheckRequest = proto.v1.FileUploadCheckRequest.$Properties;
 
         /** Represents a FileUploadCheckRequest. */
         class FileUploadCheckRequest {
@@ -3668,14 +3642,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileUploadCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileUploadCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileUploadCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileUploadCheckRequest;
 
             /**
              * Creates a plain object from a FileUploadCheckRequest message. Also converts values to other types if specified.
@@ -3683,13 +3657,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileUploadCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileUploadCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileUploadCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileUploadCheckRequest
@@ -3737,8 +3711,7 @@ export namespace proto {
          * Properties of a FileDeleteRequest.
          * @deprecated Use proto.v1.FileDeleteRequest.$Properties instead.
          */
-        interface IFileDeleteRequest extends proto.v1.FileDeleteRequest.$Properties {
-        }
+        type IFileDeleteRequest = proto.v1.FileDeleteRequest.$Properties;
 
         /** Represents a FileDeleteRequest. */
         class FileDeleteRequest {
@@ -3809,14 +3782,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileDeleteRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileDeleteRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileDeleteRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileDeleteRequest;
 
             /**
              * Creates a plain object from a FileDeleteRequest message. Also converts values to other types if specified.
@@ -3824,13 +3797,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileDeleteRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileDeleteRequest
@@ -3866,8 +3839,7 @@ export namespace proto {
          * Properties of a FileRenameRequest.
          * @deprecated Use proto.v1.FileRenameRequest.$Properties instead.
          */
-        interface IFileRenameRequest extends proto.v1.FileRenameRequest.$Properties {
-        }
+        type IFileRenameRequest = proto.v1.FileRenameRequest.$Properties;
 
         /** Represents a FileRenameRequest. */
         class FileRenameRequest {
@@ -3944,14 +3916,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileRenameRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileRenameRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileRenameRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileRenameRequest;
 
             /**
              * Creates a plain object from a FileRenameRequest message. Also converts values to other types if specified.
@@ -3959,13 +3931,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileRenameRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileRenameRequest
@@ -4007,8 +3979,7 @@ export namespace proto {
          * Properties of a FileChunkDownloadRequest.
          * @deprecated Use proto.v1.FileChunkDownloadRequest.$Properties instead.
          */
-        interface IFileChunkDownloadRequest extends proto.v1.FileChunkDownloadRequest.$Properties {
-        }
+        type IFileChunkDownloadRequest = proto.v1.FileChunkDownloadRequest.$Properties;
 
         /** Represents a FileChunkDownloadRequest. */
         class FileChunkDownloadRequest {
@@ -4085,14 +4056,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileChunkDownloadRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileChunkDownloadRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileChunkDownloadRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileChunkDownloadRequest;
 
             /**
              * Creates a plain object from a FileChunkDownloadRequest message. Also converts values to other types if specified.
@@ -4100,13 +4071,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileChunkDownloadRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileChunkDownloadRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileChunkDownloadRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileChunkDownloadRequest
@@ -4148,8 +4119,7 @@ export namespace proto {
          * Properties of a FileGetRequest.
          * @deprecated Use proto.v1.FileGetRequest.$Properties instead.
          */
-        interface IFileGetRequest extends proto.v1.FileGetRequest.$Properties {
-        }
+        type IFileGetRequest = proto.v1.FileGetRequest.$Properties;
 
         /** Represents a FileGetRequest. */
         class FileGetRequest {
@@ -4220,14 +4190,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileGetRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileGetRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileGetRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileGetRequest;
 
             /**
              * Creates a plain object from a FileGetRequest message. Also converts values to other types if specified.
@@ -4235,13 +4205,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileGetRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileGetRequest
@@ -4277,8 +4247,7 @@ export namespace proto {
          * Properties of a FileSyncModifyMessage.
          * @deprecated Use proto.v1.FileSyncModifyMessage.$Properties instead.
          */
-        interface IFileSyncModifyMessage extends proto.v1.FileSyncModifyMessage.$Properties {
-        }
+        type IFileSyncModifyMessage = proto.v1.FileSyncModifyMessage.$Properties;
 
         /** Represents a FileSyncModifyMessage. */
         class FileSyncModifyMessage {
@@ -4361,14 +4330,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncModifyMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncModifyMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncModifyMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncModifyMessage;
 
             /**
              * Creates a plain object from a FileSyncModifyMessage message. Also converts values to other types if specified.
@@ -4376,13 +4345,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncModifyMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncModifyMessage
@@ -4430,8 +4399,7 @@ export namespace proto {
          * Properties of a FileSyncDeleteMessage.
          * @deprecated Use proto.v1.FileSyncDeleteMessage.$Properties instead.
          */
-        interface IFileSyncDeleteMessage extends proto.v1.FileSyncDeleteMessage.$Properties {
-        }
+        type IFileSyncDeleteMessage = proto.v1.FileSyncDeleteMessage.$Properties;
 
         /** Represents a FileSyncDeleteMessage. */
         class FileSyncDeleteMessage {
@@ -4511,14 +4479,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncDeleteMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncDeleteMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncDeleteMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncDeleteMessage;
 
             /**
              * Creates a plain object from a FileSyncDeleteMessage message. Also converts values to other types if specified.
@@ -4526,13 +4494,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncDeleteMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncDeleteMessage
@@ -4577,8 +4545,7 @@ export namespace proto {
          * Properties of a FileSyncRenameMessage.
          * @deprecated Use proto.v1.FileSyncRenameMessage.$Properties instead.
          */
-        interface IFileSyncRenameMessage extends proto.v1.FileSyncRenameMessage.$Properties {
-        }
+        type IFileSyncRenameMessage = proto.v1.FileSyncRenameMessage.$Properties;
 
         /** Represents a FileSyncRenameMessage. */
         class FileSyncRenameMessage {
@@ -4667,14 +4634,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncRenameMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncRenameMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncRenameMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncRenameMessage;
 
             /**
              * Creates a plain object from a FileSyncRenameMessage message. Also converts values to other types if specified.
@@ -4682,13 +4649,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncRenameMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncRenameMessage
@@ -4742,8 +4709,7 @@ export namespace proto {
          * Properties of a FileSyncMtimeMessage.
          * @deprecated Use proto.v1.FileSyncMtimeMessage.$Properties instead.
          */
-        interface IFileSyncMtimeMessage extends proto.v1.FileSyncMtimeMessage.$Properties {
-        }
+        type IFileSyncMtimeMessage = proto.v1.FileSyncMtimeMessage.$Properties;
 
         /** Represents a FileSyncMtimeMessage. */
         class FileSyncMtimeMessage {
@@ -4817,14 +4783,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncMtimeMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncMtimeMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncMtimeMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncMtimeMessage;
 
             /**
              * Creates a plain object from a FileSyncMtimeMessage message. Also converts values to other types if specified.
@@ -4832,13 +4798,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncMtimeMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncMtimeMessage
@@ -4877,8 +4843,7 @@ export namespace proto {
          * Properties of a FileSyncEndMessage.
          * @deprecated Use proto.v1.FileSyncEndMessage.$Properties instead.
          */
-        interface IFileSyncEndMessage extends proto.v1.FileSyncEndMessage.$Properties {
-        }
+        type IFileSyncEndMessage = proto.v1.FileSyncEndMessage.$Properties;
 
         /** Represents a FileSyncEndMessage. */
         class FileSyncEndMessage {
@@ -4955,14 +4920,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncEndMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncEndMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncEndMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncEndMessage;
 
             /**
              * Creates a plain object from a FileSyncEndMessage message. Also converts values to other types if specified.
@@ -4970,13 +4935,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncEndMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncEndMessage
@@ -5018,8 +4983,7 @@ export namespace proto {
          * Properties of a FileSyncUploadMessage.
          * @deprecated Use proto.v1.FileSyncUploadMessage.$Properties instead.
          */
-        interface IFileSyncUploadMessage extends proto.v1.FileSyncUploadMessage.$Properties {
-        }
+        type IFileSyncUploadMessage = proto.v1.FileSyncUploadMessage.$Properties;
 
         /** Represents a FileSyncUploadMessage. */
         class FileSyncUploadMessage {
@@ -5093,14 +5057,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncUploadMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncUploadMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncUploadMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncUploadMessage;
 
             /**
              * Creates a plain object from a FileSyncUploadMessage message. Also converts values to other types if specified.
@@ -5108,13 +5072,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncUploadMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncUploadMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncUploadMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncUploadMessage
@@ -5153,8 +5117,7 @@ export namespace proto {
          * Properties of a FileSyncDownloadMessage.
          * @deprecated Use proto.v1.FileSyncDownloadMessage.$Properties instead.
          */
-        interface IFileSyncDownloadMessage extends proto.v1.FileSyncDownloadMessage.$Properties {
-        }
+        type IFileSyncDownloadMessage = proto.v1.FileSyncDownloadMessage.$Properties;
 
         /** Represents a FileSyncDownloadMessage. */
         class FileSyncDownloadMessage {
@@ -5240,14 +5203,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileSyncDownloadMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileSyncDownloadMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileSyncDownloadMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileSyncDownloadMessage;
 
             /**
              * Creates a plain object from a FileSyncDownloadMessage message. Also converts values to other types if specified.
@@ -5255,13 +5218,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileSyncDownloadMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileSyncDownloadMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileSyncDownloadMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileSyncDownloadMessage
@@ -5312,8 +5275,7 @@ export namespace proto {
          * Properties of a FileRenameAckMessage.
          * @deprecated Use proto.v1.FileRenameAckMessage.$Properties instead.
          */
-        interface IFileRenameAckMessage extends proto.v1.FileRenameAckMessage.$Properties {
-        }
+        type IFileRenameAckMessage = proto.v1.FileRenameAckMessage.$Properties;
 
         /** Represents a FileRenameAckMessage. */
         class FileRenameAckMessage {
@@ -5384,14 +5346,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileRenameAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileRenameAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileRenameAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileRenameAckMessage;
 
             /**
              * Creates a plain object from a FileRenameAckMessage message. Also converts values to other types if specified.
@@ -5399,13 +5361,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileRenameAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileRenameAckMessage
@@ -5441,8 +5403,7 @@ export namespace proto {
          * Properties of a FileUploadAckMessage.
          * @deprecated Use proto.v1.FileUploadAckMessage.$Properties instead.
          */
-        interface IFileUploadAckMessage extends proto.v1.FileUploadAckMessage.$Properties {
-        }
+        type IFileUploadAckMessage = proto.v1.FileUploadAckMessage.$Properties;
 
         /** Represents a FileUploadAckMessage. */
         class FileUploadAckMessage {
@@ -5513,14 +5474,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileUploadAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileUploadAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileUploadAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileUploadAckMessage;
 
             /**
              * Creates a plain object from a FileUploadAckMessage message. Also converts values to other types if specified.
@@ -5528,13 +5489,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileUploadAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileUploadAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileUploadAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileUploadAckMessage
@@ -5570,8 +5531,7 @@ export namespace proto {
          * Properties of a FileDeleteAckMessage.
          * @deprecated Use proto.v1.FileDeleteAckMessage.$Properties instead.
          */
-        interface IFileDeleteAckMessage extends proto.v1.FileDeleteAckMessage.$Properties {
-        }
+        type IFileDeleteAckMessage = proto.v1.FileDeleteAckMessage.$Properties;
 
         /** Represents a FileDeleteAckMessage. */
         class FileDeleteAckMessage {
@@ -5642,14 +5602,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FileDeleteAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FileDeleteAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FileDeleteAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FileDeleteAckMessage;
 
             /**
              * Creates a plain object from a FileDeleteAckMessage message. Also converts values to other types if specified.
@@ -5657,13 +5617,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FileDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FileDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FileDeleteAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FileDeleteAckMessage
@@ -5699,8 +5659,7 @@ export namespace proto {
          * Properties of a SettingSyncRequest.
          * @deprecated Use proto.v1.SettingSyncRequest.$Properties instead.
          */
-        interface ISettingSyncRequest extends proto.v1.SettingSyncRequest.$Properties {
-        }
+        type ISettingSyncRequest = proto.v1.SettingSyncRequest.$Properties;
 
         /** Represents a SettingSyncRequest. */
         class SettingSyncRequest {
@@ -5780,14 +5739,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncRequest;
 
             /**
              * Creates a plain object from a SettingSyncRequest message. Also converts values to other types if specified.
@@ -5795,13 +5754,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncRequest
@@ -5846,8 +5805,7 @@ export namespace proto {
          * Properties of a SettingSyncCheckRequest.
          * @deprecated Use proto.v1.SettingSyncCheckRequest.$Properties instead.
          */
-        interface ISettingSyncCheckRequest extends proto.v1.SettingSyncCheckRequest.$Properties {
-        }
+        type ISettingSyncCheckRequest = proto.v1.SettingSyncCheckRequest.$Properties;
 
         /** Represents a SettingSyncCheckRequest. */
         class SettingSyncCheckRequest {
@@ -5924,14 +5882,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncCheckRequest;
 
             /**
              * Creates a plain object from a SettingSyncCheckRequest message. Also converts values to other types if specified.
@@ -5939,13 +5897,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncCheckRequest
@@ -5987,8 +5945,7 @@ export namespace proto {
          * Properties of a SettingSyncDelSetting.
          * @deprecated Use proto.v1.SettingSyncDelSetting.$Properties instead.
          */
-        interface ISettingSyncDelSetting extends proto.v1.SettingSyncDelSetting.$Properties {
-        }
+        type ISettingSyncDelSetting = proto.v1.SettingSyncDelSetting.$Properties;
 
         /** Represents a SettingSyncDelSetting. */
         class SettingSyncDelSetting {
@@ -6056,14 +6013,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncDelSetting message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncDelSetting
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncDelSetting;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncDelSetting;
 
             /**
              * Creates a plain object from a SettingSyncDelSetting message. Also converts values to other types if specified.
@@ -6071,13 +6028,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncDelSetting, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncDelSetting, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncDelSetting to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncDelSetting
@@ -6110,8 +6067,7 @@ export namespace proto {
          * Properties of a SettingModifyOrCreateRequest.
          * @deprecated Use proto.v1.SettingModifyOrCreateRequest.$Properties instead.
          */
-        interface ISettingModifyOrCreateRequest extends proto.v1.SettingModifyOrCreateRequest.$Properties {
-        }
+        type ISettingModifyOrCreateRequest = proto.v1.SettingModifyOrCreateRequest.$Properties;
 
         /** Represents a SettingModifyOrCreateRequest. */
         class SettingModifyOrCreateRequest {
@@ -6194,14 +6150,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingModifyOrCreateRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingModifyOrCreateRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingModifyOrCreateRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingModifyOrCreateRequest;
 
             /**
              * Creates a plain object from a SettingModifyOrCreateRequest message. Also converts values to other types if specified.
@@ -6209,13 +6165,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingModifyOrCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingModifyOrCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingModifyOrCreateRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingModifyOrCreateRequest
@@ -6263,8 +6219,7 @@ export namespace proto {
          * Properties of a SettingUpdateCheckRequest.
          * @deprecated Use proto.v1.SettingUpdateCheckRequest.$Properties instead.
          */
-        interface ISettingUpdateCheckRequest extends proto.v1.SettingUpdateCheckRequest.$Properties {
-        }
+        type ISettingUpdateCheckRequest = proto.v1.SettingUpdateCheckRequest.$Properties;
 
         /** Represents a SettingUpdateCheckRequest. */
         class SettingUpdateCheckRequest {
@@ -6344,14 +6299,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingUpdateCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingUpdateCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingUpdateCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingUpdateCheckRequest;
 
             /**
              * Creates a plain object from a SettingUpdateCheckRequest message. Also converts values to other types if specified.
@@ -6359,13 +6314,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingUpdateCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingUpdateCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingUpdateCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingUpdateCheckRequest
@@ -6410,8 +6365,7 @@ export namespace proto {
          * Properties of a SettingDeleteRequest.
          * @deprecated Use proto.v1.SettingDeleteRequest.$Properties instead.
          */
-        interface ISettingDeleteRequest extends proto.v1.SettingDeleteRequest.$Properties {
-        }
+        type ISettingDeleteRequest = proto.v1.SettingDeleteRequest.$Properties;
 
         /** Represents a SettingDeleteRequest. */
         class SettingDeleteRequest {
@@ -6482,14 +6436,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingDeleteRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingDeleteRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingDeleteRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingDeleteRequest;
 
             /**
              * Creates a plain object from a SettingDeleteRequest message. Also converts values to other types if specified.
@@ -6497,13 +6451,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingDeleteRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingDeleteRequest
@@ -6539,8 +6493,7 @@ export namespace proto {
          * Properties of a SettingGetRequest.
          * @deprecated Use proto.v1.SettingGetRequest.$Properties instead.
          */
-        interface ISettingGetRequest extends proto.v1.SettingGetRequest.$Properties {
-        }
+        type ISettingGetRequest = proto.v1.SettingGetRequest.$Properties;
 
         /** Represents a SettingGetRequest. */
         class SettingGetRequest {
@@ -6611,14 +6564,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingGetRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingGetRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingGetRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingGetRequest;
 
             /**
              * Creates a plain object from a SettingGetRequest message. Also converts values to other types if specified.
@@ -6626,13 +6579,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingGetRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingGetRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingGetRequest
@@ -6668,8 +6621,7 @@ export namespace proto {
          * Properties of a SettingClearRequest.
          * @deprecated Use proto.v1.SettingClearRequest.$Properties instead.
          */
-        interface ISettingClearRequest extends proto.v1.SettingClearRequest.$Properties {
-        }
+        type ISettingClearRequest = proto.v1.SettingClearRequest.$Properties;
 
         /** Represents a SettingClearRequest. */
         class SettingClearRequest {
@@ -6734,14 +6686,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingClearRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingClearRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingClearRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingClearRequest;
 
             /**
              * Creates a plain object from a SettingClearRequest message. Also converts values to other types if specified.
@@ -6749,13 +6701,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingClearRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingClearRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingClearRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingClearRequest
@@ -6785,8 +6737,7 @@ export namespace proto {
          * Properties of a SettingSyncModifyMessage.
          * @deprecated Use proto.v1.SettingSyncModifyMessage.$Properties instead.
          */
-        interface ISettingSyncModifyMessage extends proto.v1.SettingSyncModifyMessage.$Properties {
-        }
+        type ISettingSyncModifyMessage = proto.v1.SettingSyncModifyMessage.$Properties;
 
         /** Represents a SettingSyncModifyMessage. */
         class SettingSyncModifyMessage {
@@ -6872,14 +6823,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncModifyMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncModifyMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncModifyMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncModifyMessage;
 
             /**
              * Creates a plain object from a SettingSyncModifyMessage message. Also converts values to other types if specified.
@@ -6887,13 +6838,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncModifyMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncModifyMessage
@@ -6944,8 +6895,7 @@ export namespace proto {
          * Properties of a SettingSyncDeleteMessage.
          * @deprecated Use proto.v1.SettingSyncDeleteMessage.$Properties instead.
          */
-        interface ISettingSyncDeleteMessage extends proto.v1.SettingSyncDeleteMessage.$Properties {
-        }
+        type ISettingSyncDeleteMessage = proto.v1.SettingSyncDeleteMessage.$Properties;
 
         /** Represents a SettingSyncDeleteMessage. */
         class SettingSyncDeleteMessage {
@@ -7022,14 +6972,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncDeleteMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncDeleteMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncDeleteMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncDeleteMessage;
 
             /**
              * Creates a plain object from a SettingSyncDeleteMessage message. Also converts values to other types if specified.
@@ -7037,13 +6987,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncDeleteMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncDeleteMessage
@@ -7085,8 +7035,7 @@ export namespace proto {
          * Properties of a SettingSyncMtimeMessage.
          * @deprecated Use proto.v1.SettingSyncMtimeMessage.$Properties instead.
          */
-        interface ISettingSyncMtimeMessage extends proto.v1.SettingSyncMtimeMessage.$Properties {
-        }
+        type ISettingSyncMtimeMessage = proto.v1.SettingSyncMtimeMessage.$Properties;
 
         /** Represents a SettingSyncMtimeMessage. */
         class SettingSyncMtimeMessage {
@@ -7160,14 +7109,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncMtimeMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncMtimeMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncMtimeMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncMtimeMessage;
 
             /**
              * Creates a plain object from a SettingSyncMtimeMessage message. Also converts values to other types if specified.
@@ -7175,13 +7124,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncMtimeMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncMtimeMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncMtimeMessage
@@ -7220,8 +7169,7 @@ export namespace proto {
          * Properties of a SettingSyncEndMessage.
          * @deprecated Use proto.v1.SettingSyncEndMessage.$Properties instead.
          */
-        interface ISettingSyncEndMessage extends proto.v1.SettingSyncEndMessage.$Properties {
-        }
+        type ISettingSyncEndMessage = proto.v1.SettingSyncEndMessage.$Properties;
 
         /** Represents a SettingSyncEndMessage. */
         class SettingSyncEndMessage {
@@ -7298,14 +7246,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncEndMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncEndMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncEndMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncEndMessage;
 
             /**
              * Creates a plain object from a SettingSyncEndMessage message. Also converts values to other types if specified.
@@ -7313,13 +7261,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncEndMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncEndMessage
@@ -7361,8 +7309,7 @@ export namespace proto {
          * Properties of a SettingSyncNeedUploadMessage.
          * @deprecated Use proto.v1.SettingSyncNeedUploadMessage.$Properties instead.
          */
-        interface ISettingSyncNeedUploadMessage extends proto.v1.SettingSyncNeedUploadMessage.$Properties {
-        }
+        type ISettingSyncNeedUploadMessage = proto.v1.SettingSyncNeedUploadMessage.$Properties;
 
         /** Represents a SettingSyncNeedUploadMessage. */
         class SettingSyncNeedUploadMessage {
@@ -7427,14 +7374,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingSyncNeedUploadMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingSyncNeedUploadMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingSyncNeedUploadMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingSyncNeedUploadMessage;
 
             /**
              * Creates a plain object from a SettingSyncNeedUploadMessage message. Also converts values to other types if specified.
@@ -7442,13 +7389,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingSyncNeedUploadMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingSyncNeedUploadMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingSyncNeedUploadMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingSyncNeedUploadMessage
@@ -7478,8 +7425,7 @@ export namespace proto {
          * Properties of a SettingModifyAckMessage.
          * @deprecated Use proto.v1.SettingModifyAckMessage.$Properties instead.
          */
-        interface ISettingModifyAckMessage extends proto.v1.SettingModifyAckMessage.$Properties {
-        }
+        type ISettingModifyAckMessage = proto.v1.SettingModifyAckMessage.$Properties;
 
         /** Represents a SettingModifyAckMessage. */
         class SettingModifyAckMessage {
@@ -7550,14 +7496,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingModifyAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingModifyAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingModifyAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingModifyAckMessage;
 
             /**
              * Creates a plain object from a SettingModifyAckMessage message. Also converts values to other types if specified.
@@ -7565,13 +7511,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingModifyAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingModifyAckMessage
@@ -7607,8 +7553,7 @@ export namespace proto {
          * Properties of a SettingDeleteAckMessage.
          * @deprecated Use proto.v1.SettingDeleteAckMessage.$Properties instead.
          */
-        interface ISettingDeleteAckMessage extends proto.v1.SettingDeleteAckMessage.$Properties {
-        }
+        type ISettingDeleteAckMessage = proto.v1.SettingDeleteAckMessage.$Properties;
 
         /** Represents a SettingDeleteAckMessage. */
         class SettingDeleteAckMessage {
@@ -7679,14 +7624,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a SettingDeleteAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns SettingDeleteAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.SettingDeleteAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.SettingDeleteAckMessage;
 
             /**
              * Creates a plain object from a SettingDeleteAckMessage message. Also converts values to other types if specified.
@@ -7694,13 +7639,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.SettingDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.SettingDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this SettingDeleteAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for SettingDeleteAckMessage
@@ -7736,8 +7681,7 @@ export namespace proto {
          * Properties of a FolderSyncCheckRequest.
          * @deprecated Use proto.v1.FolderSyncCheckRequest.$Properties instead.
          */
-        interface IFolderSyncCheckRequest extends proto.v1.FolderSyncCheckRequest.$Properties {
-        }
+        type IFolderSyncCheckRequest = proto.v1.FolderSyncCheckRequest.$Properties;
 
         /** Represents a FolderSyncCheckRequest. */
         class FolderSyncCheckRequest {
@@ -7808,14 +7752,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncCheckRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncCheckRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncCheckRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncCheckRequest;
 
             /**
              * Creates a plain object from a FolderSyncCheckRequest message. Also converts values to other types if specified.
@@ -7823,13 +7767,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncCheckRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncCheckRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncCheckRequest
@@ -7865,8 +7809,7 @@ export namespace proto {
          * Properties of a FolderSyncDelFolder.
          * @deprecated Use proto.v1.FolderSyncDelFolder.$Properties instead.
          */
-        interface IFolderSyncDelFolder extends proto.v1.FolderSyncDelFolder.$Properties {
-        }
+        type IFolderSyncDelFolder = proto.v1.FolderSyncDelFolder.$Properties;
 
         /** Represents a FolderSyncDelFolder. */
         class FolderSyncDelFolder {
@@ -7934,14 +7877,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncDelFolder message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncDelFolder
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncDelFolder;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncDelFolder;
 
             /**
              * Creates a plain object from a FolderSyncDelFolder message. Also converts values to other types if specified.
@@ -7949,13 +7892,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncDelFolder, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncDelFolder, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncDelFolder to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncDelFolder
@@ -7988,8 +7931,7 @@ export namespace proto {
          * Properties of a FolderSyncRequest.
          * @deprecated Use proto.v1.FolderSyncRequest.$Properties instead.
          */
-        interface IFolderSyncRequest extends proto.v1.FolderSyncRequest.$Properties {
-        }
+        type IFolderSyncRequest = proto.v1.FolderSyncRequest.$Properties;
 
         /** Represents a FolderSyncRequest. */
         class FolderSyncRequest {
@@ -8069,14 +8011,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncRequest;
 
             /**
              * Creates a plain object from a FolderSyncRequest message. Also converts values to other types if specified.
@@ -8084,13 +8026,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncRequest
@@ -8135,8 +8077,7 @@ export namespace proto {
          * Properties of a FolderCreateRequest.
          * @deprecated Use proto.v1.FolderCreateRequest.$Properties instead.
          */
-        interface IFolderCreateRequest extends proto.v1.FolderCreateRequest.$Properties {
-        }
+        type IFolderCreateRequest = proto.v1.FolderCreateRequest.$Properties;
 
         /** Represents a FolderCreateRequest. */
         class FolderCreateRequest {
@@ -8207,14 +8148,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderCreateRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderCreateRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderCreateRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderCreateRequest;
 
             /**
              * Creates a plain object from a FolderCreateRequest message. Also converts values to other types if specified.
@@ -8222,13 +8163,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderCreateRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderCreateRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderCreateRequest
@@ -8264,8 +8205,7 @@ export namespace proto {
          * Properties of a FolderDeleteRequest.
          * @deprecated Use proto.v1.FolderDeleteRequest.$Properties instead.
          */
-        interface IFolderDeleteRequest extends proto.v1.FolderDeleteRequest.$Properties {
-        }
+        type IFolderDeleteRequest = proto.v1.FolderDeleteRequest.$Properties;
 
         /** Represents a FolderDeleteRequest. */
         class FolderDeleteRequest {
@@ -8336,14 +8276,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderDeleteRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderDeleteRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderDeleteRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderDeleteRequest;
 
             /**
              * Creates a plain object from a FolderDeleteRequest message. Also converts values to other types if specified.
@@ -8351,13 +8291,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderDeleteRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderDeleteRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderDeleteRequest
@@ -8393,8 +8333,7 @@ export namespace proto {
          * Properties of a FolderRenameRequest.
          * @deprecated Use proto.v1.FolderRenameRequest.$Properties instead.
          */
-        interface IFolderRenameRequest extends proto.v1.FolderRenameRequest.$Properties {
-        }
+        type IFolderRenameRequest = proto.v1.FolderRenameRequest.$Properties;
 
         /** Represents a FolderRenameRequest. */
         class FolderRenameRequest {
@@ -8471,14 +8410,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderRenameRequest message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderRenameRequest
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderRenameRequest;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderRenameRequest;
 
             /**
              * Creates a plain object from a FolderRenameRequest message. Also converts values to other types if specified.
@@ -8486,13 +8425,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderRenameRequest, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderRenameRequest to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderRenameRequest
@@ -8534,8 +8473,7 @@ export namespace proto {
          * Properties of a FolderSyncModifyMessage.
          * @deprecated Use proto.v1.FolderSyncModifyMessage.$Properties instead.
          */
-        interface IFolderSyncModifyMessage extends proto.v1.FolderSyncModifyMessage.$Properties {
-        }
+        type IFolderSyncModifyMessage = proto.v1.FolderSyncModifyMessage.$Properties;
 
         /** Represents a FolderSyncModifyMessage. */
         class FolderSyncModifyMessage {
@@ -8612,14 +8550,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncModifyMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncModifyMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncModifyMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncModifyMessage;
 
             /**
              * Creates a plain object from a FolderSyncModifyMessage message. Also converts values to other types if specified.
@@ -8627,13 +8565,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncModifyMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncModifyMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncModifyMessage
@@ -8675,8 +8613,7 @@ export namespace proto {
          * Properties of a FolderSyncDeleteMessage.
          * @deprecated Use proto.v1.FolderSyncDeleteMessage.$Properties instead.
          */
-        interface IFolderSyncDeleteMessage extends proto.v1.FolderSyncDeleteMessage.$Properties {
-        }
+        type IFolderSyncDeleteMessage = proto.v1.FolderSyncDeleteMessage.$Properties;
 
         /** Represents a FolderSyncDeleteMessage. */
         class FolderSyncDeleteMessage {
@@ -8753,14 +8690,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncDeleteMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncDeleteMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncDeleteMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncDeleteMessage;
 
             /**
              * Creates a plain object from a FolderSyncDeleteMessage message. Also converts values to other types if specified.
@@ -8768,13 +8705,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncDeleteMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncDeleteMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncDeleteMessage
@@ -8816,8 +8753,7 @@ export namespace proto {
          * Properties of a FolderSyncRenameMessage.
          * @deprecated Use proto.v1.FolderSyncRenameMessage.$Properties instead.
          */
-        interface IFolderSyncRenameMessage extends proto.v1.FolderSyncRenameMessage.$Properties {
-        }
+        type IFolderSyncRenameMessage = proto.v1.FolderSyncRenameMessage.$Properties;
 
         /** Represents a FolderSyncRenameMessage. */
         class FolderSyncRenameMessage {
@@ -8900,14 +8836,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncRenameMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncRenameMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncRenameMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncRenameMessage;
 
             /**
              * Creates a plain object from a FolderSyncRenameMessage message. Also converts values to other types if specified.
@@ -8915,13 +8851,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncRenameMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncRenameMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncRenameMessage
@@ -8969,8 +8905,7 @@ export namespace proto {
          * Properties of a FolderSyncEndMessage.
          * @deprecated Use proto.v1.FolderSyncEndMessage.$Properties instead.
          */
-        interface IFolderSyncEndMessage extends proto.v1.FolderSyncEndMessage.$Properties {
-        }
+        type IFolderSyncEndMessage = proto.v1.FolderSyncEndMessage.$Properties;
 
         /** Represents a FolderSyncEndMessage. */
         class FolderSyncEndMessage {
@@ -9041,14 +8976,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderSyncEndMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderSyncEndMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderSyncEndMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderSyncEndMessage;
 
             /**
              * Creates a plain object from a FolderSyncEndMessage message. Also converts values to other types if specified.
@@ -9056,13 +8991,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderSyncEndMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderSyncEndMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderSyncEndMessage
@@ -9098,8 +9033,7 @@ export namespace proto {
          * Properties of a FolderModifyAckMessage.
          * @deprecated Use proto.v1.FolderModifyAckMessage.$Properties instead.
          */
-        interface IFolderModifyAckMessage extends proto.v1.FolderModifyAckMessage.$Properties {
-        }
+        type IFolderModifyAckMessage = proto.v1.FolderModifyAckMessage.$Properties;
 
         /** Represents a FolderModifyAckMessage. */
         class FolderModifyAckMessage {
@@ -9170,14 +9104,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderModifyAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderModifyAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderModifyAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderModifyAckMessage;
 
             /**
              * Creates a plain object from a FolderModifyAckMessage message. Also converts values to other types if specified.
@@ -9185,13 +9119,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderModifyAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderModifyAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderModifyAckMessage
@@ -9227,8 +9161,7 @@ export namespace proto {
          * Properties of a FolderRenameAckMessage.
          * @deprecated Use proto.v1.FolderRenameAckMessage.$Properties instead.
          */
-        interface IFolderRenameAckMessage extends proto.v1.FolderRenameAckMessage.$Properties {
-        }
+        type IFolderRenameAckMessage = proto.v1.FolderRenameAckMessage.$Properties;
 
         /** Represents a FolderRenameAckMessage. */
         class FolderRenameAckMessage {
@@ -9299,14 +9232,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderRenameAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderRenameAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderRenameAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderRenameAckMessage;
 
             /**
              * Creates a plain object from a FolderRenameAckMessage message. Also converts values to other types if specified.
@@ -9314,13 +9247,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderRenameAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderRenameAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderRenameAckMessage
@@ -9356,8 +9289,7 @@ export namespace proto {
          * Properties of a FolderDeleteAckMessage.
          * @deprecated Use proto.v1.FolderDeleteAckMessage.$Properties instead.
          */
-        interface IFolderDeleteAckMessage extends proto.v1.FolderDeleteAckMessage.$Properties {
-        }
+        type IFolderDeleteAckMessage = proto.v1.FolderDeleteAckMessage.$Properties;
 
         /** Represents a FolderDeleteAckMessage. */
         class FolderDeleteAckMessage {
@@ -9428,14 +9360,14 @@ export namespace proto {
              * @param message Plain object to verify
              * @returns `null` if valid, otherwise the reason why it is not
              */
-            static verify(message: { [k: string]: any }): (string|null);
+            static verify(message: { [k: string]: unknown }): (string|null);
 
             /**
              * Creates a FolderDeleteAckMessage message from a plain object. Also converts values to their respective internal types.
              * @param object Plain object
              * @returns FolderDeleteAckMessage
              */
-            static fromObject(object: { [k: string]: any }): proto.v1.FolderDeleteAckMessage;
+            static fromObject(object: { [k: string]: unknown }): proto.v1.FolderDeleteAckMessage;
 
             /**
              * Creates a plain object from a FolderDeleteAckMessage message. Also converts values to other types if specified.
@@ -9443,13 +9375,13 @@ export namespace proto {
              * @param [options] Conversion options
              * @returns Plain object
              */
-            static toObject(message: proto.v1.FolderDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+            static toObject(message: proto.v1.FolderDeleteAckMessage, options?: $protobuf.IConversionOptions): { [k: string]: unknown };
 
             /**
              * Converts this FolderDeleteAckMessage to JSON.
              * @returns JSON object
              */
-            toJSON(): { [k: string]: any };
+            toJSON(): { [k: string]: unknown };
 
             /**
              * Gets the type url for FolderDeleteAckMessage

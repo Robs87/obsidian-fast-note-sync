@@ -90,6 +90,8 @@ export interface PluginSettings {
   showSyncIndicator: boolean
   /** 是否自动检测 API 跳转 (301/302) */
   autoRedirectEnabled: boolean
+  /** 跳转服务地址(域名)允许清单 */
+  allowedRedirectDomains: string
   /** 是否在WS连接前进行探测 */
   wsPreProbeEnabled: boolean
   /** 移动端消息通知距顶距离（px）/ Mobile toast top offset (px) */
@@ -149,7 +151,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   maxConcurrentUploads: 20,
   showConcurrencyIndicator: true,
   showSyncIndicator: false,
-  autoRedirectEnabled: false,
+  autoRedirectEnabled: true,
+  allowedRedirectDomains: "",
   wsPreProbeEnabled: true,
   // 手机 110，平板 126，与 CSS 硬编码值一致 / Phone 110, tablet 126, matches CSS defaults
   mobileToastTop: Platform.isTablet ? 126 : 110,
@@ -202,6 +205,10 @@ export class SettingTab extends PluginSettingTab {
     this.roots.forEach((root) => root.unmount())
     this.roots = []
     this.component.unload()
+  }
+
+  refresh(): void {
+    (this as unknown as { display(): void }).display();
   }
 
   display(): void {
@@ -333,13 +340,13 @@ export class SettingTab extends PluginSettingTab {
         // Swipe right -> Previous tab
         if (currentIndex > 0) {
           this.activeTab = tabs[currentIndex - 1]
-          this.display()
+          this.refresh()
         }
       } else {
         // Swipe left -> Next tab
         if (currentIndex < tabs.length - 1) {
           this.activeTab = tabs[currentIndex + 1]
-          this.display()
+          this.refresh()
         }
       }
     }
@@ -353,7 +360,7 @@ export class SettingTab extends PluginSettingTab {
 
     // 优化：使用防抖减少重绘，并提高响应速度 (从 500ms 默认降低到 150ms)
     const debouncedApply = debounce(() => {
-      this.display()
+      this.refresh()
     }, 150)
 
     search.onChange((value) => {
@@ -452,7 +459,7 @@ export class SettingTab extends PluginSettingTab {
         this.searchQuery = "" // 切换标签时清空搜索
         if (this.searchComponent) this.searchComponent.setValue("")
         this.activeTab = tab.id
-        this.display()
+        this.refresh()
       }
     })
 
@@ -815,7 +822,7 @@ export class SettingTab extends PluginSettingTab {
               showSyncNotice($("setting.debug.reset_all_success"))
 
               // 重新渲染设置页面以展示变化
-              this.display()
+              this.refresh()
             })();
           },
           $("ui.button.confirm"),
@@ -849,7 +856,7 @@ export class SettingTab extends PluginSettingTab {
         .onChange(async (value: "off" | "console" | "internal") => {
           this.plugin.settings.logEnabled = value
           await this.plugin.saveAndReloadServices()
-          this.display() // 重新渲染以更新按钮显示状态
+          this.refresh() // 重新渲染以更新按钮显示状态
         }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.support.log_desc"))
@@ -901,8 +908,14 @@ export class SettingTab extends PluginSettingTab {
       .setDesc($("setting.sync.clear_remote_desc"))
       .setClass("fns-setting-item-vertical")
       .addButton((btn) => {
+        const destBtn = btn as unknown as { setDestructive(): void };
+        if (typeof destBtn.setDestructive === "function") {
+          destBtn.setDestructive();
+        } else {
+          const legacyBtn = btn as unknown as { setWarning(): void };
+          legacyBtn.setWarning();
+        }
         btn
-          .setWarning()
           .setButtonText($("setting.sync.clear_remote"))
           .onClick(async () => {
             new ConfirmModal(this.app, $("setting.sync.clear_remote"), $("setting.sync.clear_remote_confirm"), () => {
@@ -1004,7 +1017,7 @@ export class SettingTab extends PluginSettingTab {
           dump("[fast-note-sync] arrayBuffer loaded. size in bytes:", arrayBuffer.byteLength);
 
           dump("[fast-note-sync] unzipping file contents with fflate...");
-          const unzipped = unzipSync(new Uint8Array(arrayBuffer));
+          const unzipped: Record<string, Uint8Array> = unzipSync(new Uint8Array(arrayBuffer));
           dump("[fast-note-sync] unzip completed. Total items in zip:", Object.keys(unzipped).length);
 
           // 4. 自动检测根目录前缀（寻找 manifest.json 所在位置） / Automatically detect root prefix in zip
@@ -1042,7 +1055,7 @@ export class SettingTab extends PluginSettingTab {
             }
 
             dump(`[fast-note-sync] writing binary data to: ${path}`);
-            await this.plugin.app.vault.adapter.writeBinary(path, content.buffer);
+            await this.plugin.app.vault.adapter.writeBinary(path, content.buffer as ArrayBuffer);
           }
           dump("[fast-note-sync] all files successfully extracted and written to filesystem.");
 
@@ -1093,7 +1106,7 @@ export class SettingTab extends PluginSettingTab {
         if (value != this.plugin.settings.isShowNotice) {
           this.plugin.settings.isShowNotice = value
           await this.plugin.saveAndReloadServices()
-          this.display()
+          this.refresh()
         }
       }),
     )
@@ -1241,6 +1254,11 @@ export class SettingTab extends PluginSettingTab {
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.remote.api_url_desc"))
 
+    if (this.plugin.settings.api && this.plugin.settings.api.toLowerCase().startsWith("http://")) {
+      const warningEl = set.createDiv("fns-setting-warning");
+      warningEl.setText($("setting.remote.http_warning"));
+    }
+
     new Setting(set).setName($("setting.remote.api_token")).addText((text) =>
       text
         .setPlaceholder($("setting.remote.api_token_placeholder"))
@@ -1273,9 +1291,28 @@ export class SettingTab extends PluginSettingTab {
       toggle.setValue(this.plugin.settings.autoRedirectEnabled).onChange(async (value) => {
         this.plugin.settings.autoRedirectEnabled = value
         await this.plugin.saveAndReloadServices()
+        this.refresh()
       }),
     )
     this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.remote.auto_redirect_desc"))
+
+    if (this.plugin.settings.autoRedirectEnabled) {
+      new Setting(set)
+        .setName($("setting.remote.allowed_redirect_domains") || "跳转域名允许清单")
+        .addTextArea((text) =>
+          text
+            .setPlaceholder("例如: *.example.com\nbackup.myvault.cn")
+            .setValue(this.plugin.settings.allowedRedirectDomains || "")
+            .onChange(async (value) => {
+              this.plugin.settings.allowedRedirectDomains = value
+              await this.plugin.saveSettings()
+            }),
+        )
+      this.setDescWithBreaks(
+        set.lastElementChild as HTMLElement,
+        $("setting.remote.allowed_redirect_domains_desc") || "设置允许自动重定向的目标域名列表。相同域名下的重定向默认允许。多条规则请使用换行或逗号分隔，支持通配符（如 *.example.com）。"
+      )
+    }
 
     new Setting(set).setName($("setting.remote.ws_pre_probe")).setClass("fns-setting-item-checkbox").addToggle((toggle) =>
       toggle.setValue(this.plugin.settings.wsPreProbeEnabled).onChange(async (value) => {
@@ -1296,7 +1333,10 @@ export class SettingTab extends PluginSettingTab {
           }
         }),
     )
-    this.setDescWithBreaks(set.lastElementChild as HTMLElement, $("setting.remote.client_name_desc"))
+    this.setDescWithBreaks(
+      set.lastElementChild as HTMLElement,
+      $("setting.remote.client_name_desc") + "\n*(隐私提示：若不配置将默认回退为操作系统通用标识，如需自定义建议使用不包含您真实全名或设备隐私特征的代号)*"
+    )
   }
 
   private renderShortcutSettings(set: HTMLElement) {
@@ -1359,7 +1399,7 @@ export class SettingTab extends PluginSettingTab {
       btn.setButtonText($("ui.button.reset")).onClick(async () => {
         await this.plugin.setCommandHotkey("open-sync-log", "Ctrl+Shift+Q")
         this.lastViewMode = "" // 强制重新渲染内容
-        this.display()
+        this.refresh()
       })
     })
 
@@ -1409,7 +1449,7 @@ export class SettingTab extends PluginSettingTab {
       btn.setButtonText($("ui.button.reset")).onClick(async () => {
         await this.plugin.setCommandHotkey("open-sync-menu", "Ctrl+Shift+W")
         this.lastViewMode = "" // 强制重新渲染内容
-        this.display()
+        this.refresh()
       })
     })
 
@@ -1459,7 +1499,7 @@ export class SettingTab extends PluginSettingTab {
       btn.setButtonText($("ui.button.reset")).onClick(async () => {
         await this.plugin.setCommandHotkey("open-settings", "Ctrl+Shift+S")
         this.lastViewMode = "" // 强制重新渲染内容
-        this.display()
+        this.refresh()
       })
     })
   }
@@ -1469,7 +1509,7 @@ export class SettingTab extends PluginSettingTab {
       toggle.setValue(this.plugin.settings.syncEnabled).onChange(async (value) => {
         if (value != this.plugin.settings.syncEnabled) {
           this.plugin.settings.syncEnabled = value
-          this.display()
+          this.refresh()
           await this.plugin.saveAndReloadServices("syncEnabled")
         }
       }),
@@ -1511,7 +1551,7 @@ export class SettingTab extends PluginSettingTab {
         if (value != this.plugin.settings.concurrencyControlEnabled) {
           this.plugin.settings.concurrencyControlEnabled = value
           this.plugin.menuManager.refreshConcurrencyIndicator()
-          this.display()
+          this.refresh()
           await this.plugin.saveAndReloadServices("concurrencyControlEnabled")
         }
       }),
@@ -1687,7 +1727,7 @@ export class SettingTab extends PluginSettingTab {
         if (value != this.plugin.settings.cloudPreviewEnabled) {
           this.plugin.settings.cloudPreviewEnabled = value
           await this.plugin.saveAndReloadServices()
-          this.display()
+          this.refresh()
         }
       }),
     )

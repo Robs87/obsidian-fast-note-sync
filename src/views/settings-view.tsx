@@ -22,11 +22,11 @@ async function getClipboardContent(plugin: FastSync): Promise<void> {
 
     plugin.localStorageManager.clearSyncTime()
     await plugin.saveAndReloadServices()
-    plugin.settingTab.display()
+    plugin.settingTab.refresh()
 
     window.setTimeout(() => {
       plugin.clipboardReadTip = ""
-      plugin.settingTab.display()
+      plugin.settingTab.refresh()
     }, 2000)
   }
 
@@ -35,11 +35,11 @@ async function getClipboardContent(plugin: FastSync): Promise<void> {
     plugin.clipboardReadTip = tip
 
     await plugin.saveAndReloadServices()
-    plugin.settingTab.display()
+    plugin.settingTab.refresh()
 
     window.setTimeout(() => {
       plugin.clipboardReadTip = ""
-      plugin.settingTab.display()
+      plugin.settingTab.refresh()
     }, 2000)
   }
 
