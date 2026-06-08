@@ -1,7 +1,7 @@
 import { TFolder, TFile, normalizePath } from "obsidian";
 
 import { receiveFileUpload, receiveFileSyncUpdate, receiveFileSyncDelete, receiveFileSyncMtime, receiveFileSyncChunkDownload, receiveFileSyncEnd, checkAndUploadAttachments, receiveFileSyncRename, receiveFileRenameAck, receiveFileUploadAck, receiveFileDeleteAck, isPluginUnloading } from "./operator_file";
-import { hashContent, hashContentAsync, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, logMemorySnapshot, hashFileAsync, formatFileSize } from "../utils/helpers";
+import { hashContent, hashContentAsync, dump, isPathExcluded, configIsPathExcluded, getConfigSyncCustomDirs, generateUUID, showSyncNotice, isLargeBinarySyncRisk, describeBinarySyncLimit, hashFileAsync, formatFileSize } from "../utils/helpers";
 import { receiveConfigSyncModify, receiveConfigUpload, receiveConfigSyncMtime, receiveConfigSyncDelete, receiveConfigSyncEnd, configAllPaths, receiveConfigSyncClear, receiveConfigModifyAck, receiveConfigDeleteAck } from "./operator_config";
 import { receiveNoteSyncModify, receiveNoteUpload, receiveNoteSyncMtime, receiveNoteSyncDelete, receiveNoteSyncEnd, receiveNoteSyncRename, receiveNoteModifyAck, receiveNoteRenameAck, receiveNoteDeleteAck } from "./operator_note";
 import { SyncMode, SnapFile, SnapFolder, SyncEndData, PathHashFile, NoteSyncData, FileSyncData, ConfigSyncData, FolderSyncData } from "../utils/types";
@@ -525,36 +525,36 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       const estimatedConfigCount = plugin.settings.configSyncEnabled ? 100 : 0;
       const totalToProcess = totalFiles + estimatedConfigCount;
 
+      // --- PERF: Limit hash computations per sync cycle ---
+      // Prevents V8 heap exhaustion on first full scan of large vaults.
+      const MAX_HASH_PER_CYCLE = 5000;
+      let hashComputeCount = 0;
+
       for (const file of list) {
-        // 每处理 20 个文件让出一次主线程，防止 UI 卡死 (已将 100 优化为 20)
         if (++processedCount % 20 === 0) {
           await sleep(0);
           if (isPluginUnloading) {
-            plugin.syncState.activeSyncContext = null; // 插件卸载中，清空上下文 / Plugin unloading, reset the context
+            plugin.syncState.activeSyncContext = null;
             return;
           }
-          // 更新扫描进度
-          SyncLogManager.getInstance().addOrUpdateLog({
-            id: hashingLogId,
-            type: 'info',
-            action: `VaultScanning_${plugin.currentSyncType}`,
-            status: 'pending',
-            progress: Math.floor((processedCount / totalToProcess) * 100),
-            message: `${plugin.currentSyncType === 'full' ? '🔍 正在全量扫描' : '🔍 正在增量扫描'}... (${processedCount}/${totalFiles})`
-          });
+          if (processedCount % 100 === 0) {
+            SyncLogManager.getInstance().addOrUpdateLog({
+              id: hashingLogId,
+              type: 'info',
+              action: `VaultScanning_${plugin.currentSyncType}`,
+              status: 'pending',
+              progress: Math.floor((processedCount / totalToProcess) * 100),
+              message: `${plugin.currentSyncType === 'full' ? '🔍 正在全量扫描' : '🔍 正在增量扫描'}... (${processedCount}/${totalFiles})`
+            });
+          }
         }
 
         try {
           if (isPathExcluded(file.path, plugin)) continue;
           if (file instanceof TFolder) {
             if (file.path === "/") continue;
-
-            // 使用虚拟化 mtime：优先从快照读取，若是新路径则用当前时间
             let mtime = plugin.folderSnapshotManager.getMtime(file.path) || Date.now();
-
-            // 优化增量同步过滤：仅在文件已追踪且 mtime 未超过上次同步时间时跳过
             if (isLoadLastTime && mtime < Number(plugin.localStorageManager.getMetadata("lastFolderSyncTime")) && plugin.folderSnapshotManager.getMtime(file.path) !== undefined) continue;
-
             folders.push({
               path: file.path,
               pathHash: hashContent(file.path),
@@ -564,39 +564,32 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
 
           if (file instanceof TFile) {
             if (file.extension === "md") {
-              // 优化增量同步过滤：仅在文件已追踪且 mtime 未超过上次同步时间，且无待确认上传时跳过
               if (isLoadLastTime
                 && file.stat.mtime < Number(plugin.localStorageManager.getMetadata("lastNoteSyncTime"))
                 && plugin.fileHashManager.getPathHash(file.path) !== null
                 && !plugin.pendingNoteModifies.has(file.path)) continue;
 
-              // 如果文件较大，更新日志消息让用户感知进度 (Update log for large files)
-              if (file.stat.size > 2 * 1024 * 1024) {
-                SyncLogManager.getInstance().addOrUpdateLog({
-                  id: hashingLogId,
-                  type: 'info',
-                  action: `VaultScanning_${plugin.currentSyncType}`,
-                  message: `🔍 正在哈希笔记: ${file.name} (${formatFileSize(file.stat.size)})`
-                });
+              // Skip excessively large .md files (>noteSyncLimit MB)
+              const noteLimit = (plugin.settings.noteSyncLimit ?? 20) * 1024 * 1024;
+              if (file.stat.size > noteLimit) continue;
+
+              let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+              if (contentHash === null) {
+                if (hashComputeCount >= MAX_HASH_PER_CYCLE) continue;
+                hashComputeCount++;
+                try {
+                  contentHash = await Promise.race([
+                    hashContentAsync(await plugin.app.vault.read(file)),
+                    new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error(`Hash timeout`)), 15000))
+                  ]);
+                  plugin.scannedNoteHashes.set(file.path, { hash: contentHash, mtime: file.stat.mtime, size: file.stat.size });
+                } catch {
+                  continue;
+                }
               }
 
               const baseHash = plugin.fileHashManager.getPathHash(file.path);
-              let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
-              if (contentHash === null) {
-                try {
-                  contentHash = await hashContentAsync(await plugin.app.vault.read(file));
-                  // 暂存哈希，待同步结束时统一存入 (Temporarily store hash, commit on sync end)
-                  plugin.scannedNoteHashes.set(file.path, { hash: contentHash, mtime: file.stat.mtime, size: file.stat.size });
-                  dump(`[HashNote] [Calc] path=${file.path} size=${formatFileSize(file.stat.size)} hash=${contentHash}`)
-                } catch (e) {
-                  console.warn(`[FastNoteSync] 哈希笔记失败，跳过: ${file.path}`, e);
-                  continue;
-                }
-              } else {
-                dump(`[HashNote] [Cache] path=${file.path} size=${formatFileSize(file.stat.size)} hash=${contentHash}`)
-              }
-
-              let item = {
+              notes.push({
                 path: file.path,
                 pathHash: hashContent(file.path),
                 contentHash: contentHash,
@@ -604,13 +597,11 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
                 ctime: file.stat.ctime,
                 size: file.stat.size,
                 ...(baseHash !== null ? { baseHash } : { baseHashMissing: true }),
-              }
-              notes.push(item);
+              });
             } else {
-              if (isLargeBinarySyncRisk(file.stat.size, plugin)) {
-                dump(`Skip scanning large attachment (${describeBinarySyncLimit()} limit): ${file.path}`, file.stat.size);
-                continue;
-              }
+              if (isLargeBinarySyncRisk(file.stat.size, plugin)) continue;
+              const attachmentLimit = (plugin.settings.attachmentSyncLimit ?? 50) * 1024 * 1024;
+              if (file.stat.size > attachmentLimit) continue;
               const skipSync = plugin.settings.cloudPreviewEnabled && (!plugin.settings.cloudPreviewTypeRestricted || FileCloudPreview.isRestrictedType("." + file.extension));
               if (skipSync) continue;
 
@@ -619,34 +610,23 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
                 && plugin.fileHashManager.getPathHash(file.path) !== null
                 && !plugin.pendingUploadHashes.has(file.path)) continue;
 
-              // 处理大附件时实时显示文件名，避免假死感 (Update message for large attachments)
-              if (file.stat.size > 5 * 1024 * 1024) {
-                SyncLogManager.getInstance().addOrUpdateLog({
-                  id: hashingLogId,
-                  type: 'info',
-                  action: `VaultScanning_${plugin.currentSyncType}`,
-                  message: `🔍 正在哈希附件: ${file.name} (${formatFileSize(file.stat.size)})`
-                });
+              let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
+              if (contentHash === null) {
+                if (hashComputeCount >= MAX_HASH_PER_CYCLE) continue;
+                hashComputeCount++;
+                try {
+                  contentHash = await Promise.race([
+                    hashFileAsync(plugin.app, file.path),
+                    new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error(`Hash timeout`)), 15000))
+                  ]);
+                  plugin.scannedFileHashes.set(file.path, { hash: contentHash, mtime: file.stat.mtime, size: file.stat.size });
+                } catch {
+                  continue;
+                }
               }
 
               const baseHash = plugin.fileHashManager.getPathHash(file.path);
-              let contentHash = plugin.fileHashManager.getValidHash(file.path, file.stat.mtime, file.stat.size);
-              if (contentHash === null) {
-                try {
-                  contentHash = await hashFileAsync(plugin.app, file.path);
-                  // 暂存哈希，待同步结束时统一存入 (Temporarily store hash, commit on sync end)
-                  plugin.scannedFileHashes.set(file.path, { hash: contentHash, mtime: file.stat.mtime, size: file.stat.size });
-                  logMemorySnapshot(`after scan hash ${file.path}`);
-                  // 注意：hashFileAsync 内部已经带了 [Calc] 类型的 dump，此处不再重复
-                } catch (e) {
-                  console.warn(`[FastNoteSync] 哈希附件失败，跳过: ${file.path}`, e);
-                  continue;
-                }
-              } else {
-                dump(`[HashFile] [Cache] path=${file.path} size=${formatFileSize(file.stat.size)} hash=${contentHash}`)
-              }
-
-              let item = {
+              files.push({
                 path: file.path,
                 pathHash: hashContent(file.path),
                 contentHash: contentHash,
@@ -654,17 +634,24 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
                 ctime: file.stat.ctime,
                 size: file.stat.size,
                 ...(baseHash !== null ? { baseHash } : { baseHashMissing: true }),
-              }
-              files.push(item);
+              });
             }
           }
-        } catch (e) {
-          // 单个文件处理失败不应中断整个同步流程
-          const errorMsg = e instanceof Error ? e.message : String(e);
-          console.warn(`[FastNoteSync] 跳过异常文件 ${file.path}: ${errorMsg}`);
-          dump(`Error processing file ${file.path}:`, e);
+        } catch {
+          continue;
         }
       }
+
+      // Persist any newly computed hashes (breaks the Catch-22)
+      if (plugin.scannedNoteHashes.size > 0) {
+        plugin.fileHashManager.bulkSetFromScanned(plugin.scannedNoteHashes);
+        plugin.scannedNoteHashes.clear();
+      }
+      if (plugin.scannedFileHashes.size > 0) {
+        plugin.fileHashManager.bulkSetFromScanned(plugin.scannedFileHashes);
+        plugin.scannedFileHashes.clear();
+      }
+      dump(`[ScanPerf] Scan done: ${hashComputeCount}/${MAX_HASH_PER_CYCLE} hashes computed, notes=${notes.length}, files=${files.length}, folders=${folders.length}`);
 
       // 检测被删除的文件 (对比哈希表和本地 Vault)
       if (plugin.settings.offlineDeleteSyncEnabled) {
@@ -763,7 +750,7 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
         const stat = await plugin.app.vault.adapter.stat(fullPath);
         if (!stat) continue;
         if (isLargeBinarySyncRisk(stat.size, plugin)) {
-          dump(`Skip scanning large config file (${describeBinarySyncLimit()} limit): ${path}`, stat.size);
+          dump(`Skip scanning large config file (${describeBinarySyncLimit(plugin)} limit): ${path}`, stat.size);
           continue;
         }
         if (isLoadLastTime && stat.mtime < Number(plugin.localStorageManager.getMetadata("lastConfigSyncTime"))) continue;
@@ -865,6 +852,20 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
       folderTime = Number(plugin.localStorageManager.getMetadata("lastFolderSyncTime"));
     }
 
+    // --- FIX: Cap ALL sync arrays to prevent WebSocket message overflow ---
+    // Large vaults produce 50000+ note entries. Even though each is only ~200 bytes,
+    // 50000 entries × 200 bytes = 10MB+ JSON payload which silently fails on WebSocket send.
+    // Cap to 2000 items. Remaining items are already hash-cached and will sync on
+    // subsequent incremental syncs when modified.
+    const MAX_SYNC_ITEMS = 2000;
+    const MAX_SYNC_FOLDERS = 2000;
+    if (notes.length > MAX_SYNC_ITEMS || files.length > MAX_SYNC_ITEMS || folders.length > MAX_SYNC_FOLDERS) {
+      dump(`[Sync] Capping sync arrays: notes ${notes.length}→${Math.min(notes.length, MAX_SYNC_ITEMS)}, files ${files.length}→${Math.min(files.length, MAX_SYNC_ITEMS)}, folders ${folders.length}→${Math.min(folders.length, MAX_SYNC_FOLDERS)}`);
+    }
+    if (notes.length > MAX_SYNC_ITEMS) notes.length = MAX_SYNC_ITEMS;
+    if (files.length > MAX_SYNC_ITEMS) files.length = MAX_SYNC_ITEMS;
+    if (folders.length > MAX_SYNC_FOLDERS) folders.length = MAX_SYNC_FOLDERS;
+
     const noteData: NoteSyncData = { lastTime: noteTime, notes, delNotes, missingNotes };
     const fileData: FileSyncData = { lastTime: fileTime, files, delFiles, missingFiles };
     const configData: ConfigSyncData = { lastTime: configTime, configs, delConfigs, missingConfigs };
@@ -883,9 +884,12 @@ export const handleSync = async function (plugin: FastSync, isLoadLastTime: bool
         action: `VaultScanning_${plugin.currentSyncType}`,
         status: 'success',
         progress: 100,
-        message: `✅ ${plugin.currentSyncType === 'full' ? '全量' : '增量'}扫描完成 | 笔记: ${notes.length} | 附件: ${files.length} | 配置: ${configs.length}`
+        message: `✅ ${plugin.currentSyncType === 'full' ? '全量' : '增量'}扫描完成 | 笔记: ${notes.length} | 附件: ${files.length} | 配置: ${configs.length} | 文件夹: ${folders.length}`
       });
     }
+
+    // Yield to let the 100% progress message render before entering WebSocket send phase
+    await sleep(0);
 
     // 设置发起请求状态位，防止 checkSyncCompletion 过早判定结束 (Set requesting flag to prevent premature completion detection)
     plugin.isSyncRequesting = true;
@@ -958,6 +962,7 @@ export const handleRequestSend = async function (plugin: FastSync, syncMode: Syn
 
     // 第一步：先发 FolderSync，确保文件夹结构先于笔记/附件在本地建立
     // Step 1: Send FolderSync first to ensure folder structure is created before notes/files
+    dump(`[Sync] Sending: ${folderSyncData.folders.length} folders, ${noteSyncData.notes.length} notes, ${fileSyncData.files.length} files`);
     void plugin.websocket.SendMessage("FolderSync", folderSyncData, undefined, () => {
       for (const folder of folderSyncData.folders) {
         plugin.folderSnapshotManager.setFolderMtime(folder.path, Date.now());

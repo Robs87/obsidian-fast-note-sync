@@ -85,7 +85,7 @@ export class FileHashManager {
           } else {
 
             if (isLargeBinarySyncRisk(file.stat.size, this.plugin)) {
-              dump(`FileHashManager: skip large binary hash (${describeBinarySyncLimit()} limit): ${file.path}`, file.stat.size);
+              dump(`FileHashManager: skip large binary hash (${describeBinarySyncLimit(this.plugin)} limit): ${file.path}`, file.stat.size);
               continue;
             }
             contentHash = await hashFileAsync(this.plugin.app, file.path);
@@ -286,6 +286,24 @@ export class FileHashManager {
   clearAll(): void {
     this.hashMap.clear();
     this.saveToStorage();
+  }
+
+  /**
+   * Bulk-set hashes from a scanned hash map and persist once.
+   * Used to eagerly commit computed hashes during scan, breaking the
+   * Catch-22 where hashes are never persisted because SyncEnd is never received.
+   */
+  bulkSetFromScanned(scanned: Map<string, { hash: string; mtime: number; size: number }>): void {
+    if (scanned.size === 0) return;
+    let changed = false;
+    for (const [path, cache] of scanned) {
+      const existing = this.hashMap.get(path);
+      if (!existing || existing.mtime <= cache.mtime) {
+        this.hashMap.set(path, { hash: cache.hash, mtime: cache.mtime, size: cache.size });
+        changed = true;
+      }
+    }
+    if (changed) this.saveToStorage();
   }
 
   /**
