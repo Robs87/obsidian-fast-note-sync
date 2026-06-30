@@ -86,10 +86,6 @@ export default class FastSync extends Plugin {
   }>();
 
   setupProgressTracker() {
-    this.progressTracker.setChunkGetters(
-      () => this.uploadedChunksCount + this.downloadedChunksCount,
-      () => this.totalChunksToUpload + this.totalChunksToDownload
-    );
     this.progressTracker.onPageComplete = (type, pageIndex) => {
       this.sendSyncPageAck(type, pageIndex);
     };

@@ -282,7 +282,6 @@ async function receiveSyncEndWrapper(data: unknown, plugin: FastSync, type: "not
 
   const trueTotal = tasks.needUpload + tasks.needModify + tasks.needSyncMtime + tasks.needDelete;
   const trackerType = type === "config" ? "setting" : type;
-  plugin.progressTracker.setTotal(trackerType as SyncType, trueTotal);
   plugin.progressTracker.recordUploadComplete(trackerType as SyncType);
 
   // 1.1 注意：v1.1 协议中 End 消息不再携带 messages 列表。
@@ -356,6 +355,13 @@ async function receiveSyncEndWrapper(data: unknown, plugin: FastSync, type: "not
   } else if (type === "folder") {
     await receiveFolderSyncEnd(data, plugin);
     plugin.folderSyncEnd = true;
+  }
+
+  // 4. 如果所有活跃类型的客户端上传均已就绪（进入 download 推送阶段），批量触发首拉 Ack 信号
+  if (plugin.progressTracker.getPhase() === "download") {
+    for (const t of plugin.progressTracker.getActiveTypes()) {
+      plugin.sendSyncPageAck(t, -1);
+    }
   }
 }
 

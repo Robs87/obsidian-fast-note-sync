@@ -37,10 +37,6 @@ export class SyncProgressTracker {
   // Track if synchronization has been officially completed / 标记同步是否已正式完成
   private isForcedComplete = false;
 
-  // Callbacks for chunk metrics from plugin
-  private chunkCompletedGetter?: () => number;
-  private chunkTotalGetter?: () => number;
-
   /**
    * Page completion callback, triggers sendSyncPageAck.
    * 页完成回调，用于触发 sendSyncPageAck，使协议与 UI 渲染解耦。
@@ -53,12 +49,12 @@ export class SyncProgressTracker {
    */
   onChange?: (pct: number, detail: string, phase: SyncPhase) => void;
 
-  /**
-   * Set getters to fetch real-time file upload chunk counts.
-   */
-  setChunkGetters(completed: () => number, total: () => number) {
-    this.chunkCompletedGetter = completed;
-    this.chunkTotalGetter = total;
+  getActiveTypes(): SyncType[] {
+    return Array.from(this.activeTypes);
+  }
+
+  getTypeTaskTotal(type: SyncType): number {
+    return this.progressMap.get(type)?.pageTaskTotal || 0;
   }
 
   /**
@@ -113,11 +109,16 @@ export class SyncProgressTracker {
   }
 
   /**
-   * Set expected download total from SyncEnd message.
-   * (Keep for compatibility, but no longer dictates progress calculation).
+   * Record that one stage-3 download/process task is truly done.
+   * 记录一个阶段三任务真正完成（文件写盘/删除/跳过均算）。
+   * Called independently from recordCompleted; does not trigger page ACK.
+   * 与 recordCompleted 互相独立，不触发翻页 Ack，仅做进度显示计数。
    */
-  setTotal(type: SyncType, total: number): void {
-    // Left empty or minimal implementation since overall progress is page-driven
+  recordDownloadComplete(type: SyncType): void {
+    const prog = this.progressMap.get(type);
+    if (!prog) return;
+    prog.pageTaskCompleted++;
+    this.notify();
   }
 
   /**
@@ -144,8 +145,8 @@ export class SyncProgressTracker {
   }
 
   /**
-   * Record page control message metadata.
-   * 记录分页控制消息元数据，并累加总任务数。
+   * Record page control message metadata. Accumulates total unconditionally.
+   * 记录分页控制消息元数据，无条件累加分母总任务数（每个 SyncPage 批次追加）。
    */
   recordPageProgress(type: SyncType, pageIndex: number, totalCount: number, isLast: boolean): void {
     const prog = this.progressMap.get(type);
@@ -155,6 +156,7 @@ export class SyncProgressTracker {
     prog.downloadPageCount = totalCount;
     prog.downloadPageDone = 0;
 
+    // 无条件累加：分母来自每批 SyncPage 的 totalCount 之和
     prog.pageTaskTotal += totalCount;
     prog.allPagesReceived = isLast;
 
@@ -252,18 +254,8 @@ export class SyncProgressTracker {
 
       if (prog.pageTaskTotal > 0) {
         activeDownloadCount++;
-        let downRatio = 0;
-        let taskRatio = prog.pageTaskCompleted / prog.pageTaskTotal;
-        if (type === 'file') {
-          const chunkCompleted = this.chunkCompletedGetter ? this.chunkCompletedGetter() : 0;
-          const chunkTotal = this.chunkTotalGetter ? this.chunkTotalGetter() : 0;
-          if (chunkTotal > 0) {
-            const chunkRatio = Math.min(0.95, chunkCompleted / chunkTotal);
-            taskRatio = Math.min(1, (prog.pageTaskCompleted + chunkRatio * Math.min(1, prog.pageTaskTotal - prog.pageTaskCompleted)) / prog.pageTaskTotal);
-          }
-        }
-        downRatio = taskRatio;
-        downloadSum += downRatio;
+        const taskRatio = prog.pageTaskCompleted / prog.pageTaskTotal;
+        downloadSum += taskRatio;
       }
     }
 
