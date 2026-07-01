@@ -75,6 +75,7 @@ const cleanupFileDownloadSession = async (plugin: FastSync, session: FileDownloa
   releaseSessionMemory(session)
   plugin.fileDownloadSessions.delete(session.sessionId)
   if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
+  plugin.fileSyncTasks.completed++
 }
 
 const failFileDownloadSession = async (plugin: FastSync, session: FileDownloadSession, message: string, releaseSlot = true) => {
@@ -422,12 +423,10 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
   if (plugin.settings.readonlySyncEnabled) {
     dump(`Read-only mode: Intercepted file upload request for ${data.path}`)
     plugin.fileSyncTasks.completed++
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
   if (isPathExcluded(data.path, plugin)) {
     plugin.fileSyncTasks.completed++
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
   dump(`Receive file need upload (queued): `, data.path, data.sessionId)
@@ -437,14 +436,12 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
   if (!file) {
     dump(`File not found for upload: ${data.path} `)
     plugin.fileSyncTasks.completed++
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
   if (isLargeBinarySyncRisk(file.stat.size, plugin)) {
     dump(`Skip file upload for large attachment (${describeBinarySyncLimit()} limit): ${data.path}`, file.stat.size)
     showSyncNotice(`Fast Note Sync skipped large file upload: ${data.path}`, 5000)
     plugin.fileSyncTasks.completed++
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
 
@@ -477,7 +474,6 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
         plugin.totalChunksToUpload -= actualTotalChunks
         plugin.concurrencyLimiter.releaseSlot(data.path)
         plugin.fileSyncTasks.completed++
-        plugin.progressTracker.recordDownloadComplete('file');
         return;
       }
 
@@ -601,7 +597,6 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
           try { plugin.app.saveLocalStorage(checkpointKey, null) } catch { /* ignore */ }
           plugin.concurrencyLimiter.releaseSlot(data.path)
           plugin.fileSyncTasks.completed++
-          plugin.progressTracker.recordDownloadComplete('file');
           return;
         }
 
@@ -659,7 +654,6 @@ export const receiveFileUpload = async function (data: FileUploadMessage, plugin
       plugin.totalChunksToUpload -= actualTotalChunks
       plugin.concurrencyLimiter.releaseSlot(data.path);
       plugin.fileSyncTasks.completed++
-      plugin.progressTracker.recordDownloadComplete('file');
     } finally {
       // 任务结束（完成或取消/失败），移除活跃标记
       activeUploadsMap.delete(data.path);
@@ -682,14 +676,12 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
   plugin.pendingFileDeleteAcks.delete(data.path)
   if (isPathExcluded(data.path, plugin)) {
     plugin.fileSyncTasks.completed++;
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
   if (isLargeBinarySyncRisk(data.size, plugin)) {
     dump(`Skip file download for large attachment (${describeBinarySyncLimit()} limit): ${data.path}`, data.size)
     showSyncNotice(`Fast Note Sync skipped large file download: ${data.path}`, 5000)
     plugin.fileSyncTasks.completed++;
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
 
@@ -701,14 +693,12 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
       if (FileCloudPreview.isRestrictedType(ext)) {
         dump(`Cloud Preview: Skipping restricted file download: ${data.path}`);
         plugin.fileSyncTasks.completed++;
-        plugin.progressTracker.recordDownloadComplete('file');
         return;
       }
     } else {
       // 未开启类型限制：由于启用了云预览，跳过所有附件下载
       dump(`Cloud Preview: Skipping all file downloads: ${data.path}`);
       plugin.fileSyncTasks.completed++;
-      plugin.progressTracker.recordDownloadComplete('file');
       return;
     }
   }
@@ -751,8 +741,6 @@ export const receiveFileSyncUpdate = async function (data: ReceiveFileSyncUpdate
     if (data.lastTime && data.lastTime > Number(plugin.localStorageManager.getMetadata("lastFileSyncTime"))) {
       plugin.localStorageManager.setMetadata("lastFileSyncTime", data.lastTime)
     }
-
-    plugin.fileSyncTasks.completed++
   } catch (e) {
     plugin.concurrencyLimiter.releaseSlot(slotKey)
     throw e;
@@ -767,7 +755,6 @@ export const receiveFileSyncDelete = async function (data: ReceivePathMessage, p
 
   if (isPathExcluded(data.path, plugin)) {
     plugin.fileSyncTasks.completed++;
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
 
@@ -777,13 +764,11 @@ export const receiveFileSyncDelete = async function (data: ReceivePathMessage, p
       if (FileCloudPreview.isRestrictedType(ext)) {
         dump(`Cloud Preview: Skipping restricted file delete: ${data.path}`);
         plugin.fileSyncTasks.completed++;
-        plugin.progressTracker.recordDownloadComplete('file');
         return;
       }
     } else {
       dump(`Cloud Preview: Skipping all file deletes: ${data.path}`);
       plugin.fileSyncTasks.completed++;
-      plugin.progressTracker.recordDownloadComplete('file');
       return;
     }
   }
@@ -820,7 +805,6 @@ export const receiveFileSyncDelete = async function (data: ReceivePathMessage, p
   });
 
   plugin.fileSyncTasks.completed++
-  plugin.progressTracker.recordDownloadComplete('file');
 }
 
 /**
@@ -831,7 +815,6 @@ export const receiveFileSyncMtime = async function (data: ReceiveMtimeMessage, p
 
   if (isPathExcluded(data.path, plugin)) {
     plugin.fileSyncTasks.completed++;
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
 
@@ -841,13 +824,11 @@ export const receiveFileSyncMtime = async function (data: ReceiveMtimeMessage, p
       if (FileCloudPreview.isRestrictedType(ext)) {
         dump(`Cloud Preview: Skipping restricted file mtime update: ${data.path}`);
         plugin.fileSyncTasks.completed++;
-        plugin.progressTracker.recordDownloadComplete('file');
         return;
       }
     } else {
       dump(`Cloud Preview: Skipping all file mtime updates: ${data.path}`);
       plugin.fileSyncTasks.completed++;
-      plugin.progressTracker.recordDownloadComplete('file');
       return;
     }
   }
@@ -893,7 +874,6 @@ export const receiveFileSyncMtime = async function (data: ReceiveMtimeMessage, p
   // FileSyncMtime indicates file already exists on server (no upload needed), release slot acquired by fileModify
   if (data.path) plugin.concurrencyLimiter.releaseSlot(data.path)
   plugin.fileSyncTasks.completed++
-  plugin.progressTracker.recordDownloadComplete('file');
 }
 
 /**
@@ -1148,7 +1128,6 @@ export const receiveFileSyncRename = async function (data: { oldPath: string; pa
 
     if (isPathExcluded(data.path, plugin) || isPathExcluded(data.oldPath, plugin)) {
     plugin.fileSyncTasks.completed++;
-    plugin.progressTracker.recordDownloadComplete('file');
     return
   }
 
@@ -1217,7 +1196,6 @@ export const receiveFileSyncRename = async function (data: { oldPath: string; pa
             dump(`Target attachment already exists and matches hash, skipping rename: ${data.path}`)
             plugin.fileHashManager.setFileHash(data.path, data.contentHash, targetFile.stat.mtime, targetFile.stat.size)
             plugin.fileSyncTasks.completed++
-            plugin.progressTracker.recordDownloadComplete('file');
             return
           }
         }
@@ -1243,7 +1221,6 @@ export const receiveFileSyncRename = async function (data: { oldPath: string; pa
   });
 
   plugin.fileSyncTasks.completed++
-  plugin.progressTracker.recordDownloadComplete('file');
 }
 
 /**
@@ -1343,6 +1320,7 @@ const handleFileChunkDownloadComplete = async function (session: FileDownloadSes
     if (session.tempDir) await clearTempChunksDir(plugin, session.sessionId)
     plugin.downloadedFilesCount++
     plugin.progressTracker.recordDownloadComplete('file');
+    plugin.fileSyncTasks.completed++
   } catch (e) {
     dumpError(`Error completing file download for ${session.path}`, e)
     if (!checkAndNotifyCaseConflict(e, session.path, plugin, 'FileDownload')) {
